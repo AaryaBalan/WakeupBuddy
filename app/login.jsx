@@ -6,7 +6,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Login() {
     const router = useRouter();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
+
+    const handleLogin = () => {
+        const loginData = {
+            email,
+            password
+        };
+        console.log('Login Data:', loginData);
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -41,6 +51,8 @@ export default function Login() {
                             placeholderTextColor="#666"
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            value={email}
+                            onChangeText={setEmail}
                         />
                     </View>
 
@@ -52,6 +64,8 @@ export default function Login() {
                                 placeholder="Enter your password"
                                 placeholderTextColor="#666"
                                 secureTextEntry={!passwordVisible}
+                                value={password}
+                                onChangeText={setPassword}
                             />
                             <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
                                 <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="#999" />
@@ -63,7 +77,7 @@ export default function Login() {
                         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.loginButton}>
+                    <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                         <Text style={styles.loginButtonText}>Log In</Text>
                     </TouchableOpacity>
                 </View>

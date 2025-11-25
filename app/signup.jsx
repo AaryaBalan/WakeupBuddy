@@ -1,13 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Signup() {
     const router = useRouter();
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [agreed, setAgreed] = useState(false);
+
+    const handleSignup = () => {
+        const signupData = {
+            fullName,
+            email,
+            password,
+            agreed
+        };
+        console.log('Signup Data:', signupData);
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -42,6 +55,8 @@ export default function Signup() {
                                 placeholder="Enter your name"
                                 placeholderTextColor="#666"
                                 autoCapitalize="words"
+                                value={fullName}
+                                onChangeText={setFullName}
                             />
                         </View>
 
@@ -53,6 +68,8 @@ export default function Signup() {
                                 placeholderTextColor="#666"
                                 keyboardType="email-address"
                                 autoCapitalize="none"
+                                value={email}
+                                onChangeText={setEmail}
                             />
                         </View>
 
@@ -64,6 +81,8 @@ export default function Signup() {
                                     placeholder="••••••••"
                                     placeholderTextColor="#666"
                                     secureTextEntry={!passwordVisible}
+                                    value={password}
+                                    onChangeText={setPassword}
                                 />
                                 <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
                                     <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="#999" />
@@ -81,7 +100,7 @@ export default function Signup() {
                             </Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.signupButton}>
+                        <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
                             <Text style={styles.signupButtonText}>Create Account</Text>
                         </TouchableOpacity>
                     </View>

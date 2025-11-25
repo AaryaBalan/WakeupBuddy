@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from "expo-router";
-import { Image, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
@@ -122,11 +123,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#1a1a1a", // Very dark gray, almost black but visible on lighter screens, wait, on black bg it should be visible. 
-    // The image shows "WakeBuddy" as dark text on black background? No, it's likely a very dark grey or it's a "ghost" text.
-    // Let's look at the image again. It says "WakeBuddy" in a dark color, barely visible against the black. 
-    // Let's try a dark grey.
-    color: "#222",
+    color: "white",
     marginBottom: 20,
     letterSpacing: 1,
   },
