@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import ToastManager, { Toast } from 'toastify-react-native';
 
 export default function Login() {
     const router = useRouter();
@@ -10,12 +12,34 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         const loginData = {
             email,
             password
         };
         console.log('Login Data:', loginData);
+        try {
+            const response = await axios.get(`http://192.168.31.95:3000/users/email/${email}`);
+            console.log('Login Response:', response.data);
+            if (response.data.found) {
+                if (response.data.user.password === password) {
+                    Toast.success('Login Successful!')
+                    setTimeout(() => {
+                        router.replace('/(tabs)/home');
+                    }, 2000);
+                } else {
+                    Toast.error('Incorrect Password...!',)
+                }
+            } else {
+                Toast.error('User Not Found!')
+            }
+        } catch (error) {
+            console.error('Login Failed:', error);
+            if (error.response) {
+                console.error('Error Data:', error.response.data);
+                console.error('Error Status:', error.response.status);
+            }
+        }
     };
 
     return (
@@ -109,6 +133,7 @@ export default function Login() {
                 </View>
 
             </View>
+            <ToastManager />
         </SafeAreaView>
     );
 }

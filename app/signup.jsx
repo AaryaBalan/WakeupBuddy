@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import ToastManager, { Toast } from 'toastify-react-native';
 
 export default function Signup() {
     const router = useRouter();
@@ -12,7 +14,7 @@ export default function Signup() {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [agreed, setAgreed] = useState(false);
 
-    const handleSignup = () => {
+    const handleSignup = async () => {
         const signupData = {
             fullName,
             email,
@@ -20,6 +22,22 @@ export default function Signup() {
             agreed
         };
         console.log('Signup Data:', signupData);
+
+        try {
+            const response = await axios.post('http://192.168.31.95:3000/users/register', signupData);
+            console.log('Registration Successful:', response.data);
+            // You might want to navigate to login or home screen here
+            Toast.success('Registration Successful!')
+            setTimeout(() => {
+                router.replace('/login');
+            }, 2000);
+        } catch (error) {
+            console.error('Registration Failed:', error);
+            if (error.response) {
+                console.error('Error Data:', error.response.data);
+                console.error('Error Status:', error.response.status);
+            }
+        }
     };
 
     return (
@@ -133,6 +151,8 @@ export default function Signup() {
 
                 </View>
             </ScrollView>
+            {/* Toast provider should be at the root level */}
+            <ToastManager />
         </SafeAreaView>
     );
 }
