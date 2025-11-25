@@ -1,0 +1,448 @@
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+export default function AlarmEditorScreen() {
+    const router = useRouter();
+    const [date, setDate] = useState(new Date());
+    const [showPicker, setShowPicker] = useState(false);
+    const [mode, setMode] = useState('buddy'); // 'solo' | 'buddy'
+    const [buddyType, setBuddyType] = useState('stranger'); // 'stranger' | 'request'
+    const [buddyUsername, setBuddyUsername] = useState('');
+    const [repeatDays, setRepeatDays] = useState([false, true, true, true, true, false, false]); // M T W T F S S
+    const [difficulty, setDifficulty] = useState('medium'); // 'easy' | 'medium' | 'hard'
+    const [preWake, setPreWake] = useState(true);
+
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    const onChange = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setShowPicker(Platform.OS === 'ios');
+        setDate(currentDate);
+    };
+
+    const toggleDay = (index) => {
+        const newDays = [...repeatDays];
+        newDays[index] = !newDays[index];
+        setRepeatDays(newDays);
+    };
+
+    const formatTime = (date) => {
+        let hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'AM' : 'AM'; // Logic fix needed for PM
+        // Actually, let's use proper formatting
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).replace(' ', '');
+    };
+
+    // Custom formatter to separate AM/PM
+    const getTimeParts = (date) => {
+        let hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        const strMinutes = minutes < 10 ? '0' + minutes : minutes;
+        return { time: `${hours}:${strMinutes}`, ampm };
+    }
+
+    const { time, ampm } = getTimeParts(date);
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()}>
+                        <Text style={styles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>New Alarm</Text>
+                    <View style={{ width: 50 }} />
+                </View>
+
+                {/* Time Display */}
+                <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.timeContainer}>
+                    <Text style={styles.timeText}>{time}</Text>
+                    <Text style={styles.ampmText}>{ampm}</Text>
+                </TouchableOpacity>
+
+                {showPicker && (
+                    <DateTimePicker
+                        testID="dateTimePicker"
+                        value={date}
+                        mode="time"
+                        is24Hour={false}
+                        display="spinner"
+                        onChange={onChange}
+                        textColor="white"
+                    />
+                )}
+
+                <Text style={styles.sectionLabel}>WAKE EXPERIENCE</Text>
+
+                {/* Mode Toggle */}
+                <View style={styles.modeToggleContainer}>
+                    <TouchableOpacity
+                        style={[styles.modeButton, mode === 'solo' && styles.modeButtonActive]}
+                        onPress={() => setMode('solo')}
+                    >
+                        <Text style={[styles.modeButtonText, mode === 'solo' && styles.modeButtonTextActive]}>Solo Mode</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.modeButton, mode === 'buddy' && styles.modeButtonActive]}
+                        onPress={() => setMode('buddy')}
+                    >
+                        <Text style={[styles.modeButtonText, mode === 'buddy' && styles.modeButtonTextActive]}>Wake Buddy</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Wake Buddy Card */}
+                {mode === 'buddy' && (
+                    <View style={styles.buddyCard}>
+                        <View style={styles.buddyRow}>
+                            <View style={styles.buddyIconContainer}>
+                                <Ionicons name="globe-outline" size={24} color="#fff" />
+                            </View>
+                            <View style={styles.buddyInfo}>
+                                <Text style={styles.buddyTitle}>
+                                    {buddyType === 'stranger' ? 'Stranger' : 'Request Pairing'}
+                                </Text>
+                                <Text style={styles.buddySubtitle}>
+                                    {buddyType === 'stranger' ? 'Random match' : 'Enter username'}
+                                </Text>
+                            </View>
+                            <TouchableOpacity
+                                style={styles.changeButton}
+                                onPress={() => setBuddyType(buddyType === 'stranger' ? 'request' : 'stranger')}
+                            >
+                                <Text style={styles.changeButtonText}>Change</Text>
+                                <Ionicons name="chevron-forward" size={16} color="#C9E265" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {buddyType === 'request' && (
+                            <TextInput
+                                style={styles.usernameInput}
+                                placeholder="Enter username to pair"
+                                placeholderTextColor="#666"
+                                value={buddyUsername}
+                                onChangeText={setBuddyUsername}
+                            />
+                        )}
+
+                        <View style={styles.buddyFooter}>
+                            <Ionicons name="information-circle-outline" size={16} color="#888" />
+                            <Text style={styles.buddyFooterText}>
+                                We'll pair you with someone in your timezone. If you oversleep, you break the streak for both!
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
+                <Text style={styles.sectionLabel}>CONFIGURATION</Text>
+
+                {/* Repeat */}
+                <View style={styles.configItem}>
+                    <Text style={styles.configLabel}>Repeat</Text>
+                    <View style={styles.daysContainer}>
+                        {days.map((day, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                style={[styles.dayButton, repeatDays[index] && styles.dayButtonActive]}
+                                onPress={() => toggleDay(index)}
+                            >
+                                <Text style={[styles.dayText, repeatDays[index] && styles.dayTextActive]}>{day}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
+
+                {/* Puzzle Difficulty */}
+                <View style={styles.configItem}>
+                    <Text style={styles.configLabel}>Puzzle Difficulty</Text>
+                    <View style={styles.difficultyContainer}>
+                        {['Easy', 'Medium', 'Hard'].map((level) => (
+                            <TouchableOpacity
+                                key={level}
+                                style={[styles.difficultyButton, difficulty === level.toLowerCase() && styles.difficultyButtonActive]}
+                                onPress={() => setDifficulty(level.toLowerCase())}
+                            >
+                                <Text style={[styles.difficultyText, difficulty === level.toLowerCase() && styles.difficultyTextActive]}>
+                                    {level}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
+
+                {/* Sound */}
+                <TouchableOpacity style={styles.configRow}>
+                    <Text style={styles.configLabel}>Sound</Text>
+                    <View style={styles.configValueContainer}>
+                        <Text style={styles.configValue}>Neon Rise</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#666" />
+                    </View>
+                </TouchableOpacity>
+
+                {/* Label */}
+                <TouchableOpacity style={styles.configRow}>
+                    <Text style={styles.configLabel}>Label</Text>
+                    <View style={styles.configValueContainer}>
+                        <Text style={styles.configValue}>Work</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#666" />
+                    </View>
+                </TouchableOpacity>
+
+                {/* Pre-wake Notification */}
+                <View style={styles.configRow}>
+                    <View>
+                        <Text style={styles.configLabel}>Pre-wake Notification</Text>
+                        <Text style={styles.configSublabel}>Get notified 5 min before to pair</Text>
+                    </View>
+                    <Switch
+                        trackColor={{ false: "#333", true: "#C9E265" }}
+                        thumbColor={preWake ? "#000" : "#f4f3f4"}
+                        ios_backgroundColor="#3e3e3e"
+                        onValueChange={setPreWake}
+                        value={preWake}
+                    />
+                </View>
+
+                {/* Save Button */}
+                <TouchableOpacity style={styles.saveButton} onPress={() => { console.log('Alarm Saved'); router.back(); }}>
+                    <Text style={styles.saveButtonText}>Save Alarm</Text>
+                </TouchableOpacity>
+
+            </ScrollView>
+        </SafeAreaView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#000',
+    },
+    scrollContent: {
+        padding: 20,
+        paddingBottom: 40,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 40,
+    },
+    cancelText: {
+        color: '#888',
+        fontSize: 16,
+    },
+    headerTitle: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    timeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'baseline',
+        marginBottom: 40,
+    },
+    timeText: {
+        fontSize: 80,
+        fontWeight: 'bold',
+        color: '#fff',
+        letterSpacing: 2,
+    },
+    ampmText: {
+        fontSize: 24,
+        color: '#888',
+        marginLeft: 10,
+    },
+    sectionLabel: {
+        color: '#888',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginBottom: 15,
+        letterSpacing: 1,
+    },
+    modeToggleContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#111',
+        borderRadius: 12,
+        padding: 4,
+        marginBottom: 20,
+    },
+    modeButton: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+        borderRadius: 10,
+    },
+    modeButtonActive: {
+        backgroundColor: '#222',
+    },
+    modeButtonText: {
+        color: '#888',
+        fontWeight: '600',
+    },
+    modeButtonTextActive: {
+        color: '#fff',
+    },
+    buddyCard: {
+        borderWidth: 1,
+        borderColor: '#C9E265',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 30,
+        backgroundColor: '#0a0a0a',
+    },
+    buddyRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    buddyIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#1a1a1a',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    buddyInfo: {
+        flex: 1,
+    },
+    buddyTitle: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    buddySubtitle: {
+        color: '#888',
+        fontSize: 14,
+    },
+    changeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    changeButtonText: {
+        color: '#C9E265',
+        fontWeight: 'bold',
+    },
+    usernameInput: {
+        backgroundColor: '#111',
+        color: '#fff',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#333',
+    },
+    buddyFooter: {
+        flexDirection: 'row',
+        gap: 8,
+        marginTop: 5,
+    },
+    buddyFooterText: {
+        color: '#666',
+        fontSize: 12,
+        flex: 1,
+        lineHeight: 16,
+    },
+    configItem: {
+        marginBottom: 25,
+    },
+    configLabel: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 12,
+    },
+    daysContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    dayButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#111',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#333',
+    },
+    dayButtonActive: {
+        backgroundColor: '#C9E265', // Or outline style if preferred, but filled is clearer
+        borderColor: '#C9E265',
+    },
+    dayText: {
+        color: '#888',
+        fontWeight: 'bold',
+    },
+    dayTextActive: {
+        color: '#000',
+    },
+    difficultyContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#111',
+        borderRadius: 20,
+        padding: 4,
+    },
+    difficultyButton: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        borderRadius: 16,
+    },
+    difficultyButtonActive: {
+        backgroundColor: '#C9E265',
+    },
+    difficultyText: {
+        color: '#888',
+        fontWeight: '600',
+    },
+    difficultyTextActive: {
+        color: '#000',
+    },
+    configRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 25,
+        paddingVertical: 5,
+    },
+    configValueContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    configValue: {
+        color: '#C9E265',
+        fontSize: 16,
+    },
+    configSublabel: {
+        color: '#666',
+        fontSize: 12,
+        marginTop: 4,
+    },
+    saveButton: {
+        backgroundColor: '#C9E265',
+        borderRadius: 30,
+        paddingVertical: 18,
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    saveButtonText: {
+        color: '#000',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+});
