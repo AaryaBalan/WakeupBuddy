@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -23,6 +24,7 @@ export default function Login() {
             console.log('Login Response:', response.data);
             if (response.data.found) {
                 if (response.data.user.password === password) {
+                    await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
                     Toast.success('Login Successful!')
                     setTimeout(() => {
                         router.replace('/(tabs)/home');
