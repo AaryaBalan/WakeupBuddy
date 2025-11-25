@@ -114,9 +114,6 @@ export default function AlarmsScreen() {
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Alarms</Text>
-                <TouchableOpacity onPress={() => router.push('/screens/alarm-editor')}>
-                    <Ionicons name="add" size={28} color="#C9E265" />
-                </TouchableOpacity>
             </View>
 
             <FlatList
@@ -125,6 +122,12 @@ export default function AlarmsScreen() {
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.listContent}
             />
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => router.push('/screens/alarm-editor')}
+            >
+                <Ionicons name="add" size={32} color="#000" />
+            </TouchableOpacity>
         </SafeAreaView>
     );
 }
@@ -194,5 +197,21 @@ const styles = StyleSheet.create({
     },
     deleteButton: {
         padding: 5,
+    },
+    fab: {
+        position: 'absolute',
+        bottom: 20,
+        alignSelf: 'center',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#C9E265',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
 });
