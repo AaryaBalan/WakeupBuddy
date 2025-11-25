@@ -1,12 +1,18 @@
+
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import axios from 'axios';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Toast } from 'toastify-react-native';
 
 export default function AlarmEditorScreen() {
     const router = useRouter();
+    const { alarm: alarmParam } = useLocalSearchParams();
+
     const [date, setDate] = useState(new Date());
     const [showPicker, setShowPicker] = useState(false);
     const [mode, setMode] = useState('buddy'); // 'solo' | 'buddy'
@@ -15,8 +21,113 @@ export default function AlarmEditorScreen() {
     const [repeatDays, setRepeatDays] = useState([false, true, true, true, true, false, false]); // M T W T F S S
     const [difficulty, setDifficulty] = useState('medium'); // 'easy' | 'medium' | 'hard'
     const [preWake, setPreWake] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+
+    const [alarmId, setAlarmId] = useState(null);
+    const [isEnabled, setIsEnabled] = useState(true);
 
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    useEffect(() => {
+        if (alarmParam) {
+            try {
+                const alarm = JSON.parse(alarmParam);
+                setIsEditing(true);
+
+                setAlarmId(alarm.id);
+                setIsEnabled(alarm.enabled !== undefined ? alarm.enabled : true);
+
+                // Parse time (e.g., "07:00", "AM") back to Date object
+                const [hoursStr, minutesStr] = alarm.time.split(':');
+                let hours = parseInt(hoursStr);
+                const minutes = parseInt(minutesStr);
+
+                // Adjust for AM/PM if needed, assuming stored time is 12h format based on previous code
+                // Actually, let's check how we stored it. We stored "07:00" and "AM".
+                // If it's PM and not 12, add 12. If it's AM and 12, set to 0.
+                if (alarm.ampm === 'PM' && hours !== 12) hours += 12;
+                if (alarm.ampm === 'AM' && hours === 12) hours = 0;
+
+                const newDate = new Date();
+                newDate.setHours(hours);
+                newDate.setMinutes(minutes);
+                setDate(newDate);
+
+                // Set days
+                // alarm.days might be a string "[0,1...]" or array depending on backend response
+                let daysArray = alarm.days;
+                if (typeof daysArray === 'string') {
+                    try { daysArray = JSON.parse(daysArray); } catch (e) { }
+                }
+                if (Array.isArray(daysArray)) {
+                    setRepeatDays(daysArray.map(d => d === 1 || d === true));
+                }
+
+                // Set Mode & Buddy
+                if (alarm.solo_mode) {
+                    setMode('solo');
+                } else {
+                    setMode('buddy');
+                    if (alarm.buddy) {
+                        setBuddyType('request');
+                        setBuddyUsername(alarm.buddy);
+                    } else {
+                        setBuddyType('stranger');
+                    }
+                }
+
+            } catch (e) {
+                console.error("Error parsing alarm param", e);
+            }
+        }
+    }, [alarmParam]);
+
+    const onSetTime = async () => {
+        try {
+            const userString = await AsyncStorage.getItem('user');
+            if (!userString) {
+                console.error('No user found');
+                return;
+            }
+            const user = JSON.parse(userString);
+
+            let buddyValue = null;
+            if (mode === 'buddy') {
+                if (buddyType === 'request') {
+                    buddyValue = buddyUsername;
+                }
+                // If stranger, buddyValue remains null
+            }
+
+            const payload = {
+                time: time,
+                ampm: ampm,
+                label: 'Work', // Hardcoded for now as per UI
+                days: repeatDays.map(day => day ? 1 : 0),
+                user_id: user.id,
+                solo_mode: mode === 'solo',
+                buddy: buddyValue,
+                enabled: true // Use the state variable which is initialized from params or defaults to true
+            };
+
+            console.log('Saving alarm:', payload);
+
+            if (isEditing) {
+                const response = await axios.patch(`${process.env.EXPO_PUBLIC_API_URL}/alarms/edit/${alarmId}`, payload);
+                console.log('Alarm Updated:', response.data);
+                Toast.success('Alarm Updated Successfully');
+            } else {
+                const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/alarms/set`, payload);
+                console.log('Alarm Saved:', response.data);
+                Toast.success('Alarm Saved Successfully');
+            }
+
+            router.back();
+        } catch (error) {
+            console.error('Error saving alarm:', error);
+            Toast.error('Failed to save alarm');
+        }
+    }
 
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
@@ -60,7 +171,7 @@ export default function AlarmEditorScreen() {
                     <TouchableOpacity onPress={() => router.back()}>
                         <Text style={styles.cancelText}>Cancel</Text>
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>New Alarm</Text>
+                    <Text style={styles.headerTitle}>{isEditing ? 'Edit Alarm' : 'New Alarm'}</Text>
                     <View style={{ width: 50 }} />
                 </View>
 
@@ -213,7 +324,7 @@ export default function AlarmEditorScreen() {
                 </View>
 
                 {/* Save Button */}
-                <TouchableOpacity style={styles.saveButton} onPress={() => { console.log('Alarm Saved'); router.back(); }}>
+                <TouchableOpacity style={styles.saveButton} onPress={onSetTime}>
                     <Text style={styles.saveButtonText}>Save Alarm</Text>
                 </TouchableOpacity>
 

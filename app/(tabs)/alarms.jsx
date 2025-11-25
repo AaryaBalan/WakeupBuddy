@@ -1,41 +1,112 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { FlatList, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Toast } from 'toastify-react-native';
 
 export default function AlarmsScreen() {
     const router = useRouter();
-    const [alarms, setAlarms] = useState([
-        { id: '1', time: '07:00', ampm: 'AM', label: 'Work', enabled: true, days: 'Mon, Tue, Wed, Thu, Fri' },
-        { id: '2', time: '09:00', ampm: 'AM', label: 'Gym', enabled: false, days: 'Sat, Sun' },
-    ]);
+    const [alarms, setAlarms] = useState([]);
 
-    const toggleAlarm = (id) => {
+    const fetchAlarms = async () => {
+        try {
+            const userString = await AsyncStorage.getItem('user');
+            if (userString) {
+                const user = JSON.parse(userString);
+                const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/alarms/user/${user.id}`);
+                setAlarms(response.data.alarms);
+            }
+        } catch (error) {
+            console.error('Error fetching alarms:', error);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchAlarms();
+        }, [])
+    );
+
+    const toggleAlarm = async (id, currentStatus) => {
+        console.log(id, currentStatus);
+        // Optimistic update
         setAlarms(alarms.map(alarm =>
             alarm.id === id ? { ...alarm, enabled: !alarm.enabled } : alarm
         ));
+
+        try {
+            const endpoint = currentStatus ? 'off' : 'on';
+            await axios.patch(`${process.env.EXPO_PUBLIC_API_URL}/alarms/${endpoint}/${id}`);
+        } catch (error) {
+            console.error('Error toggling alarm:', error);
+            // Revert on error
+            fetchAlarms();
+        }
+    };
+
+    const deleteAlarm = async (id) => {
+        try {
+            await axios.delete(`${process.env.EXPO_PUBLIC_API_URL}/alarms/${id}`);
+            setAlarms(alarms.filter(a => a.id !== id));
+            Toast.success('Alarm deleted');
+        } catch (error) {
+            console.error('Error deleting alarm:', error);
+            Toast.error('Failed to delete alarm');
+        }
+    };
+
+    const formatDays = (daysData) => {
+        if (!daysData) return '';
+        // Handle if it comes as a string representation of array or actual array
+        let daysArray = daysData;
+        if (typeof daysData === 'string' && daysData.startsWith('[')) {
+            try {
+                daysArray = JSON.parse(daysData);
+            } catch (e) {
+                return daysData;
+            }
+        }
+
+        if (!Array.isArray(daysArray)) return daysData;
+
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const activeDays = daysArray.map((d, i) => (d === 1 || d === true) ? dayNames[i] : null).filter(Boolean);
+
+        if (activeDays.length === 7) return 'Everyday';
+        if (activeDays.length === 0) return 'Once';
+        return activeDays.join(', ');
     };
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
             style={styles.alarmItem}
-            onPress={() => router.push('/screens/alarm-editor')}
+            onPress={() => router.push({
+                pathname: '/screens/alarm-editor',
+                params: { alarm: JSON.stringify(item) }
+            })}
         >
             <View style={styles.alarmInfo}>
                 <View style={styles.timeContainer}>
                     <Text style={[styles.timeText, !item.enabled && styles.disabledText]}>{item.time}</Text>
                     <Text style={[styles.ampmText, !item.enabled && styles.disabledText]}>{item.ampm}</Text>
                 </View>
-                <Text style={styles.alarmLabel}>{item.label} • {item.days}</Text>
+                <Text style={styles.alarmLabel}>{item.label} • {formatDays(item.days)}</Text>
             </View>
-            <Switch
-                trackColor={{ false: "#333", true: "#C9E265" }}
-                thumbColor={item.enabled ? "#000" : "#f4f3f4"}
-                ios_backgroundColor="#3e3e3e"
-                onValueChange={() => toggleAlarm(item.id)}
-                value={item.enabled}
-            />
+            <View style={styles.actions}>
+                <Switch
+                    trackColor={{ false: "#333", true: "#C9E265" }}
+                    thumbColor={item.enabled ? "#000" : "#f4f3f4"}
+                    ios_backgroundColor="#3e3e3e"
+                    onValueChange={() => toggleAlarm(item.id, item.enabled)}
+                    value={item.enabled}
+                />
+                <TouchableOpacity onPress={() => deleteAlarm(item.id)} style={styles.deleteButton}>
+                    <Ionicons name="trash-outline" size={20} color="#ff4444" />
+                </TouchableOpacity>
+            </View>
         </TouchableOpacity>
     );
 
@@ -115,5 +186,13 @@ const styles = StyleSheet.create({
     alarmLabel: {
         color: '#888',
         fontSize: 14,
+    },
+    actions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    deleteButton: {
+        padding: 5,
     },
 });
