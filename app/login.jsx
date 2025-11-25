@@ -20,7 +20,7 @@ export default function Login() {
         };
         console.log('Login Data:', loginData);
         try {
-            const response = await axios.get(`http://192.168.31.95:3000/users/email/${email}`);
+            const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/users/email/${email}`);
             console.log('Login Response:', response.data);
             if (response.data.found) {
                 if (response.data.user.password === password) {

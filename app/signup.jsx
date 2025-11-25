@@ -24,7 +24,7 @@ export default function Signup() {
         console.log('Signup Data:', signupData);
 
         try {
-            const response = await axios.post('http://192.168.31.95:3000/users/register', signupData);
+            const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/users/register`, signupData);
             console.log('Registration Successful:', response.data);
             // You might want to navigate to login or home screen here
             Toast.success('Registration Successful!')
