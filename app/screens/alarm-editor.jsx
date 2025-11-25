@@ -17,9 +17,9 @@ export default function AlarmEditorScreen() {
     const [showPicker, setShowPicker] = useState(false);
     const [mode, setMode] = useState('buddy'); // 'solo' | 'buddy'
     const [buddyType, setBuddyType] = useState('stranger'); // 'stranger' | 'request'
-    const [buddyUsername, setBuddyUsername] = useState('');
+    const [buddyEmail, setBuddyEmail] = useState('');
     const [repeatDays, setRepeatDays] = useState([false, true, true, true, true, false, false]); // M T W T F S S
-    const [difficulty, setDifficulty] = useState('medium'); // 'easy' | 'medium' | 'hard'
+    const [wakeMethod, setWakeMethod] = useState('call'); // 'call'
     const [preWake, setPreWake] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -70,7 +70,7 @@ export default function AlarmEditorScreen() {
                     setMode('buddy');
                     if (alarm.buddy) {
                         setBuddyType('request');
-                        setBuddyUsername(alarm.buddy);
+                        setBuddyEmail(alarm.buddy);
                     } else {
                         setBuddyType('stranger');
                     }
@@ -94,7 +94,7 @@ export default function AlarmEditorScreen() {
             let buddyValue = null;
             if (mode === 'buddy') {
                 if (buddyType === 'request') {
-                    buddyValue = buddyUsername;
+                    buddyValue = buddyEmail;
                 }
                 // If stranger, buddyValue remains null
             }
@@ -107,7 +107,8 @@ export default function AlarmEditorScreen() {
                 user_id: user.id,
                 solo_mode: mode === 'solo',
                 buddy: buddyValue,
-                enabled: true // Use the state variable which is initialized from params or defaults to true
+                wake_method: wakeMethod,
+                enabled: isEnabled // Use the state variable which is initialized from params or defaults to true
             };
 
             console.log('Saving alarm:', payload);
@@ -223,7 +224,7 @@ export default function AlarmEditorScreen() {
                                     {buddyType === 'stranger' ? 'Stranger' : 'Request Pairing'}
                                 </Text>
                                 <Text style={styles.buddySubtitle}>
-                                    {buddyType === 'stranger' ? 'Random match' : 'Enter username'}
+                                    {buddyType === 'stranger' ? 'Random match' : 'Enter email'}
                                 </Text>
                             </View>
                             <TouchableOpacity
@@ -238,10 +239,12 @@ export default function AlarmEditorScreen() {
                         {buddyType === 'request' && (
                             <TextInput
                                 style={styles.usernameInput}
-                                placeholder="Enter username to pair"
+                                placeholder="Enter email to pair"
                                 placeholderTextColor="#666"
-                                value={buddyUsername}
-                                onChangeText={setBuddyUsername}
+                                value={buddyEmail}
+                                onChangeText={setBuddyEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
                             />
                         )}
 
@@ -272,21 +275,21 @@ export default function AlarmEditorScreen() {
                     </View>
                 </View>
 
-                {/* Puzzle Difficulty */}
+                {/* Wake Method */}
                 <View style={styles.configItem}>
-                    <Text style={styles.configLabel}>Puzzle Difficulty</Text>
+                    <Text style={styles.configLabel}>Wake Method</Text>
                     <View style={styles.difficultyContainer}>
-                        {['Easy', 'Medium', 'Hard'].map((level) => (
-                            <TouchableOpacity
-                                key={level}
-                                style={[styles.difficultyButton, difficulty === level.toLowerCase() && styles.difficultyButtonActive]}
-                                onPress={() => setDifficulty(level.toLowerCase())}
-                            >
-                                <Text style={[styles.difficultyText, difficulty === level.toLowerCase() && styles.difficultyTextActive]}>
-                                    {level}
+                        <TouchableOpacity
+                            style={[styles.difficultyButton, styles.difficultyButtonActive]}
+                            onPress={() => { }}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Ionicons name="call" size={20} color="#000" />
+                                <Text style={[styles.difficultyText, styles.difficultyTextActive]}>
+                                    Voice Call
                                 </Text>
-                            </TouchableOpacity>
-                        ))}
+                            </View>
+                        </TouchableOpacity>
                     </View>
                 </View>
 
