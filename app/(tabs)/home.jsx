@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+    const router = useRouter();
     const [isEnabled, setIsEnabled] = useState(true);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
@@ -20,7 +22,10 @@ export default function HomeScreen() {
                         <Text style={styles.headerTitle}>WakeBuddy</Text>
                     </View>
                     <View style={styles.headerRight}>
-                        <TouchableOpacity style={styles.notificationButton}>
+                        <TouchableOpacity
+                            style={styles.notificationButton}
+                            onPress={() => router.push('/screens/notifications')}
+                        >
                             <Ionicons name="notifications-outline" size={24} color="#fff" />
                             <View style={styles.badge}>
                                 <Text style={styles.badgeText}>2</Text>

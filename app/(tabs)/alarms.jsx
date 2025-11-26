@@ -120,7 +120,15 @@ export default function AlarmsScreen() {
                 data={alarms}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[styles.listContent, alarms.length === 0 && styles.emptyListContent]}
+                ListEmptyComponent={
+                    <View style={styles.emptyState}>
+                        <Ionicons name="alarm-outline" size={80} color="#C9E265" />
+                        <Text style={styles.emptyTitle}>No Alarms Set</Text>
+                        <Text style={styles.emptySubtitle}>Click add button to set the alarm</Text>
+                        <Text style={styles.emptyDescription}>Connect with stranger or set alarm in solo mode</Text>
+                    </View>
+                }
             />
             <TouchableOpacity
                 style={styles.fab}
@@ -213,5 +221,32 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
+    },
+    emptyListContent: {
+        flex: 1,
+        justifyContent: 'center',
+    },
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    emptyTitle: {
+        color: '#fff',
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginTop: 20,
+    },
+    emptySubtitle: {
+        color: '#888',
+        fontSize: 16,
+        marginTop: 10,
+        textAlign: 'center',
+    },
+    emptyDescription: {
+        color: '#666',
+        fontSize: 14,
+        marginTop: 5,
+        textAlign: 'center',
     },
 });
