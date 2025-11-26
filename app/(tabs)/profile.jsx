@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -7,8 +8,10 @@ const BG = '#000';
 const GRAY = '#BDBDBD';
 
 export default function Profile() {
+  const router = useRouter();
+
   const gridSquares = Array.from({ length: 81 }).map((_, i) => ({
-    filled: Math.random() > 0.7, // Randomize filled state
+    filled: Math.random() > 0.7,
     id: i,
   }));
 
@@ -18,6 +21,10 @@ export default function Profile() {
     { key: 'help5', label: 'Help 5 Buddies', icon: 'people' },
     { key: 'locked', label: 'Locked', icon: 'lock-closed' },
   ];
+
+  const handleLogout = () => {
+    router.replace('/');
+  };
 
   return (
     <View style={styles.container}>
@@ -142,7 +149,7 @@ export default function Profile() {
           <Ionicons name="chevron-forward" size={20} color={GRAY} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#000" style={{ marginRight: 8 }} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
