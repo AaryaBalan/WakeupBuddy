@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Toast } from 'toastify-react-native';
 
 export default function NotificationsScreen() {
     const router = useRouter();
@@ -35,14 +36,27 @@ export default function NotificationsScreen() {
         }
     };
 
-    const handleAccept = (id) => {
-        // Placeholder for accept logic
-        console.log('Accepted', id);
+    const handleAccept = async (id) => {
+        console.log(id)
+        try {
+            await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${id}/accept`);
+            Toast.success('Invitation Accepted');
+            fetchNotifications(); // Refresh list
+        } catch (error) {
+            console.error('Error accepting invitation:', error);
+            Toast.error('Failed to accept invitation');
+        }
     };
 
-    const handleDecline = (id) => {
-        // Placeholder for decline logic
-        console.log('Declined', id);
+    const handleDecline = async (id) => {
+        try {
+            await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${id}/reject`);
+            Toast.success('Invitation Declined');
+            fetchNotifications(); // Refresh list
+        } catch (error) {
+            console.error('Error declining invitation:', error);
+            Toast.error('Failed to decline invitation');
+        }
     };
 
     const formatRelativeTime = (dateString) => {
@@ -64,6 +78,35 @@ export default function NotificationsScreen() {
             return `${days}d ago`;
         }
     };
+
+    const renderHistoryItem = ({ item }) => (
+        <View style={styles.historyCard}>
+            <View style={styles.historyHeader}>
+                <View style={styles.userInfo}>
+                    <View style={styles.avatarPlaceholderSmall}>
+                        <Text style={styles.avatarTextSmall}>{item.created_by.name?.charAt(0).toUpperCase()}</Text>
+                    </View>
+                    <View>
+                        <Text style={styles.userNameSmall}>{item.created_by.name}</Text>
+                        <Text style={styles.historyText}>
+                            {item.status === 1 ? 'You accepted the request.' : 'You declined the request.'}
+                        </Text>
+                    </View>
+                </View>
+                <Text style={styles.timeAgo}>{formatRelativeTime(item.time)}</Text>
+            </View>
+            <View style={styles.historyBadge}>
+                <Ionicons
+                    name={item.status === 1 ? "checkmark-circle" : "close-circle"}
+                    size={16}
+                    color={item.status === 1 ? "#C9E265" : "#ff4444"}
+                />
+                <Text style={[styles.historyStatus, { color: item.status === 1 ? "#C9E265" : "#ff4444" }]}>
+                    {item.status === 1 ? 'Accepted' : 'Declined'}
+                </Text>
+            </View>
+        </View>
+    );
 
     const renderInviteItem = ({ item }) => (
         <View style={styles.inviteCard}>
@@ -100,6 +143,13 @@ export default function NotificationsScreen() {
         </View>
     );
 
+    const renderItem = ({ item }) => {
+        if (item.status === 1 || item.status === -1) {
+            return renderHistoryItem({ item });
+        }
+        return renderInviteItem({ item });
+    };
+
     // Separate invites and earlier notifications if needed. 
     // For now, I'll render everything as invites based on the UI, 
     // or we can differentiate based on some data field. 
@@ -123,7 +173,7 @@ export default function NotificationsScreen() {
 
             <FlatList
                 data={notifications}
-                renderItem={renderInviteItem}
+                renderItem={renderItem}
                 keyExtractor={item => item.id.toString()}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
@@ -275,5 +325,54 @@ const styles = StyleSheet.create({
     emptyText: {
         color: '#666',
         fontSize: 16,
+    },
+    // History Card Styles
+    historyCard: {
+        backgroundColor: '#111',
+        borderRadius: 16,
+        padding: 15,
+        marginBottom: 15,
+        opacity: 0.8,
+    },
+    historyHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 10,
+    },
+    avatarPlaceholderSmall: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#222',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    avatarTextSmall: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    userNameSmall: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginBottom: 2,
+    },
+    historyText: {
+        color: '#888',
+        fontSize: 12,
+    },
+    historyBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 42, // Align with text
+        marginTop: 5,
+    },
+    historyStatus: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginLeft: 5,
     },
 });
