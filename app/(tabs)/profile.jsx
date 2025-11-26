@@ -142,12 +142,12 @@ export default function Profile() {
           <Ionicons name="chevron-forward" size={20} color={GRAY} />
         </TouchableOpacity>
 
-        <View style={styles.footerRow}>
-          <Text style={styles.versionText}>WakeBuddy v1.0.2</Text>
-          <TouchableOpacity>
-            <Text style={styles.logoutText}>Log Out</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7}>
+          <Ionicons name="log-out-outline" size={20} color="#000" style={{ marginRight: 8 }} />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.versionText}>WakeBuddy v1.0.2</Text>
 
         <View style={{ height: 80 }} />
       </ScrollView>
@@ -269,7 +269,16 @@ const styles = StyleSheet.create({
   },
   premiumText: { color: '#fff', marginLeft: 12 },
 
-  footerRow: { marginTop: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 2 },
-  versionText: { color: GRAY, fontSize: 12 },
-  logoutText: { color: GRAY, fontSize: 12 },
+  logoutButton: {
+    marginTop: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: NEON,
+  },
+  logoutText: { color: '#000', fontSize: 15, fontWeight: '700' },
+  versionText: { color: GRAY, fontSize: 12, textAlign: 'center', marginTop: 16 },
 });
