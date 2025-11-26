@@ -111,31 +111,25 @@ export default function AlarmEditorScreen() {
                 enabled: isEnabled // Use the state variable which is initialized from params or defaults to true
             };
 
-            console.log('Saving alarm:', payload);
-
             if (isEditing) {
                 const response = await axios.patch(`${process.env.EXPO_PUBLIC_API_URL}/alarms/edit/${alarmId}`, payload);
-                console.log('Alarm Updated:', response.data);
                 Toast.success('Alarm Updated Successfully');
             } else {
                 const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/alarms/set`, payload);
-                console.log('Alarm Saved:', response.data);
                 Toast.success('Alarm Saved Successfully');
             }
 
             // Send pair request notification if in buddy mode with a specific email
             if (mode === 'buddy' && buddyType === 'request' && buddyEmail) {
                 try {
-                    console.log('Sending pair request...');
                     await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/notifications/requestPair`, {
                         alarm_time: time,
                         created_by: user.id,
-                        with_whom: buddyEmail
+                        with_whom: buddyEmail, 
+                        ampm: ampm
                     });
-                    console.log('Pair request sent successfully');
                 } catch (notifyError) {
                     console.error('Error sending pair request:', notifyError);
-                    // Optional: Toast.warn('Alarm saved, but failed to send invite');
                 }
             }
 

@@ -25,7 +25,6 @@ export default function NotificationsScreen() {
                 // The requirement says /notifications/email/:email
                 if (user.email) {
                     const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/notifications/email/${user.email}`);
-                    console.log(response.data);
                     setNotifications(response.data);
                 }
             }
@@ -36,11 +35,32 @@ export default function NotificationsScreen() {
         }
     };
 
-    const handleAccept = async (id) => {
-        console.log(id)
+    const handleAccept = async (item) => {
         try {
-            await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${id}/accept`);
-            Toast.success('Invitation Accepted');
+            // 1. Accept the notification
+            await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${item.id}/accept`);
+            // 2. Create the alarm for the current user
+            const userString = await AsyncStorage.getItem('user');
+            if (userString) {
+                const user = JSON.parse(userString);
+
+                // Parse time from separate fields
+                const payload = {
+                    time: item.alarm_time,
+                    ampm: item.ampm,
+                    label: 'Wake Buddy',
+                    days: [0, 0, 0, 0, 0, 0, 0], // One-time alarm
+                    user_id: user.id,
+                    solo_mode: false,
+                    buddy: item.created_by.email, // Sender's email
+                    wake_method: 'call',
+                    enabled: true
+                };
+
+                await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/alarms/set`, payload);
+                Toast.success(`Alarm set for ${item.alarm_time} ${item.ampm}`);
+            }
+
             fetchNotifications(); // Refresh list
         } catch (error) {
             console.error('Error accepting invitation:', error);
@@ -128,7 +148,7 @@ export default function NotificationsScreen() {
 
             <View style={styles.alarmBadge}>
                 <Ionicons name="alarm-outline" size={16} color="#C9E265" />
-                <Text style={styles.alarmTime}>{item.alarm_time}</Text>
+                <Text style={styles.alarmTime}>{item.alarm_time} {item.ampm}</Text>
                 <Text style={styles.puzzleType}>• {item.with_whom || 'Medium Puzzle'}</Text>
             </View>
 
@@ -136,7 +156,7 @@ export default function NotificationsScreen() {
                 <TouchableOpacity style={styles.declineButton} onPress={() => handleDecline(item.id)}>
                     <Text style={styles.declineText}>Decline</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item.id)}>
+                <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item)}>
                     <Text style={styles.acceptText}>Accept</Text>
                 </TouchableOpacity>
             </View>
