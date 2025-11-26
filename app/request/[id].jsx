@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const NEON = '#C8FF00';
+const NEON = '#C9E265';
 const BG = '#000';
 const GRAY = '#BDBDBD';
 
@@ -32,86 +33,89 @@ export default function FriendRequestScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.headerRow}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-                    <Ionicons name="close" size={28} color="#fff" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Friend Request</Text>
-                <View style={{ width: 40 }} />
-            </View>
+        <SafeAreaView style={styles.container}>
 
-            <View style={styles.content}>
-                {/* Avatars */}
-                <View style={styles.avatarsRow}>
-                    <View style={styles.userCol}>
-                        <Image source={{ uri: currentUser.avatar }} style={styles.avatar} />
-                        <Text style={styles.username}>{currentUser.username}</Text>
-                    </View>
-
-                    <View style={styles.connector}>
-                        <View style={styles.line} />
-                        <View style={styles.iconCircle}>
-                            <Ionicons name={requestSent ? "checkmark" : "arrow-forward"} size={20} color="#000" />
-                        </View>
-                    </View>
-
-                    <View style={styles.userCol}>
-                        {targetUser.avatar ? (
-                            <Image source={{ uri: targetUser.avatar }} style={styles.avatar} />
-                        ) : (
-                            <View style={[styles.avatar, { backgroundColor: '#333', justifyContent: 'center', alignItems: 'center' }]}>
-                                <Ionicons name="person" size={32} color="#666" />
-                            </View>
-                        )}
-                        <Text style={styles.username}>{targetUser.username}</Text>
-                    </View>
+            <View style={styles.container}>
+                {/* Header */}
+                <View style={styles.headerRow}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+                        <Ionicons name="close" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Friend Request</Text>
+                    <View style={{ width: 40 }} />
                 </View>
 
-                {requestSent ? (
-                    <View style={styles.successContainer}>
-                        <View style={styles.successBadge}>
-                            <Ionicons name="checkmark-circle" size={48} color={NEON} />
+                <View style={styles.content}>
+                    {/* Avatars */}
+                    <View style={styles.avatarsRow}>
+                        <View style={styles.userCol}>
+                            <Image source={{ uri: currentUser.avatar }} style={styles.avatar} />
+                            <Text style={styles.username}>{currentUser.username}</Text>
                         </View>
-                        <Text style={styles.successTitle}>Request Sent!</Text>
-                        <Text style={styles.successText}>
-                            Wakeup buddy request has been sent to <Text style={{ color: '#fff', fontWeight: 'bold' }}>{targetUser.username}</Text>
-                        </Text>
 
-                        <View style={styles.streakComparison}>
-                            <Text style={styles.streakTitle}>Current Streaks</Text>
-                            <View style={styles.streakRow}>
-                                <View style={styles.streakBox}>
-                                    <Ionicons name="flame" size={24} color={NEON} />
-                                    <Text style={styles.streakNum}>{currentUser.streak}</Text>
-                                    <Text style={styles.streakLabel}>You</Text>
-                                </View>
-                                <View style={styles.vsBadge}>
-                                    <Text style={styles.vsText}>VS</Text>
-                                </View>
-                                <View style={styles.streakBox}>
-                                    <Ionicons name="flame" size={24} color={NEON} />
-                                    <Text style={styles.streakNum}>{targetUser.streak}</Text>
-                                    <Text style={styles.streakLabel}>{targetUser.name.split(' ')[0]}</Text>
-                                </View>
+                        <View style={styles.connector}>
+                            <View style={styles.line} />
+                            <View style={styles.iconCircle}>
+                                <Ionicons name={requestSent ? "checkmark" : "arrow-forward"} size={20} color="#000" />
                             </View>
                         </View>
 
-                        <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.back()}>
-                            <Text style={styles.secondaryBtnText}>Back to Profile</Text>
-                        </TouchableOpacity>
+                        <View style={styles.userCol}>
+                            {targetUser.avatar ? (
+                                <Image source={{ uri: targetUser.avatar }} style={styles.avatar} />
+                            ) : (
+                                <View style={[styles.avatar, { backgroundColor: '#333', justifyContent: 'center', alignItems: 'center' }]}>
+                                    <Ionicons name="person" size={32} color="#666" />
+                                </View>
+                            )}
+                            <Text style={styles.username}>{targetUser.username}</Text>
+                        </View>
                     </View>
-                ) : (
-                    <View style={styles.actionContainer}>
-                        <Text style={styles.promptText}>Send a request to become wake buddies with {targetUser.name.split(' ')[0]}!</Text>
-                        <TouchableOpacity style={styles.primaryBtn} onPress={handleSendRequest} activeOpacity={0.8}>
-                            <Text style={styles.primaryBtnText}>Give Friend Request</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+
+                    {requestSent ? (
+                        <View style={styles.successContainer}>
+                            <View style={styles.successBadge}>
+                                <Ionicons name="checkmark-circle" size={48} color={NEON} />
+                            </View>
+                            <Text style={styles.successTitle}>Request Sent!</Text>
+                            <Text style={styles.successText}>
+                                Wakeup buddy request has been sent to <Text style={{ color: '#fff', fontWeight: 'bold' }}>{targetUser.username}</Text>
+                            </Text>
+
+                            <View style={styles.streakComparison}>
+                                <Text style={styles.streakTitle}>Current Streaks</Text>
+                                <View style={styles.streakRow}>
+                                    <View style={styles.streakBox}>
+                                        <Ionicons name="flame" size={24} color={NEON} />
+                                        <Text style={styles.streakNum}>{currentUser.streak}</Text>
+                                        <Text style={styles.streakLabel}>You</Text>
+                                    </View>
+                                    <View style={styles.vsBadge}>
+                                        <Text style={styles.vsText}>VS</Text>
+                                    </View>
+                                    <View style={styles.streakBox}>
+                                        <Ionicons name="flame" size={24} color={NEON} />
+                                        <Text style={styles.streakNum}>{targetUser.streak}</Text>
+                                        <Text style={styles.streakLabel}>{targetUser.name.split(' ')[0]}</Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.back()}>
+                                <Text style={styles.secondaryBtnText}>Back to Profile</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <View style={styles.actionContainer}>
+                            <Text style={styles.promptText}>Send a request to become wake buddies with {targetUser.name.split(' ')[0]}!</Text>
+                            <TouchableOpacity style={styles.primaryBtn} onPress={handleSendRequest} activeOpacity={0.8}>
+                                <Text style={styles.primaryBtnText}>Give Friend Request</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 

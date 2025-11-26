@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
-const NEON = '#C8FF00';
+const NEON = '#C9E265';
 const BG = '#000';
 const GRAY = '#BDBDBD';
 
@@ -44,92 +45,117 @@ export default function PublicProfile() {
     };
 
     return (
-        <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scroll}>
-                {/* Header */}
-                <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Profile</Text>
-                    <View style={{ width: 40 }} />
-                </View>
+        <SafeAreaView style={styles.container}>
 
-                {/* User Card */}
-                <View style={styles.card}>
-                    <View style={styles.avatarContainer}>
-                        {user.avatar ? (
-                            <Image source={{ uri: user.avatar }} style={styles.avatar} />
-                        ) : (
-                            <View style={[styles.avatar, { backgroundColor: '#333', justifyContent: 'center', alignItems: 'center' }]}>
-                                <Ionicons name="person" size={40} color="#666" />
+            <View style={styles.container}>
+                <ScrollView contentContainerStyle={styles.scroll}>
+                    {/* Header */}
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+                            <Ionicons name="arrow-back" size={24} color="#fff" />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Profile</Text>
+                        <View style={{ width: 40 }} />
+                    </View>
+
+                    {/* User Card */}
+                    <View style={styles.card}>
+                        <View style={styles.avatarContainer}>
+                            <View style={styles.avatarRing}>
+                                {user.avatar ? (
+                                    <Image source={{ uri: user.avatar }} style={styles.avatar} />
+                                ) : (
+                                    <View style={[styles.avatar, { backgroundColor: '#333', justifyContent: 'center', alignItems: 'center' }]}>
+                                        <Ionicons name="person" size={40} color="#666" />
+                                    </View>
+                                )}
                             </View>
-                        )}
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={styles.name}>{user.name}</Text>
-                        {user.badge ? <Text style={{ fontSize: 18 }}>{user.badge}</Text> : null}
-                    </View>
-                    <Text style={styles.username}>{user.username}</Text>
-                    <Text style={styles.bio}>{user.bio}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text style={styles.name}>{user.name}</Text>
+                            {user.badge ? <Text style={{ fontSize: 18 }}>{user.badge}</Text> : null}
+                        </View>
+                        <Text style={styles.username}>{user.username}</Text>
+                        <Text style={styles.bio}>{user.bio}</Text>
 
-                    {/* Friend Actions */}
-                    <View style={styles.actionButtons}>
-                        <TouchableOpacity style={styles.primaryBtn} onPress={handleFriendRequest} activeOpacity={0.8}>
-                            <Text style={styles.primaryBtnText}>Give Friend Request</Text>
+                        {/* Friend Actions */}
+                        <View style={styles.actionButtons}>
+                            <TouchableOpacity style={styles.primaryBtn} onPress={handleFriendRequest} activeOpacity={0.8}>
+                                <Text style={styles.primaryBtnText}>Give Friend Request</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.8}>
+                                <Text style={styles.secondaryBtnText}>Manage Friendship</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Stats Section */}
+                    <View style={styles.statsRow}>
+                        <View style={styles.statBox}>
+                            <Text style={styles.statNumber}>142</Text>
+                            <Text style={styles.statLabel}>Wakeups</Text>
+                        </View>
+                        <View style={styles.statBox}>
+                            <Text style={styles.statNumber}>28</Text>
+                            <Text style={styles.statLabel}>Streak</Text>
+                        </View>
+                        <View style={styles.statBox}>
+                            <Text style={styles.statNumber}>15</Text>
+                            <Text style={styles.statLabel}>Buddies</Text>
+                        </View>
+                    </View>
+
+                    {/* Wake History */}
+                    <View style={styles.sectionHeaderRow}>
+                        <Text style={styles.sectionTitle}>Wake History</Text>
+                        <TouchableOpacity activeOpacity={0.8}>
+                            <Text style={styles.viewAllText}>View All</Text>
                         </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.8}>
-                            <Text style={styles.secondaryBtnText}>Manage Friendship</Text>
-                        </TouchableOpacity>
                     </View>
-                </View>
 
-                {/* Stats Section */}
-                <View style={styles.statsRow}>
-                    <View style={styles.statBox}>
-                        <Text style={styles.statNumber}>142</Text>
-                        <Text style={styles.statLabel}>Wakeups</Text>
+                    <View style={styles.historySubHeader}>
+                        <Text style={styles.monthText}>October 2023</Text>
+                        <View style={styles.legend}>
+                            <Text style={styles.legendText}>Less</Text>
+                            <View style={styles.legendSquare1} />
+                            <View style={styles.legendSquare2} />
+                            <View style={styles.legendSquare3} />
+                            <View style={styles.legendSquare4} />
+                            <Text style={styles.legendText}>More</Text>
+                        </View>
                     </View>
-                    <View style={styles.statBox}>
-                        <Text style={styles.statNumber}>28</Text>
-                        <Text style={styles.statLabel}>Streak</Text>
+
+                    <View style={styles.gridContainer}>
+                        {gridSquares.map((sq) => (
+                            <View key={sq.id} style={[styles.gridSquare, sq.filled && styles.gridSquareFilled]} />
+                        ))}
                     </View>
-                    <View style={styles.statBox}>
-                        <Text style={styles.statNumber}>15</Text>
-                        <Text style={styles.statLabel}>Buddies</Text>
+
+                    {/* Achievements */}
+                    <View style={styles.sectionHeaderRow}>
+                        <Text style={styles.sectionTitle}>Achievements</Text>
+                        <Text style={styles.achCount}>12/48 Unlocked</Text>
                     </View>
-                </View>
 
-                {/* Wake History */}
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>Wake History</Text>
-                </View>
-
-                <View style={styles.gridContainer}>
-                    {gridSquares.map((sq) => (
-                        <View key={sq.id} style={[styles.gridSquare, sq.filled && styles.gridSquareFilled]} />
-                    ))}
-                </View>
-
-                {/* Achievements */}
-                <View style={styles.achRow}>
-                    {achievements.map((a, idx) => {
-                        const achieved = a.key !== 'locked';
-                        return (
-                            <View key={a.key} style={styles.achItem}>
-                                <View style={[styles.achCircle, achieved && styles.achievedRing]}>
-                                    <Ionicons name={a.icon} size={22} color={achieved ? NEON : GRAY} />
+                    <View style={styles.achRow}>
+                        {achievements.map((a, idx) => {
+                            const achieved = a.key !== 'locked';
+                            return (
+                                <View key={a.key} style={styles.achItem}>
+                                    <View style={[styles.achCircle, achieved && styles.achievedRing]}>
+                                        <Ionicons name={a.icon} size={22} color={achieved ? NEON : GRAY} />
+                                    </View>
+                                    <Text style={styles.achLabel}>{a.label}</Text>
                                 </View>
-                                <Text style={styles.achLabel}>{a.label}</Text>
-                            </View>
-                        );
-                    })}
-                </View>
+                            );
+                        })}
+                    </View>
 
-                <View style={{ height: 40 }} />
-            </ScrollView>
-        </View>
+                    <View style={{ height: 40 }} />
+                </ScrollView>
+            </View>
+        </SafeAreaView>
     );
 }
 
@@ -148,7 +174,17 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     avatarContainer: { position: 'relative', marginBottom: 12 },
-    avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#111', overflow: 'hidden' },
+    avatarRing: {
+        width: 108,
+        height: 108,
+        borderRadius: 54,
+        borderWidth: 3,
+        borderColor: NEON,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 2,
+    },
+    avatar: { width: 100, height: 100, borderRadius: 50, overflow: 'hidden' },
     name: { color: '#fff', fontSize: 22, fontWeight: '700' },
     username: { color: GRAY, fontSize: 15, marginTop: 4 },
     bio: { color: '#9f9f9f', fontSize: 13, marginTop: 8, textAlign: 'center' },
@@ -173,8 +209,20 @@ const styles = StyleSheet.create({
     statNumber: { color: '#fff', fontSize: 18, fontWeight: '700' },
     statLabel: { color: GRAY, fontSize: 13, marginTop: 4 },
 
-    sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
-    sectionTitle: { color: '#fff', fontWeight: '700' },
+    sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, marginBottom: 12 },
+    sectionTitle: { color: '#fff', fontWeight: '700', fontSize: 16 },
+    viewAllText: { color: NEON, fontSize: 12, fontWeight: '600' },
+
+    historySubHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+    monthText: { color: GRAY, fontSize: 13 },
+    legend: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    legendText: { color: GRAY, fontSize: 11 },
+    legendSquare1: { width: 12, height: 12, borderRadius: 2, backgroundColor: '#1a2a1a' },
+    legendSquare2: { width: 12, height: 12, borderRadius: 2, backgroundColor: '#2d4a2d' },
+    legendSquare3: { width: 12, height: 12, borderRadius: 2, backgroundColor: '#6a9a3d' },
+    legendSquare4: { width: 12, height: 12, borderRadius: 2, backgroundColor: NEON },
+
+    achCount: { color: GRAY, fontSize: 12 },
 
     gridContainer: {
         marginTop: 10,

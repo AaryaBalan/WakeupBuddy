@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const NEON = '#C8FF00';
+const NEON = '#C9E265';
 const BG = '#000';
 const GRAY = '#BDBDBD';
 const DARK_GRAY = '#1A1A1A';

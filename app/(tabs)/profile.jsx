@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
-const NEON = '#C8FF00';
+const NEON = '#C9E265';
 const BG = '#000';
 const GRAY = '#BDBDBD';
 
@@ -22,143 +24,146 @@ export default function Profile() {
     { key: 'locked', label: 'Locked', icon: 'lock-closed' },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('user');
     router.replace('/');
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header */}
-        <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Profile</Text>
-          <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-            <Ionicons name="settings-outline" size={24} color={GRAY} />
-          </TouchableOpacity>
-        </View>
-
-        {/* User Card */}
-        <View style={styles.card}>
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatarRing}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80' }}
-                style={styles.avatar}
-              />
-            </View>
-            <View style={styles.badge}>
-              <Ionicons name="camera" size={14} color="#000" />
-            </View>
-          </View>
-          <Text style={styles.name}>Alex Walker</Text>
-          <Text style={styles.username}>@alex_walker_us</Text>
-          <Text style={styles.bio}>Morning person in training 🌅 | Seeking wake buddies in NYC time zone.</Text>
-
-          <TouchableOpacity style={styles.shareButton} activeOpacity={0.8}>
-            <Ionicons name="share-social" size={16} color="#000" style={{ marginRight: 6 }} />
-            <Text style={styles.shareText}>Share Profile</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Stats Section */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>128</Text>
-            <Text style={styles.statLabel}>Wakeups</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Streak</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>45</Text>
-            <Text style={styles.statLabel}>Buddies</Text>
-          </View>
-        </View>
-
-        {/* Wake History */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Wake History</Text>
-          <TouchableOpacity activeOpacity={0.8}>
-            <Text style={styles.viewAllText}>View All</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.historySubHeader}>
-          <Text style={styles.monthText}>October 2023</Text>
-          <View style={styles.legend}>
-            <Text style={styles.legendText}>Less</Text>
-            <View style={styles.legendSquare1} />
-            <View style={styles.legendSquare2} />
-            <View style={styles.legendSquare3} />
-            <View style={styles.legendSquare4} />
-            <Text style={styles.legendText}>More</Text>
-          </View>
-        </View>
-
-        <View style={styles.gridContainer}>
-          {gridSquares.map((sq) => (
-            <View key={sq.id} style={[styles.gridSquare, sq.filled && styles.gridSquareFilled]} />
-          ))}
-        </View>
-
-        {/* Achievements */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Achievements</Text>
-          <Text style={styles.achCount}>12/48 Unlocked</Text>
-        </View>
-
-        <View style={styles.achRow}>
-          {achievements.map((a, idx) => {
-            const achieved = a.key !== 'locked';
-            return (
-              <View key={a.key} style={styles.achItem}>
-                <View style={[styles.achCircle, achieved && styles.achievedRing]}>
-                  <Ionicons name={a.icon} size={22} color={achieved ? NEON : GRAY} />
-                </View>
-                <Text style={styles.achLabel}>{a.label}</Text>
-              </View>
-            );
-          })}
-        </View>
-
-        {/* Settings */}
-        <Text style={styles.settingsHeader}>Settings</Text>
-        <View style={styles.settingsCard}>
-          {[
-            { key: 'account', label: 'Account Details', icon: 'person-outline' },
-            { key: 'wake', label: 'Wake Preferences', icon: 'time-outline' },
-            { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline' },
-            { key: 'notifications', label: 'Notifications', icon: 'notifications-outline' },
-          ].map((item) => (
-            <TouchableOpacity key={item.key} style={styles.settingRow} activeOpacity={0.7}>
-              <View style={styles.settingLeft}>
-                <Ionicons name={item.icon} size={20} color={GRAY} />
-                <Text style={styles.settingLabel}>{item.label}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={GRAY} />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          {/* Header */}
+          <View style={styles.headerRow}>
+            <Text style={styles.headerTitle}>Profile</Text>
+            <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+              <Ionicons name="settings-outline" size={24} color={GRAY} />
             </TouchableOpacity>
-          ))}
-        </View>
-
-        <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7}>
-          <View style={styles.settingLeft}>
-            <Ionicons name="star" size={20} color={NEON} />
-            <Text style={styles.premiumText}>Manage Premium</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={GRAY} />
-        </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#000" style={{ marginRight: 8 }} />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+          {/* User Card */}
+          <View style={styles.card}>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatarRing}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80' }}
+                  style={styles.avatar}
+                />
+              </View>
+              <View style={styles.badge}>
+                <Ionicons name="camera" size={14} color="#000" />
+              </View>
+            </View>
+            <Text style={styles.name}>Alex Walker</Text>
+            <Text style={styles.username}>@alex_walker_us</Text>
+            <Text style={styles.bio}>Morning person in training 🌅 | Seeking wake buddies in NYC time zone.</Text>
 
-        <Text style={styles.versionText}>WakeBuddy v1.0.2</Text>
+            <TouchableOpacity style={styles.shareButton} activeOpacity={0.8}>
+              <Ionicons name="share-social" size={16} color="#000" style={{ marginRight: 6 }} />
+              <Text style={styles.shareText}>Share Profile</Text>
+            </TouchableOpacity>
+          </View>
 
-        <View style={{ height: 80 }} />
-      </ScrollView>
-    </View>
+          {/* Stats Section */}
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>128</Text>
+              <Text style={styles.statLabel}>Wakeups</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>12</Text>
+              <Text style={styles.statLabel}>Streak</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>45</Text>
+              <Text style={styles.statLabel}>Buddies</Text>
+            </View>
+          </View>
+
+          {/* Wake History */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Wake History</Text>
+            <TouchableOpacity activeOpacity={0.8}>
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.historySubHeader}>
+            <Text style={styles.monthText}>October 2023</Text>
+            <View style={styles.legend}>
+              <Text style={styles.legendText}>Less</Text>
+              <View style={styles.legendSquare1} />
+              <View style={styles.legendSquare2} />
+              <View style={styles.legendSquare3} />
+              <View style={styles.legendSquare4} />
+              <Text style={styles.legendText}>More</Text>
+            </View>
+          </View>
+
+          <View style={styles.gridContainer}>
+            {gridSquares.map((sq) => (
+              <View key={sq.id} style={[styles.gridSquare, sq.filled && styles.gridSquareFilled]} />
+            ))}
+          </View>
+
+          {/* Achievements */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Achievements</Text>
+            <Text style={styles.achCount}>12/48 Unlocked</Text>
+          </View>
+
+          <View style={styles.achRow}>
+            {achievements.map((a, idx) => {
+              const achieved = a.key !== 'locked';
+              return (
+                <View key={a.key} style={styles.achItem}>
+                  <View style={[styles.achCircle, achieved && styles.achievedRing]}>
+                    <Ionicons name={a.icon} size={22} color={achieved ? NEON : GRAY} />
+                  </View>
+                  <Text style={styles.achLabel}>{a.label}</Text>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Settings */}
+          <Text style={styles.settingsHeader}>Settings</Text>
+          <View style={styles.settingsCard}>
+            {[
+              { key: 'account', label: 'Account Details', icon: 'person-outline' },
+              { key: 'wake', label: 'Wake Preferences', icon: 'time-outline' },
+              { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline' },
+              { key: 'notifications', label: 'Notifications', icon: 'notifications-outline' },
+            ].map((item) => (
+              <TouchableOpacity key={item.key} style={styles.settingRow} activeOpacity={0.7}>
+                <View style={styles.settingLeft}>
+                  <Ionicons name={item.icon} size={20} color={GRAY} />
+                  <Text style={styles.settingLabel}>{item.label}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={GRAY} />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7}>
+            <View style={styles.settingLeft}>
+              <Ionicons name="star" size={20} color={NEON} />
+              <Text style={styles.premiumText}>Manage Premium</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={GRAY} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color="#000" style={{ marginRight: 8 }} />
+            <Text style={styles.logoutText}>Log Out</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.versionText}>WakeBuddy v1.0.2</Text>
+
+          <View style={{ height: 80 }} />
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 

@@ -1,160 +1,208 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Link, useRouter } from "expo-router";
+import { useEffect } from 'react';
+import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const NEON = '#C8FF00';
-const BG = '#000';
-const GRAY = '#999';
-
-export default function Welcome() {
+export default function Index() {
   const router = useRouter();
 
-  const handleSignUp = () => {
-    router.push('/signup');
-  };
-
-  const handleLogin = () => {
-    router.push('/login');
-  };
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const user = await AsyncStorage.getItem('user');
+        if (user) {
+          router.replace('/(tabs)/home');
+        }
+      } catch (e) {
+        console.error('Failed to load user from storage', e);
+      }
+    };
+    checkUser();
+  }, []);
 
   return (
-    <View style={styles.container}>
-      {/* Profile Image with Badge */}
-      <View style={styles.imageContainer}>
-        <View style={styles.avatarWrapper}>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' }}
-            style={styles.avatar}
-          />
-          <View style={styles.badge}>
-            <Ionicons name="alarm" size={16} color="#000" />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <View style={styles.content}>
+
+        {/* Profile Image Section */}
+        <View style={styles.profileContainer}>
+          <View style={styles.profileImageWrapper}>
+            <Image
+              source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80' }}
+              style={styles.profileImage}
+            />
+            <View style={styles.statusBadge}>
+              <Ionicons name="flash" size={16} color="black" />
+            </View>
           </View>
         </View>
+
+        {/* Title and Tagline */}
+        <Text style={styles.title}>WakeBuddy</Text>
+        <Text style={styles.tagline}>
+          Find your partner, conquer the alarm, and start your day victorious.
+        </Text>
+
+        {/* Buttons */}
+        <View style={styles.buttonContainer}>
+          <Link href="/signup" asChild>
+            <TouchableOpacity style={styles.signupButton}>
+              <Text style={styles.signupButtonText}>Sign Up Free</Text>
+            </TouchableOpacity>
+          </Link>
+
+          <Link href="/login" asChild>
+            <TouchableOpacity style={styles.loginButton}>
+              <Text style={styles.loginButtonText}>Log In</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+
+        {/* Social Login */}
+        <View style={styles.socialSection}>
+          <Text style={styles.orText}>or continue with</Text>
+          <View style={styles.socialIcons}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Ionicons name="logo-apple" size={24} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Ionicons name="mail" size={24} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Ionicons name="logo-github" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <Text style={styles.footerText}>
+          By continuing, you agree to our Terms.
+        </Text>
       </View>
-
-      {/* Tagline */}
-      <Text style={styles.tagline}>
-        Find your partner, conquer the{'\n'}alarm, and start your day{'\n'}victorious.
-      </Text>
-
-      {/* Sign Up Button */}
-      <TouchableOpacity style={styles.signUpButton} activeOpacity={0.8} onPress={handleSignUp}>
-        <Text style={styles.signUpText}>Sign Up Free</Text>
-      </TouchableOpacity>
-
-      {/* Log In Link */}
-      <TouchableOpacity style={styles.loginButton} activeOpacity={0.7} onPress={handleLogin}>
-        <Text style={styles.loginText}>Log In</Text>
-      </TouchableOpacity>
-
-      {/* Social Login */}
-      <Text style={styles.orText}>or continue with</Text>
-      <View style={styles.socialIcons}>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-          <Ionicons name="logo-apple" size={24} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-          <Ionicons name="mail-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-          <Ionicons name="logo-github" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Terms */}
-      <Text style={styles.terms}>
-        By continuing, you agree to our Terms.
-      </Text>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: "#000000",
+  },
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 40,
-    alignItems: 'center',
   },
-  imageContainer: {
+  profileContainer: {
     marginBottom: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  avatarWrapper: {
-    position: 'relative',
-  },
-  avatar: {
+  profileImageWrapper: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#222',
+    borderWidth: 2,
+    borderColor: '#333', // Dark border
+    position: 'relative',
+    shadowColor: "#C9E265",
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  badge: {
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+  },
+  statusBadge: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: NEON,
-    justifyContent: 'center',
+    backgroundColor: '#C9E265',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: BG,
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 20,
+    letterSpacing: 1,
   },
   tagline: {
-    color: GRAY,
     fontSize: 16,
-    textAlign: 'center',
+    color: "#888",
+    textAlign: "center",
     lineHeight: 24,
     marginBottom: 60,
+    paddingHorizontal: 20,
   },
-  signUpButton: {
-    backgroundColor: NEON,
+  buttonContainer: {
     width: '100%',
-    paddingVertical: 16,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginBottom: 20,
+    gap: 16,
+    marginBottom: 40,
   },
-  signUpText: {
-    color: '#000',
+  signupButton: {
+    backgroundColor: "#C9E265", // Lime green
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: "center",
+    width: '100%',
+  },
+  signupButtonText: {
+    color: "#000",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "bold",
   },
   loginButton: {
-    marginBottom: 30,
+    paddingVertical: 12,
+    alignItems: "center",
+    width: '100%',
   },
-  loginText: {
-    color: '#fff',
+  loginButtonText: {
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "bold",
+  },
+  socialSection: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
   orText: {
-    color: GRAY,
-    fontSize: 14,
+    color: "#666",
     marginBottom: 20,
+    fontSize: 14,
   },
   socialIcons: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 50,
   },
   iconButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
     backgroundColor: '#1a1a1a',
-    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#333',
+    justifyContent: 'center',
   },
-  terms: {
-    color: GRAY,
+  footerText: {
+    color: "#444",
     fontSize: 12,
-    textAlign: 'center',
+    position: 'absolute',
+    bottom: 40,
   },
 });
