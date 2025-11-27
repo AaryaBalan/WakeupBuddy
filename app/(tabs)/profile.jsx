@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
+import ProfilePic from '../../components/ProfilePic';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
@@ -106,10 +107,7 @@ export default function Profile() {
           <View style={styles.card}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarRing}>
-                <Image
-                  source={{ uri: user?.profileImage || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80' }}
-                  style={styles.avatar}
-                />
+                <ProfilePic user={user} size={100} />
               </View>
               <View style={styles.badge}>
                 <Ionicons name="camera" size={14} color="#000" />

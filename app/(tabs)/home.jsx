@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '../../contexts/UserContext';
+import ProfilePic from '../../components/ProfilePic';
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -37,18 +38,7 @@ export default function HomeScreen() {
                             style={styles.profileImageContainer}
                             onPress={() => router.push('/(tabs)/profile')}
                         >
-                            {user?.profileImage ? (
-                                <Image
-                                    source={{ uri: user.profileImage }}
-                                    style={styles.profileImage}
-                                />
-                            ) : (
-                                <View style={styles.profilePlaceholder}>
-                                    <Text style={styles.profileInitials}>
-                                        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                                    </Text>
-                                </View>
-                            )}
+                            <ProfilePic user={user} size={35} />
                         </TouchableOpacity>
                     </View>
                 </View>
