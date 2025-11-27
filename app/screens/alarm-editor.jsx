@@ -9,6 +9,7 @@ import { ActivityIndicator, Platform, ScrollView, StyleSheet, Switch, Text, Text
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import { api } from "../../convex/_generated/api";
+import { requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
 
 export default function AlarmEditorScreen() {
     const router = useRouter();
@@ -126,6 +127,32 @@ export default function AlarmEditorScreen() {
             } else {
                 await createAlarm(payload);
                 Toast.success('Alarm Saved Successfully');
+            }
+
+            // Schedule native Android alarm
+            const now = new Date();
+            let alarmDate = new Date(date);
+
+            // If the time has already passed today, schedule for tomorrow
+            if (alarmDate <= now) {
+                alarmDate.setDate(alarmDate.getDate() + 1);
+            }
+
+            try {
+                await scheduleAlarm(alarmDate);
+                console.log('Native alarm scheduled successfully for:', alarmDate.toLocaleString());
+            } catch (alarmError) {
+                console.error('Failed to schedule native alarm:', alarmError);
+
+                // If permission error, show helpful alert
+                if ((alarmError && alarmError.message === 'PERMISSION_REQUIRED') ||
+                    (alarmError && alarmError.toString && alarmError.toString().includes('PERMISSION_REQUIRED')) ||
+                    (alarmError && alarmError.toString && alarmError.toString().includes('SCHEDULE_EXACT_ALARM'))) {
+                    Toast.error('Please enable Alarms permission in Settings');
+                    await requestExactAlarmPermission();
+                } else {
+                    console.log('Alarm saved to database, native alarm scheduling skipped');
+                }
             }
 
             // Send pair request notification if in buddy mode with a specific email
