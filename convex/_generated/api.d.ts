@@ -10,6 +10,7 @@
 
 import type * as alarms from "../alarms.js";
 import type * as notifications from "../notifications.js";
+import type * as streaks from "../streaks.js";
 import type * as users from "../users.js";
 
 import type {
@@ -21,6 +22,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   alarms: typeof alarms;
   notifications: typeof notifications;
+  streaks: typeof streaks;
   users: typeof users;
 }>;
 

@@ -1,16 +1,80 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useMutation } from "convex/react";
+import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useUser } from '../../contexts/UserContext';
+import { Toast } from 'toastify-react-native';
 import ProfilePic from '../../components/ProfilePic';
+import { useUser } from '../../contexts/UserContext';
+import { api } from "../../convex/_generated/api";
 
 export default function HomeScreen() {
     const router = useRouter();
-    const { user } = useUser();
+    const { user, updateContextUser } = useUser();
     const [isEnabled, setIsEnabled] = useState(true);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+
+    const markAwake = useMutation(api.streaks.markAwake);
+
+    const handleMarkAwake = async () => {
+        try {
+            // Check if user is authenticated
+            if (!user || !user._id) {
+                Toast.error("Please log in first");
+                router.push('/auth/login');
+                return;
+            }
+
+            // Get local date YYYY-MM-DD
+            const now = new Date();
+            const localDate = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
+
+            const result = await markAwake({ userDate: localDate });
+            if (result.status === 'already_marked') {
+                Toast.info("You're already marked awake for today!");
+            } else {
+                Toast.success(`Streak updated! Current streak: ${result.streak}`);
+                // Optimistically update user context if needed, though context might auto-refresh
+                if (user) {
+                    updateContextUser({ ...user, streak: result.streak, maxStreak: result.maxStreak });
+                }
+            }
+        } catch (error) {
+            console.error("Failed to mark awake:", error);
+            if (error.message && error.message.includes('Unauthenticated')) {
+                Toast.error("Please log in to update your streak");
+                router.push('/auth/login');
+            } else {
+                Toast.error("Failed to update streak");
+            }
+        }
+    };
+
+    useEffect(() => {
+        const handleDeepLink = (event) => {
+            if (event.url && event.url.includes('wakeupbuddy://awake')) {
+                handleMarkAwake();
+            }
+        };
+
+        // Check if app was opened via deep link
+        Linking.getInitialURL().then((url) => {
+            if (url && url.includes('wakeupbuddy://awake')) {
+                handleMarkAwake();
+            }
+        });
+
+        // Listen for incoming links while app is running
+        const subscription = Linking.addEventListener('url', handleDeepLink);
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -53,7 +117,7 @@ export default function HomeScreen() {
                         </TouchableOpacity>
                     </View>
                     <View style={styles.streakCountContainer}>
-                        <Text style={styles.streakCount}>12 days</Text>
+                        <Text style={styles.streakCount}>{user?.streak || 0} days</Text>
                         <Text style={styles.fireEmoji}>🔥</Text>
                     </View>
                     <Text style={styles.streakSubtext}>You're on fire! Keep it up.</Text>
@@ -110,11 +174,11 @@ export default function HomeScreen() {
                 {/* Quick Actions */}
                 <Text style={styles.sectionTitle}>Quick Actions</Text>
                 <View style={styles.quickActionsContainer}>
-                    <TouchableOpacity style={styles.quickActionItem}>
+                    <TouchableOpacity style={styles.quickActionItem} onPress={handleMarkAwake}>
                         <View style={[styles.quickActionIcon, { backgroundColor: '#2a2a1a' }]}>
-                            <Ionicons name="add" size={24} color="#C9E265" />
+                            <Ionicons name="sunny" size={24} color="#C9E265" />
                         </View>
-                        <Text style={styles.quickActionText}>Set Alarm</Text>
+                        <Text style={styles.quickActionText}>I'm Awake</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.quickActionItem}>
                         <View style={styles.quickActionIcon}>

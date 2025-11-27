@@ -9,6 +9,8 @@ export default defineSchema({
         phone: v.string(),
         bio: v.optional(v.string()),
         username: v.string(),
+        streak: v.optional(v.number()),
+        maxStreak: v.optional(v.number())
     }).index('by_email', ['email']),
 
     alarms: defineTable({
@@ -32,4 +34,13 @@ export default defineSchema({
     })
         .index('by_creator', ['created_by'])
         .index('by_receiver', ['with_whom']),
+
+    streaks: defineTable({
+        user_id: v.id('users'),
+        date: v.string(),
+        count: v.number()
+    })
+        .index('by_user', ['user_id'])
+        .index('by_user_date', ['user_id', 'date'])
+
 })
