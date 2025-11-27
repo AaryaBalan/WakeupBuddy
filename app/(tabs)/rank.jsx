@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../../contexts/UserContext';
+import ProfilePic from '../../components/ProfilePic';
 
 const NEON = '#C9E265';
 const BG = '#000';
@@ -144,13 +145,7 @@ export default function RankScreen() {
             <View style={styles.stickyFooter}>
                 <View style={styles.footerLeft}>
                     <Text style={styles.footerRank}>#42</Text>
-                    {user?.profileImage ? (
-                        <Image source={{ uri: user.profileImage }} style={styles.footerAvatar} />
-                    ) : (
-                        <View style={[styles.footerAvatar, styles.avatarPlaceholder]}>
-                            <Text style={styles.avatarInitials}>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</Text>
-                        </View>
-                    )}
+                    <ProfilePic user={user} size={40} />
                     <View>
                         <Text style={styles.footerName}>{user?.name || 'You'}</Text>
                         <Text style={styles.footerPoints}>+150 pts today</Text>
