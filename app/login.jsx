@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useConvex } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ToastManager, { Toast } from 'toastify-react-native';
+import { useUser } from "../contexts/UserContext";
 import { api } from "../convex/_generated/api";
 
 export default function Login() {
     const router = useRouter();
     const convex = useConvex();
+    const { login } = useUser();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -28,7 +29,7 @@ export default function Login() {
             console.log('Login Response:', user);
             if (user) {
                 if (user.password === password) {
-                    await AsyncStorage.setItem('user', JSON.stringify(user));
+                    await login(user);
                     Toast.success('Login Successful!')
                     setTimeout(() => {
                         router.replace('/(tabs)/home');

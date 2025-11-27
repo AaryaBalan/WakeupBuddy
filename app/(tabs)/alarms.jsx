@@ -1,32 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation, useQuery } from "convex/react";
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
+import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 
 export default function AlarmsScreen() {
     const router = useRouter();
-    const [userId, setUserId] = useState(null);
+    const { user } = useUser();
+    const userId = user?._id;
     const alarms = useQuery(api.alarms.getAlarmsByUser, userId ? { user_id: userId } : "skip");
     const toggleAlarmMutation = useMutation(api.alarms.toggleAlarm);
     const deleteAlarmMutation = useMutation(api.alarms.deleteAlarm);
 
-    useFocusEffect(
-        useCallback(() => {
-            const getUser = async () => {
-                const userString = await AsyncStorage.getItem('user');
-                if (userString) {
-                    const user = JSON.parse(userString);
-                    setUserId(user._id);
-                }
-            };
-            getUser();
-        }, [])
-    );
+    // useFocusEffect is no longer strictly needed for fetching user if we rely on context, 
+    // but if we want to refetch alarms when screen comes into focus, useQuery handles that automatically mostly.
+    // However, if we want to ensure user is loaded, context handles that.
+    // We can remove the manual user fetching logic.
 
     const toggleAlarm = async (id, currentStatus) => {
         try {

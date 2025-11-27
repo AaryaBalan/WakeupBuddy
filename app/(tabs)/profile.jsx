@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useUser } from '../../contexts/UserContext';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
@@ -11,6 +11,7 @@ const GRAY = '#BDBDBD';
 
 export default function Profile() {
   const router = useRouter();
+  const { user, logout } = useUser();
 
   const gridSquares = Array.from({ length: 81 }).map((_, i) => ({
     filled: Math.random() > 0.7,
@@ -25,8 +26,17 @@ export default function Profile() {
   ];
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('user');
+    await logout();
     router.replace('/');
+  };
+
+  // Generate username from email or name
+  const generateUsername = () => {
+    if (!user) return '@user';
+    if (user.name) {
+      return '@' + user.name.toLowerCase().replace(/\s+/g, '_');
+    }
+    return '@' + user.email.split('@')[0];
   };
 
   return (
@@ -46,7 +56,7 @@ export default function Profile() {
             <View style={styles.avatarContainer}>
               <View style={styles.avatarRing}>
                 <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80' }}
+                  source={{ uri: user?.profileImage || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80' }}
                   style={styles.avatar}
                 />
               </View>
@@ -54,9 +64,9 @@ export default function Profile() {
                 <Ionicons name="camera" size={14} color="#000" />
               </View>
             </View>
-            <Text style={styles.name}>Alex Walker</Text>
-            <Text style={styles.username}>@alex_walker_us</Text>
-            <Text style={styles.bio}>Morning person in training 🌅 | Seeking wake buddies in NYC time zone.</Text>
+            <Text style={styles.name}>{user?.name || 'User'}</Text>
+            <Text style={styles.username}>{generateUsername()}</Text>
+            <Text style={styles.bio}>{user?.bio || 'Welcome to WakeBuddy! Start your journey to better mornings. 🌅'}</Text>
 
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.8}>
               <Ionicons name="share-social" size={16} color="#000" style={{ marginRight: 6 }} />

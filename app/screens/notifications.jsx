@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
+import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 
 export default function NotificationsScreen() {
     const router = useRouter();
-    const [userEmail, setUserEmail] = useState(null);
+    const { user } = useUser();
+    const userEmail = user?.email;
 
     // Fetch notifications using Convex query
     const notifications = useQuery(api.notifications.getNotificationsByEmail, userEmail ? { email: userEmail } : "skip");
@@ -19,19 +20,6 @@ export default function NotificationsScreen() {
     const createAlarm = useMutation(api.alarms.createAlarm);
     const updateNotificationStatus = useMutation(api.notifications.updateNotificationStatus);
 
-    useEffect(() => {
-        const getUser = async () => {
-            const userString = await AsyncStorage.getItem('user');
-            if (userString) {
-                const user = JSON.parse(userString);
-                if (user.email) {
-                    setUserEmail(user.email);
-                }
-            }
-        };
-        getUser();
-    }, []);
-
     const handleAccept = async (item) => {
         setProcessingId(item._id);
         try {
@@ -39,10 +27,7 @@ export default function NotificationsScreen() {
             await updateNotificationStatus({ id: item._id, status: 1 });
 
             // 2. Create the alarm for the current user
-            const userString = await AsyncStorage.getItem('user');
-            if (userString) {
-                const user = JSON.parse(userString);
-
+            if (user) {
                 // Parse time from separate fields
                 const payload = {
                     time: item.alarm_time,

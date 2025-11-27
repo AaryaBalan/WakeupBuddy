@@ -1,6 +1,5 @@
 
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -8,11 +7,13 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
+import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import { requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
 
 export default function AlarmEditorScreen() {
     const router = useRouter();
+    const { user } = useUser();
     const createAlarm = useMutation(api.alarms.createAlarm);
     const updateAlarm = useMutation(api.alarms.updateAlarm);
     const createNotification = useMutation(api.notifications.createNotification);
@@ -91,12 +92,11 @@ export default function AlarmEditorScreen() {
     const onSetTime = async () => {
         setIsLoading(true);
         try {
-            const userString = await AsyncStorage.getItem('user');
-            if (!userString) {
+            if (!user) {
                 console.error('No user found');
+                Toast.error('Please login to set an alarm');
                 return;
             }
-            const user = JSON.parse(userString);
 
             let buddyValue = null;
             if (mode === 'buddy') {

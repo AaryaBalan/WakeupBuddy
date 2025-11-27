@@ -1,26 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, useRouter } from "expo-router";
 import { useEffect } from 'react';
 import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "../contexts/UserContext";
 
 export default function Index() {
   const router = useRouter();
+  const { user, loading } = useUser();
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const user = await AsyncStorage.getItem('user');
-        if (user) {
-          router.replace('/(tabs)/home');
-        }
-      } catch (e) {
-        console.error('Failed to load user from storage', e);
-      }
-    };
-    checkUser();
-  }, []);
+    if (!loading && user) {
+      router.replace('/(tabs)/home');
+    }
+  }, [user, loading]);
 
   return (
     <SafeAreaView style={styles.container}>

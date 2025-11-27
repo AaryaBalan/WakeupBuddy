@@ -3,9 +3,11 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useUser } from '../../contexts/UserContext';
 
 export default function HomeScreen() {
     const router = useRouter();
+    const { user } = useUser();
     const [isEnabled, setIsEnabled] = useState(true);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
@@ -31,10 +33,23 @@ export default function HomeScreen() {
                                 <Text style={styles.badgeText}>2</Text>
                             </View>
                         </TouchableOpacity>
-                        <View style={styles.profileImageContainer}>
-                            {/* Placeholder for profile image */}
-                            <Ionicons name="person-circle-outline" size={32} color="#ccc" />
-                        </View>
+                        <TouchableOpacity
+                            style={styles.profileImageContainer}
+                            onPress={() => router.push('/(tabs)/profile')}
+                        >
+                            {user?.profileImage ? (
+                                <Image
+                                    source={{ uri: user.profileImage }}
+                                    style={styles.profileImage}
+                                />
+                            ) : (
+                                <View style={styles.profilePlaceholder}>
+                                    <Text style={styles.profileInitials}>
+                                        {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                    </Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
                     </View>
                 </View>
 
@@ -212,6 +227,23 @@ const styles = StyleSheet.create({
         backgroundColor: '#333',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    profileImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 16,
+    },
+    profilePlaceholder: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#C9E265',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    profileInitials: {
+        color: '#000',
+        fontSize: 14,
+        fontWeight: 'bold',
     },
     streakCard: {
         backgroundColor: '#111',
