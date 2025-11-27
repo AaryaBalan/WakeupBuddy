@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useConvex } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ToastManager, { Toast } from 'toastify-react-native';
 import { api } from "../convex/_generated/api";
@@ -14,6 +14,7 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
         const loginData = {
@@ -21,6 +22,7 @@ export default function Login() {
             password
         };
         console.log('Login Data:', loginData);
+        setIsLoading(true);
         try {
             const user = await convex.query(api.users.getUserByEmail, { email });
             console.log('Login Response:', user);
@@ -40,6 +42,8 @@ export default function Login() {
         } catch (error) {
             console.error('Login Failed:', error);
             Toast.error('Login Failed');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -102,8 +106,12 @@ export default function Login() {
                         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                        <Text style={styles.loginButtonText}>Log In</Text>
+                    <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
+                        {isLoading ? (
+                            <ActivityIndicator color="#000" />
+                        ) : (
+                            <Text style={styles.loginButtonText}>Log In</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
 

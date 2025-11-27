@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import { api } from "../../convex/_generated/api";
@@ -29,6 +29,7 @@ export default function AlarmEditorScreen() {
 
     const [alarmId, setAlarmId] = useState(null);
     const [isEnabled, setIsEnabled] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
@@ -87,6 +88,7 @@ export default function AlarmEditorScreen() {
     }, [alarmParam]);
 
     const onSetTime = async () => {
+        setIsLoading(true);
         try {
             const userString = await AsyncStorage.getItem('user');
             if (!userString) {
@@ -145,6 +147,8 @@ export default function AlarmEditorScreen() {
         } catch (error) {
             console.error('Error saving alarm:', error);
             Toast.error('Failed to save alarm');
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -345,8 +349,12 @@ export default function AlarmEditorScreen() {
                 </View>
 
                 {/* Save Button */}
-                <TouchableOpacity style={styles.saveButton} onPress={onSetTime}>
-                    <Text style={styles.saveButtonText}>Save Alarm</Text>
+                <TouchableOpacity style={styles.saveButton} onPress={onSetTime} disabled={isLoading}>
+                    {isLoading ? (
+                        <ActivityIndicator color="#000" />
+                    ) : (
+                        <Text style={styles.saveButtonText}>Save Alarm</Text>
+                    )}
                 </TouchableOpacity>
 
             </ScrollView>

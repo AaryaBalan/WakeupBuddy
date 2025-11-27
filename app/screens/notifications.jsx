@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import { api } from "../../convex/_generated/api";
@@ -13,7 +13,8 @@ export default function NotificationsScreen() {
     const [userEmail, setUserEmail] = useState(null);
 
     // Fetch notifications using Convex query
-    const notifications = useQuery(api.notifications.getNotificationsByEmail, userEmail ? { email: userEmail } : "skip") || [];
+    const notifications = useQuery(api.notifications.getNotificationsByEmail, userEmail ? { email: userEmail } : "skip");
+    const [processingId, setProcessingId] = useState(null); // Track which item is being processed
 
     const createAlarm = useMutation(api.alarms.createAlarm);
     const updateNotificationStatus = useMutation(api.notifications.updateNotificationStatus);
@@ -32,6 +33,7 @@ export default function NotificationsScreen() {
     }, []);
 
     const handleAccept = async (item) => {
+        setProcessingId(item._id);
         try {
             // 1. Accept the notification
             await updateNotificationStatus({ id: item._id, status: 1 });
@@ -60,16 +62,21 @@ export default function NotificationsScreen() {
         } catch (error) {
             console.error('Error accepting invitation:', error);
             Toast.error('Failed to accept invitation');
+        } finally {
+            setProcessingId(null);
         }
     };
 
     const handleDecline = async (id) => {
+        setProcessingId(id);
         try {
             await updateNotificationStatus({ id, status: -1 });
             Toast.success('Invitation Declined');
         } catch (error) {
             console.error('Error declining invitation:', error);
             Toast.error('Failed to decline invitation');
+        } finally {
+            setProcessingId(null);
         }
     };
 
@@ -147,11 +154,19 @@ export default function NotificationsScreen() {
             </View>
 
             <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.declineButton} onPress={() => handleDecline(item._id)}>
-                    <Text style={styles.declineText}>Decline</Text>
+                <TouchableOpacity style={styles.declineButton} onPress={() => handleDecline(item._id)} disabled={processingId === item._id}>
+                    {processingId === item._id ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <Text style={styles.declineText}>Decline</Text>
+                    )}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item)}>
-                    <Text style={styles.acceptText}>Accept</Text>
+                <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item)} disabled={processingId === item._id}>
+                    {processingId === item._id ? (
+                        <ActivityIndicator size="small" color="#000" />
+                    ) : (
+                        <Text style={styles.acceptText}>Accept</Text>
+                    )}
                 </TouchableOpacity>
             </View>
         </View>
@@ -185,19 +200,25 @@ export default function NotificationsScreen() {
                 <Text style={styles.sectionTitle}>INVITES</Text>
             </View>
 
-            <FlatList
-                data={notifications}
-                renderItem={renderItem}
-                keyExtractor={item => item._id}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={
-                    (
-                        <View style={styles.emptyState}>
-                            <Text style={styles.emptyText}>No new notifications</Text>
-                        </View>
-                    )
-                }
-            />
+            {notifications === undefined ? (
+                <View style={[styles.listContent, styles.loadingContainer]}>
+                    <ActivityIndicator size="large" color="#C9E265" />
+                </View>
+            ) : (
+                <FlatList
+                    data={notifications}
+                    renderItem={renderItem}
+                    keyExtractor={item => item._id}
+                    contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={
+                        (
+                            <View style={styles.emptyState}>
+                                <Text style={styles.emptyText}>No new notifications</Text>
+                            </View>
+                        )
+                    }
+                />
+            )}
         </SafeAreaView>
     );
 }
@@ -388,5 +409,10 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold',
         marginLeft: 5,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

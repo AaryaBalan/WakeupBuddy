@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ToastManager, { Toast } from 'toastify-react-native';
 import { api } from "../convex/_generated/api";
@@ -17,6 +17,7 @@ export default function Signup() {
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [agreed, setAgreed] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSignup = async () => {
         const signupData = {
@@ -26,6 +27,7 @@ export default function Signup() {
             agreed
         };
         console.log('Signup Data:', signupData);
+        setIsLoading(true);
 
         try {
             const userId = await createUser({
@@ -44,6 +46,8 @@ export default function Signup() {
         } catch (error) {
             console.error('Registration Failed:', error);
             Toast.error(error.message || 'Registration Failed');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -150,8 +154,12 @@ export default function Signup() {
                             </Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-                            <Text style={styles.signupButtonText}>Create Account</Text>
+                        <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isLoading}>
+                            {isLoading ? (
+                                <ActivityIndicator color="#000" />
+                            ) : (
+                                <Text style={styles.signupButtonText}>Create Account</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
 
