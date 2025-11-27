@@ -1,56 +1,45 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import { useMutation, useQuery } from "convex/react";
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { FlatList, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
+import { api } from "../../convex/_generated/api";
 
 export default function AlarmsScreen() {
     const router = useRouter();
-    const [alarms, setAlarms] = useState([]);
-
-    const fetchAlarms = async () => {
-        try {
-            const userString = await AsyncStorage.getItem('user');
-            if (userString) {
-                const user = JSON.parse(userString);
-                const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/alarms/user/${user.id}`);
-                setAlarms(response.data.alarms);
-            }
-        } catch (error) {
-            console.error('Error fetching alarms:', error);
-        }
-    };
+    const [userId, setUserId] = useState(null);
+    const alarms = useQuery(api.alarms.getAlarmsByUser, userId ? { user_id: userId } : "skip") || [];
+    const toggleAlarmMutation = useMutation(api.alarms.toggleAlarm);
+    const deleteAlarmMutation = useMutation(api.alarms.deleteAlarm);
 
     useFocusEffect(
         useCallback(() => {
-            fetchAlarms();
+            const getUser = async () => {
+                const userString = await AsyncStorage.getItem('user');
+                if (userString) {
+                    const user = JSON.parse(userString);
+                    setUserId(user._id);
+                }
+            };
+            getUser();
         }, [])
     );
 
     const toggleAlarm = async (id, currentStatus) => {
-        console.log(id, currentStatus);
-        // Optimistic update
-        setAlarms(alarms.map(alarm =>
-            alarm.id === id ? { ...alarm, enabled: !alarm.enabled } : alarm
-        ));
-
         try {
-            const endpoint = currentStatus ? 'off' : 'on';
-            await axios.patch(`${process.env.EXPO_PUBLIC_API_URL}/alarms/${endpoint}/${id}`);
+            await toggleAlarmMutation({ id, enabled: !currentStatus });
         } catch (error) {
             console.error('Error toggling alarm:', error);
-            // Revert on error
-            fetchAlarms();
+            Toast.error('Failed to toggle alarm');
         }
     };
 
     const deleteAlarm = async (id) => {
         try {
-            await axios.delete(`${process.env.EXPO_PUBLIC_API_URL}/alarms/${id}`);
-            setAlarms(alarms.filter(a => a.id !== id));
+            await deleteAlarmMutation({ id });
             Toast.success('Alarm deleted');
         } catch (error) {
             console.error('Error deleting alarm:', error);
@@ -100,10 +89,10 @@ export default function AlarmsScreen() {
                     trackColor={{ false: "#333", true: "#C9E265" }}
                     thumbColor={item.enabled ? "#000" : "#f4f3f4"}
                     ios_backgroundColor="#3e3e3e"
-                    onValueChange={() => toggleAlarm(item.id, item.enabled)}
+                    onValueChange={() => toggleAlarm(item._id, item.enabled)}
                     value={item.enabled}
                 />
-                <TouchableOpacity onPress={() => deleteAlarm(item.id)} style={styles.deleteButton}>
+                <TouchableOpacity onPress={() => deleteAlarm(item._id)} style={styles.deleteButton}>
                     <Ionicons name="trash-outline" size={20} color="#ff4444" />
                 </TouchableOpacity>
             </View>
@@ -119,7 +108,7 @@ export default function AlarmsScreen() {
             <FlatList
                 data={alarms}
                 renderItem={renderItem}
-                keyExtractor={item => item.id}
+                keyExtractor={item => item._id}
                 contentContainerStyle={[styles.listContent, alarms.length === 0 && styles.emptyListContent]}
                 ListEmptyComponent={
                     <View style={styles.emptyState}>

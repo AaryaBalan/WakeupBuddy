@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import { useConvex } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ToastManager, { Toast } from 'toastify-react-native';
+import { api } from "../convex/_generated/api";
 
 export default function Login() {
     const router = useRouter();
+    const convex = useConvex();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -20,11 +22,11 @@ export default function Login() {
         };
         console.log('Login Data:', loginData);
         try {
-            const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/users/email/${email}`);
-            console.log('Login Response:', response.data);
-            if (response.data.found) {
-                if (response.data.user.password === password) {
-                    await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+            const user = await convex.query(api.users.getUserByEmail, { email });
+            console.log('Login Response:', user);
+            if (user) {
+                if (user.password === password) {
+                    await AsyncStorage.setItem('user', JSON.stringify(user));
                     Toast.success('Login Successful!')
                     setTimeout(() => {
                         router.replace('/(tabs)/home');
@@ -37,10 +39,7 @@ export default function Login() {
             }
         } catch (error) {
             console.error('Login Failed:', error);
-            if (error.response) {
-                console.error('Error Data:', error.response.data);
-                console.error('Error Status:', error.response.status);
-            }
+            Toast.error('Login Failed');
         }
     };
 

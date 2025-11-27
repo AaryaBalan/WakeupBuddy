@@ -2,15 +2,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import axios from 'axios';
+import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
+import { api } from "../../convex/_generated/api";
 
 export default function AlarmEditorScreen() {
     const router = useRouter();
+    const createAlarm = useMutation(api.alarms.createAlarm);
+    const updateAlarm = useMutation(api.alarms.updateAlarm);
+    const createNotification = useMutation(api.notifications.createNotification);
     const { alarm: alarmParam } = useLocalSearchParams();
 
     const [date, setDate] = useState(new Date());
@@ -34,7 +38,7 @@ export default function AlarmEditorScreen() {
                 const alarm = JSON.parse(alarmParam);
                 setIsEditing(true);
 
-                setAlarmId(alarm.id);
+                setAlarmId(alarm._id);
                 setIsEnabled(alarm.enabled !== undefined ? alarm.enabled : true);
 
                 // Parse time (e.g., "07:00", "AM") back to Date object
@@ -104,29 +108,33 @@ export default function AlarmEditorScreen() {
                 ampm: ampm,
                 label: 'Work', // Hardcoded for now as per UI
                 days: repeatDays.map(day => day ? 1 : 0),
-                user_id: user.id,
+                user_id: user._id,
                 solo_mode: mode === 'solo',
                 buddy: buddyValue,
-                wake_method: wakeMethod,
+                // wake_method: wakeMethod, // Not in schema
                 enabled: isEnabled // Use the state variable which is initialized from params or defaults to true
             };
 
             if (isEditing) {
-                const response = await axios.patch(`${process.env.EXPO_PUBLIC_API_URL}/alarms/edit/${alarmId}`, payload);
+                await updateAlarm({
+                    id: alarmId,
+                    ...payload
+                });
                 Toast.success('Alarm Updated Successfully');
             } else {
-                const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/alarms/set`, payload);
+                await createAlarm(payload);
                 Toast.success('Alarm Saved Successfully');
             }
 
             // Send pair request notification if in buddy mode with a specific email
             if (mode === 'buddy' && buddyType === 'request' && buddyEmail) {
                 try {
-                    await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/notifications/requestPair`, {
+                    await createNotification({
                         alarm_time: time,
-                        created_by: user.id,
-                        with_whom: buddyEmail, 
-                        ampm: ampm
+                        created_by: user._id,
+                        with_whom: buddyEmail,
+                        ampm: ampm,
+                        status: 0 // Pending
                     });
                 } catch (notifyError) {
                     console.error('Error sending pair request:', notifyError);

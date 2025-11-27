@@ -1,44 +1,41 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
+import { api } from "../../convex/_generated/api";
 
 export default function NotificationsScreen() {
     const router = useRouter();
-    const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [userEmail, setUserEmail] = useState(null);
+
+    // Fetch notifications using Convex query
+    const notifications = useQuery(api.notifications.getNotificationsByEmail, userEmail ? { email: userEmail } : "skip") || [];
+
+    const createAlarm = useMutation(api.alarms.createAlarm);
+    const updateNotificationStatus = useMutation(api.notifications.updateNotificationStatus);
 
     useEffect(() => {
-        fetchNotifications();
-    }, []);
-
-    const fetchNotifications = async () => {
-        try {
+        const getUser = async () => {
             const userString = await AsyncStorage.getItem('user');
             if (userString) {
                 const user = JSON.parse(userString);
-                // Assuming user object has email. If not, we might need to fetch it or use ID.
-                // The requirement says /notifications/email/:email
                 if (user.email) {
-                    const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/notifications/email/${user.email}`);
-                    setNotifications(response.data);
+                    setUserEmail(user.email);
                 }
             }
-        } catch (error) {
-            console.error('Error fetching notifications:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+        getUser();
+    }, []);
 
     const handleAccept = async (item) => {
         try {
             // 1. Accept the notification
-            await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${item.id}/accept`);
+            await updateNotificationStatus({ id: item._id, status: 1 });
+
             // 2. Create the alarm for the current user
             const userString = await AsyncStorage.getItem('user');
             if (userString) {
@@ -50,18 +47,16 @@ export default function NotificationsScreen() {
                     ampm: item.ampm,
                     label: 'Wake Buddy',
                     days: [0, 0, 0, 0, 0, 0, 0], // One-time alarm
-                    user_id: user.id,
+                    user_id: user._id,
                     solo_mode: false,
                     buddy: item.created_by.email, // Sender's email
-                    wake_method: 'call',
+                    // wake_method: 'call', // Removed as per schema
                     enabled: true
                 };
 
-                await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/alarms/set`, payload);
+                await createAlarm(payload);
                 Toast.success(`Alarm set for ${item.alarm_time} ${item.ampm}`);
             }
-
-            fetchNotifications(); // Refresh list
         } catch (error) {
             console.error('Error accepting invitation:', error);
             Toast.error('Failed to accept invitation');
@@ -70,9 +65,8 @@ export default function NotificationsScreen() {
 
     const handleDecline = async (id) => {
         try {
-            await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${id}/reject`);
+            await updateNotificationStatus({ id, status: -1 });
             Toast.success('Invitation Declined');
-            fetchNotifications(); // Refresh list
         } catch (error) {
             console.error('Error declining invitation:', error);
             Toast.error('Failed to decline invitation');
@@ -153,7 +147,7 @@ export default function NotificationsScreen() {
             </View>
 
             <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.declineButton} onPress={() => handleDecline(item.id)}>
+                <TouchableOpacity style={styles.declineButton} onPress={() => handleDecline(item._id)}>
                     <Text style={styles.declineText}>Decline</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item)}>
@@ -194,10 +188,10 @@ export default function NotificationsScreen() {
             <FlatList
                 data={notifications}
                 renderItem={renderItem}
-                keyExtractor={item => item.id.toString()}
+                keyExtractor={item => item._id}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
-                    !loading && (
+                    (
                         <View style={styles.emptyState}>
                             <Text style={styles.emptyText}>No new notifications</Text>
                         </View>

@@ -1,15 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import { useMutation } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ToastManager, { Toast } from 'toastify-react-native';
+import { api } from "../convex/_generated/api";
 
 export default function Signup() {
     const router = useRouter();
+    const createUser = useMutation(api.users.createUser);
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [bio, setBio] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [agreed, setAgreed] = useState(false);
@@ -24,8 +28,14 @@ export default function Signup() {
         console.log('Signup Data:', signupData);
 
         try {
-            const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/users/register`, signupData);
-            console.log('Registration Successful:', response.data);
+            const userId = await createUser({
+                name: fullName,
+                email,
+                password,
+                phone,
+                bio
+            });
+            console.log('Registration Successful:', userId);
             // You might want to navigate to login or home screen here
             Toast.success('Registration Successful!')
             setTimeout(() => {
@@ -33,10 +43,7 @@ export default function Signup() {
             }, 2000);
         } catch (error) {
             console.error('Registration Failed:', error);
-            if (error.response) {
-                console.error('Error Data:', error.response.data);
-                console.error('Error Status:', error.response.status);
-            }
+            Toast.error(error.message || 'Registration Failed');
         }
     };
 
@@ -88,6 +95,31 @@ export default function Signup() {
                                 autoCapitalize="none"
                                 value={email}
                                 onChangeText={setEmail}
+                            />
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Phone Number</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="+1 234 567 8900"
+                                placeholderTextColor="#666"
+                                keyboardType="phone-pad"
+                                value={phone}
+                                onChangeText={setPhone}
+                            />
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Bio (Optional)</Text>
+                            <TextInput
+                                style={[styles.input, styles.textArea]}
+                                placeholder="Tell us about yourself"
+                                placeholderTextColor="#666"
+                                multiline
+                                numberOfLines={3}
+                                value={bio}
+                                onChangeText={setBio}
                             />
                         </View>
 
@@ -232,6 +264,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         borderWidth: 1,
         borderColor: '#222',
+    },
+    textArea: {
+        height: 80,
+        textAlignVertical: 'top',
     },
     passwordContainer: {
         flexDirection: 'row',
