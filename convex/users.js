@@ -44,3 +44,18 @@ export const getUserByEmail = query({
         return user;
     },
 });
+
+export const updateUser = mutation({
+    args: {
+        id: v.id("users"),
+        name: v.optional(v.string()),
+        bio: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        profileImage: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const { id, ...updates } = args;
+        await ctx.db.patch(id, updates);
+        return await ctx.db.get(id);
+    },
+});

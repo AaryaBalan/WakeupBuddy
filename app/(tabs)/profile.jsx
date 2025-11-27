@@ -1,8 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useMutation } from "convex/react";
 import { useRouter } from 'expo-router';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Toast } from 'toastify-react-native';
 import { useUser } from '../../contexts/UserContext';
+import { api } from "../../convex/_generated/api";
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
@@ -11,7 +15,22 @@ const GRAY = '#BDBDBD';
 
 export default function Profile() {
   const router = useRouter();
-  const { user, logout } = useUser();
+  const { user, logout, updateUser: updateContextUser } = useUser();
+  const updateUserMutation = useMutation(api.users.updateUser);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setEditName(user.name || '');
+      setEditBio(user.bio || '');
+      setEditPhone(user.phone || '');
+    }
+  }, [user]);
 
   const gridSquares = Array.from({ length: 81 }).map((_, i) => ({
     filled: Math.random() > 0.7,
@@ -30,9 +49,32 @@ export default function Profile() {
     router.replace('/');
   };
 
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      const updatedUser = await updateUserMutation({
+        id: user._id,
+        name: editName,
+        bio: editBio,
+        phone: editPhone,
+      });
+
+      await updateContextUser(updatedUser);
+      setModalVisible(false);
+      Toast.success('Profile updated successfully');
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      Toast.error('Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Generate username from email or name
   const generateUsername = () => {
     if (!user) return '@user';
+    if (user.username) return '@' + user.username;
     if (user.name) {
       return '@' + user.name.toLowerCase().replace(/\s+/g, '_');
     }
@@ -46,9 +88,18 @@ export default function Profile() {
           {/* Header */}
           <View style={styles.headerRow}>
             <Text style={styles.headerTitle}>Profile</Text>
-            <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-              <Ionicons name="settings-outline" size={24} color={GRAY} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity
+                style={styles.iconButton}
+                activeOpacity={0.7}
+                onPress={() => setModalVisible(true)}
+              >
+                <Ionicons name="pencil" size={24} color={NEON} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+                <Ionicons name="settings-outline" size={24} color={GRAY} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* User Card */}
@@ -173,6 +224,78 @@ export default function Profile() {
           <View style={{ height: 80 }} />
         </ScrollView>
       </View>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalContainer}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Profile</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalForm}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Full Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="Enter your name"
+                  placeholderTextColor="#666"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Bio</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={editBio}
+                  onChangeText={setEditBio}
+                  placeholder="Tell us about yourself"
+                  placeholderTextColor="#666"
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Phone</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editPhone}
+                  onChangeText={setEditPhone}
+                  placeholder="Enter phone number"
+                  placeholderTextColor="#666"
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveProfile}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <ActivityIndicator color="#000" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -303,4 +426,69 @@ const styles = StyleSheet.create({
   },
   logoutText: { color: '#000', fontSize: 15, fontWeight: '700' },
   versionText: { color: GRAY, fontSize: 12, textAlign: 'center', marginTop: 16 },
+
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  modalContent: {
+    backgroundColor: '#111',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    height: '80%',
+    borderTopWidth: 1,
+    borderColor: '#333',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  modalForm: {
+    flex: 1,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    color: '#888',
+    fontSize: 14,
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  input: {
+    backgroundColor: '#222',
+    borderRadius: 12,
+    padding: 16,
+    color: '#fff',
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  saveButton: {
+    backgroundColor: NEON,
+    borderRadius: 30,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 40,
+  },
+  saveButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

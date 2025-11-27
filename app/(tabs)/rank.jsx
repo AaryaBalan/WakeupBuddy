@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useUser } from '../../contexts/UserContext';
 
 const NEON = '#C9E265';
 const BG = '#000';
@@ -20,6 +21,7 @@ const DATA = [
 
 export default function RankScreen() {
     const router = useRouter();
+    const { user } = useUser();
     const [searchQuery, setSearchQuery] = useState('');
 
     const renderItem = ({ item }) => {
@@ -142,9 +144,15 @@ export default function RankScreen() {
             <View style={styles.stickyFooter}>
                 <View style={styles.footerLeft}>
                     <Text style={styles.footerRank}>#42</Text>
-                    <Image source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80' }} style={styles.footerAvatar} />
+                    {user?.profileImage ? (
+                        <Image source={{ uri: user.profileImage }} style={styles.footerAvatar} />
+                    ) : (
+                        <View style={[styles.footerAvatar, styles.avatarPlaceholder]}>
+                            <Text style={styles.avatarInitials}>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</Text>
+                        </View>
+                    )}
                     <View>
-                        <Text style={styles.footerName}>You</Text>
+                        <Text style={styles.footerName}>{user?.name || 'You'}</Text>
                         <Text style={styles.footerPoints}>+150 pts today</Text>
                     </View>
                 </View>
