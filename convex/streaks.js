@@ -33,10 +33,21 @@ export const markAwake = mutation({
             .unique();
 
         if (existingEntry) {
-            return { status: 'already_marked', streak: existingEntry.count, maxStreak: user.maxStreak || 0 };
+            // Increment the count for this day (multiple wakeups)
+            const newCount = existingEntry.count + 1;
+            await ctx.db.patch(existingEntry._id, {
+                count: newCount
+            });
+
+            return {
+                status: 'incremented',
+                wakeupCount: newCount,
+                streak: user.streak || 0,
+                maxStreak: user.maxStreak || 0
+            };
         }
 
-        // Check for yesterday's streak
+        // First wakeup today - check for yesterday's streak
         const yesterdayEntry = await ctx.db
             .query("streaks")
             .withIndex("by_user_date", (q) => q.eq("user_id", user._id).eq("date", yesterday))
@@ -44,14 +55,14 @@ export const markAwake = mutation({
 
         let newStreak = 1;
         if (yesterdayEntry) {
-            newStreak = yesterdayEntry.count + 1;
+            newStreak = (user.streak || 0) + 1;
         }
 
-        // Insert new streak entry
+        // Insert new streak entry with count = 1 (first wakeup of the day)
         await ctx.db.insert("streaks", {
             user_id: user._id,
             date: today,
-            count: newStreak
+            count: 1  // Number of wakeups today starts at 1
         });
 
         // Update user stats
@@ -63,7 +74,12 @@ export const markAwake = mutation({
             maxStreak: newMax
         });
 
-        return { status: 'success', streak: newStreak, maxStreak: newMax };
+        return {
+            status: 'success',
+            wakeupCount: 1,
+            streak: newStreak,
+            maxStreak: newMax
+        };
     },
 });
 

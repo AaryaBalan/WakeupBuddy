@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery } from 'convex/react';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { api } from '../convex/_generated/api';
 
 const UserContext = createContext();
 
@@ -7,9 +9,28 @@ export function UserProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Real-time sync with Convex
+    const convexUser = useQuery(
+        api.users.getUserByEmail,
+        user?.email ? { email: user.email } : "skip"
+    );
+
     useEffect(() => {
         loadUser();
     }, []);
+
+    // Sync Convex data with local state when it changes
+    useEffect(() => {
+        if (convexUser && user) {
+            // Update local state with latest Convex data
+            const updatedUser = { ...user, ...convexUser };
+            setUser(updatedUser);
+            // Also update AsyncStorage to persist
+            AsyncStorage.setItem('user', JSON.stringify(updatedUser)).catch(err =>
+                console.error('Failed to update AsyncStorage:', err)
+            );
+        }
+    }, [convexUser]);
 
     const loadUser = async () => {
         try {

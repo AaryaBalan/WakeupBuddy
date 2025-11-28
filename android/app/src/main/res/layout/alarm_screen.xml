@@ -1,49 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
     android:background="#000000"
-    android:padding="32dp">
+    android:fillViewport="true">
 
-    <ImageView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@android:drawable/ic_lock_idle_alarm"
-        android:tint="#C9E265"
-        android:layout_marginBottom="40dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="WAKE UP!"
-        android:textSize="48sp"
-        android:textColor="#C9E265"
-        android:textStyle="bold"
-        android:layout_marginBottom="10dp" />
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Time to start your day"
-        android:textSize="18sp"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="60dp" />
+        <!-- Clock Icon (Using system alarm clock icon) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⏰"
+            android:textSize="100sp"
+            android:layout_marginBottom="30dp" />
 
-    <Button
-        android:id="@+id/awake_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="I'm Awake"
-        android:textSize="22sp"
-        android:textColor="#000000"
-        android:textStyle="bold"
-        android:backgroundTint="#C9E265"
-        android:paddingLeft="50dp"
-        android:paddingRight="50dp"
-        android:paddingTop="18dp"
-        android:paddingBottom="18dp"
-        android:elevation="5dp" />
+        <!-- Wake Up Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WAKE UP!"
+            android:textSize="48sp"
+            android:textColor="#C9E265"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
 
-</LinearLayout>
+        <!-- Alarm Time Display -->
+        <TextView
+            android:id="@+id/alarm_time_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alarm: --:--"
+            android:textSize="24sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Buddy Info (if available) -->
+        <TextView
+            android:id="@+id/buddy_info_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="16sp"
+            android:textColor="#C9E265"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time to start your day"
+            android:textSize="18sp"
+            android:textColor="#AAAAAA"
+            android:layout_marginBottom="60dp" />
+
+        <!-- I'm Awake Button -->
+        <Button
+            android:id="@+id/awake_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="I'm Awake"
+            android:textSize="22sp"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:backgroundTint="#C9E265"
+            android:paddingLeft="50dp"
+            android:paddingRight="50dp"
+            android:paddingTop="18dp"
+            android:paddingBottom="18dp"
+            android:elevation="5dp" />
+
+    </LinearLayout>
+
+</ScrollView>

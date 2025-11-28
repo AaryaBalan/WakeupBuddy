@@ -20,9 +20,17 @@ public class AlarmReceiver extends BroadcastReceiver {
         Log.i(TAG, "Intent action: " + (intent != null ? intent.getAction() : "null"));
         
         try {
+            // Get alarm time if provided
+            long alarmTime = intent.getLongExtra("alarmTime", System.currentTimeMillis());
+            String buddyName = intent.getStringExtra("buddyName");
+            
             // Create intent for AlarmActivity
             Intent fullScreenIntent = new Intent(context, AlarmActivity.class);
             fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            fullScreenIntent.putExtra("alarmTime", alarmTime);
+            if (buddyName != null) {
+                fullScreenIntent.putExtra("buddyName", buddyName);
+            }
             
             PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(
                 context,

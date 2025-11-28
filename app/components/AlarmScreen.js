@@ -14,7 +14,7 @@ export default function AlarmScreen() {
             await cancelAlarm(1001);
             console.log('Alarm cancelled successfully');
 
-            // Mark as awake if user is logged in
+            // Mark awake if user is logged in
             if (user && user.email) {
                 // Get local date YYYY-MM-DD
                 const now = new Date();
@@ -27,16 +27,20 @@ export default function AlarmScreen() {
                     userDate: localDate
                 });
 
-                console.log('Streak updated successfully:', result);
+                if (result.status === 'success') {
+                    console.log(`Streak updated: ${result.streak} days (Wakeup #${result.wakeupCount} today)`);
+                } else if (result.status === 'incremented') {
+                    console.log(`Wakeup count incremented to ${result.wakeupCount} for today`);
+                }
             } else {
                 console.warn('User not logged in, skipping streak update');
             }
 
-            // Close the alarm activity
+            // Exit the app
             BackHandler.exitApp();
         } catch (error) {
             console.error('Error in handleImAwake:', error);
-            // Close anyway even if there's an error
+            // Still exit even if marking awake fails
             BackHandler.exitApp();
         }
     };

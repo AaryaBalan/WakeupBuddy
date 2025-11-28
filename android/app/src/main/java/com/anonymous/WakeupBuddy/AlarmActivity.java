@@ -31,6 +31,26 @@ public class AlarmActivity extends Activity {
             WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
         );
 
+        // Display alarm time if available
+        Intent intent = getIntent();
+        if (intent != null) {
+            long alarmTime = intent.getLongExtra("alarmTime", 0);
+            String buddyName = intent.getStringExtra("buddyName");
+            
+            if (alarmTime > 0) {
+                android.widget.TextView timeText = findViewById(R.id.alarm_time_text);
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
+                String formattedTime = sdf.format(new java.util.Date(alarmTime));
+                timeText.setText("Alarm: " + formattedTime);
+            }
+            
+            if (buddyName != null && !buddyName.isEmpty()) {
+                android.widget.TextView buddyText = findViewById(R.id.buddy_info_text);
+                buddyText.setText("👥 With: " + buddyName);
+                buddyText.setVisibility(android.view.View.VISIBLE);
+            }
+        }
+
         // Play alarm sound
         try {
             Uri alert = android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;

@@ -27,25 +27,28 @@ export default function HomeScreen() {
                 return;
             }
 
-            // Get local date YYYY-MM-DD
+            // Get current date in local timezone
             const now = new Date();
             const localDate = now.getFullYear() + '-' +
                 String(now.getMonth() + 1).padStart(2, '0') + '-' +
                 String(now.getDate()).padStart(2, '0');
+
+            console.log('Calling markAwake with date:', localDate);
 
             const result = await markAwake({
                 userEmail: user.email,
                 userDate: localDate
             });
 
-            if (result.status === 'already_marked') {
-                Toast.info("You're already marked awake for today!");
+            console.log('markAwake result:', result);
+
+            if (result.status === 'success') {
+                updateUser({ streak: result.streak, maxStreak: result.maxStreak });
+                Toast.success(`Streak: ${result.streak} days! 🔥 (Wakeup #${result.wakeupCount} today)`);
+            } else if (result.status === 'incremented') {
+                Toast.success(`Wakeup #${result.wakeupCount} today! Keep it up! 💪`);
             } else {
-                Toast.success(`Streak updated! Current streak: ${result.streak}`);
-                // Optimistically update user context if needed, though context might auto-refresh
-                if (user) {
-                    updateUser({ streak: result.streak, maxStreak: result.maxStreak });
-                }
+                Toast.success("Marked awake!");
             }
         } catch (error) {
             console.error("Failed to mark awake:", error);
