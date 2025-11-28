@@ -63,7 +63,7 @@ export default function NotificationsScreen() {
                 }
 
                 // Schedule the native alarm
-                await scheduleAlarm(alarmDate);
+                await scheduleAlarm(alarmDate, item.created_by.name);
                 console.log('Native alarm scheduled successfully for buddy at:', alarmDate.toLocaleString());
 
                 showPopup(`Alarm set for ${result.alarm_time} ${result.ampm} - You and ${item.created_by.name} will wake up together!`, '#4CAF50');

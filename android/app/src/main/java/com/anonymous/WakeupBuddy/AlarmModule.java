@@ -127,7 +127,7 @@ public class AlarmModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void scheduleExactAlarm(double timestampMs, int requestCode, Promise promise) {
+    public void scheduleExactAlarm(double timestampMs, String buddyName, int requestCode, Promise promise) {
         try {
             Context ctx = getReactApplicationContext();
             AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
@@ -141,9 +141,16 @@ public class AlarmModule extends ReactContextBaseJavaModule {
             }
             
             Intent intent = new Intent(ctx, AlarmReceiver.class);
+            long when = (long) timestampMs;
+            
+            // Put extras in the intent so they persist
+            intent.putExtra("alarmTime", when);
+            if (buddyName != null) {
+                intent.putExtra("buddyName", buddyName);
+            }
+            
             PendingIntent pi = PendingIntent.getBroadcast(ctx, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-            long when = (long) timestampMs;
             if (am != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pi);

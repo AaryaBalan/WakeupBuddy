@@ -155,7 +155,7 @@ export async function checkAllPermissions() {
     };
 }
 
-export async function scheduleAlarm(date, requestCode = 1001) {
+export async function scheduleAlarm(date, buddyName = null, requestCode = 1001) {
     if (Platform.OS !== 'android') {
         console.warn('Alarm scheduling is only supported on Android');
         throw new Error('Android only');
@@ -183,8 +183,8 @@ export async function scheduleAlarm(date, requestCode = 1001) {
     }
 
     try {
-        console.log(`Scheduling alarm for ${date.toLocaleString()} (${date.getTime()}ms)`);
-        await AlarmModule.scheduleExactAlarm(date.getTime(), requestCode);
+        console.log(`Scheduling alarm for ${date.toLocaleString()} (${date.getTime()}ms) with buddy: ${buddyName}`);
+        await AlarmModule.scheduleExactAlarm(date.getTime(), buddyName, requestCode);
         return true;
     } catch (error) {
         console.error('Error scheduling alarm:', error);

@@ -14,7 +14,6 @@ import android.net.Uri;
 
 public class AlarmActivity extends Activity {
     private static final String TAG = "AlarmActivity";
-    private MediaPlayer player;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,41 +30,7 @@ public class AlarmActivity extends Activity {
             WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
         );
 
-        // Display alarm time if available
-        Intent intent = getIntent();
-        if (intent != null) {
-            long alarmTime = intent.getLongExtra("alarmTime", 0);
-            String buddyName = intent.getStringExtra("buddyName");
-            
-            if (alarmTime > 0) {
-                android.widget.TextView timeText = findViewById(R.id.alarm_time_text);
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
-                String formattedTime = sdf.format(new java.util.Date(alarmTime));
-                timeText.setText("Alarm: " + formattedTime);
-            }
-            
-            if (buddyName != null && !buddyName.isEmpty()) {
-                android.widget.TextView buddyText = findViewById(R.id.buddy_info_text);
-                buddyText.setText("👥 With: " + buddyName);
-                buddyText.setVisibility(android.view.View.VISIBLE);
-            }
-        }
-
-        // Play alarm sound
-        try {
-            Uri alert = android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
-            player = MediaPlayer.create(this, alert);
-            if (player == null) {
-                alert = android.provider.Settings.System.DEFAULT_NOTIFICATION_URI;
-                player = MediaPlayer.create(this, alert);
-            }
-            if (player != null) {
-                player.setLooping(true);
-                player.start();
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to play alarm sound", e);
-        }
+        updateUI(getIntent());
 
         // Set up the "I'm Awake" button
         Button awakeButton = findViewById(R.id.awake_button);
@@ -77,13 +42,45 @@ public class AlarmActivity extends Activity {
         });
     }
 
-    private void stopAlarmAndClose() {
-        // Stop the alarm sound
-        if (player != null) {
-            player.stop();
-            player.release();
-            player = null;
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        updateUI(intent);
+    }
+
+    private void updateUI(Intent intent) {
+        if (intent != null) {
+            long alarmTime = intent.getLongExtra("alarmTime", 0);
+            String buddyName = intent.getStringExtra("buddyName");
+            
+            android.widget.TextView timeText = findViewById(R.id.alarm_time_text);
+            android.widget.TextView buddyText = findViewById(R.id.buddy_info_text);
+
+            if (alarmTime > 0) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
+                String formattedTime = sdf.format(new java.util.Date(alarmTime));
+                timeText.setText("Alarm: " + formattedTime);
+            } else {
+                timeText.setText("Alarm: --:--");
+            }
+            
+            if (buddyName != null && !buddyName.isEmpty()) {
+                buddyText.setText("👥 With: " + buddyName);
+                buddyText.setVisibility(android.view.View.VISIBLE);
+            } else {
+                buddyText.setVisibility(android.view.View.GONE);
+            }
         }
+    }
+
+
+
+    private void stopAlarmAndClose() {
+        // Stop the Foreground Service (stops sound & vibration)
+        Intent stopIntent = new Intent(this, AlarmService.class);
+        stopIntent.setAction("STOP");
+        startService(stopIntent);
 
         // Launch the main app home screen with alarm dismissed parameter
         try {
@@ -102,12 +99,9 @@ public class AlarmActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        try {
-            if (player != null) {
-                player.stop();
-                player.release();
-                player = null;
-            }
-        } catch (Exception ignored) {}
+        // Ensure service is stopped if activity is destroyed
+        Intent stopIntent = new Intent(this, AlarmService.class);
+        stopIntent.setAction("STOP");
+        startService(stopIntent);
     }
 }
