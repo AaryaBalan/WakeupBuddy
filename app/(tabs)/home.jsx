@@ -3,13 +3,13 @@ import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
-import styles from '../../styles/home.styles'
+import styles from '../../styles/home.styles';
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -186,11 +186,12 @@ export default function HomeScreen() {
                                     const streakData = recentStreaks?.find(s => s.date === dateStr);
                                     const count = streakData?.count || 0;
 
-                                    // Color based on count
-                                    let boxColor = '#1a1a1a'; // Gray for 0
-                                    if (count >= 5) boxColor = '#4d7c0f'; // Dark green for 5+
-                                    else if (count >= 3) boxColor = '#65a30d'; // Medium green for 3-4
-                                    else if (count >= 1) boxColor = '#84cc16'; // Light green for 1-2
+                                    // Color based on count (matching profile page)
+                                    let boxColor = '#0d1b0d'; // Very dark green for 0
+                                    if (count >= 7) boxColor = '#C9E265'; // Bright neon for 7+
+                                    else if (count >= 5) boxColor = '#6a9a3d'; // Bright green for 5-6
+                                    else if (count >= 3) boxColor = '#2d4a2d'; // Medium green for 3-4
+                                    else if (count >= 1) boxColor = '#1a2a1a'; // Light green for 1-2
 
                                     return (
                                         <View key={index} style={styles.heatmapDayContainer}>
@@ -206,10 +207,11 @@ export default function HomeScreen() {
                         </View>
                         <View style={styles.heatmapLegend}>
                             <Text style={styles.legendText}>Less</Text>
-                            <View style={[styles.legendBox, { backgroundColor: '#1a1a1a' }]} />
-                            <View style={[styles.legendBox, { backgroundColor: '#84cc16' }]} />
-                            <View style={[styles.legendBox, { backgroundColor: '#65a30d' }]} />
-                            <View style={[styles.legendBox, { backgroundColor: '#4d7c0f' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#0d1b0d' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#1a2a1a' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#2d4a2d' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#6a9a3d' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#C9E265' }]} />
                             <Text style={styles.legendText}>More</Text>
                         </View>
                     </View>
