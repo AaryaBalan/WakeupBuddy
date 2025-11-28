@@ -187,7 +187,7 @@ export default function HomeScreen() {
                                     const count = streakData?.count || 0;
 
                                     // Color based on count (matching profile page)
-                                    let boxColor = '#0d1b0d'; // Very dark green for 0
+                                    let boxColor = '#1a1a1a'; // Grey/ash for 0
                                     if (count >= 7) boxColor = '#C9E265'; // Bright neon for 7+
                                     else if (count >= 5) boxColor = '#6a9a3d'; // Bright green for 5-6
                                     else if (count >= 3) boxColor = '#2d4a2d'; // Medium green for 3-4
@@ -207,8 +207,7 @@ export default function HomeScreen() {
                         </View>
                         <View style={styles.heatmapLegend}>
                             <Text style={styles.legendText}>Less</Text>
-                            <View style={[styles.legendBox, { backgroundColor: '#0d1b0d' }]} />
-                            <View style={[styles.legendBox, { backgroundColor: '#1a2a1a' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#1a1a1a' }]} />
                             <View style={[styles.legendBox, { backgroundColor: '#2d4a2d' }]} />
                             <View style={[styles.legendBox, { backgroundColor: '#6a9a3d' }]} />
                             <View style={[styles.legendBox, { backgroundColor: '#C9E265' }]} />

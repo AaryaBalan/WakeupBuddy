@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import ProfilePic from '../../components/ProfilePic';
@@ -178,7 +178,7 @@ export default function Profile() {
                 const count = streakData?.count || 0;
 
                 // Color based on count (GitHub-style)
-                let boxColor = '#0d1b0d'; // Very dark green for 0
+                let boxColor = '#1a1a1a'; // Grey/ash for 0
                 if (count >= 7) boxColor = NEON; // Bright neon for 7+
                 else if (count >= 5) boxColor = '#6a9a3d'; // Bright green for 5-6
                 else if (count >= 3) boxColor = '#2d4a2d'; // Medium green for 3-4
