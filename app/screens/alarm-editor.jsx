@@ -4,17 +4,18 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Toast } from 'toastify-react-native';
+import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
-import { requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
 import styles from '../../styles/alarmEditor.styles';
+import { requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
 
 export default function AlarmEditorScreen() {
     const router = useRouter();
     const { user } = useUser();
+    const { showPopup } = usePopup();
     const createAlarm = useMutation(api.alarms.createAlarm);
     const updateAlarm = useMutation(api.alarms.updateAlarm);
     const createNotification = useMutation(api.notifications.createNotification);
@@ -95,7 +96,7 @@ export default function AlarmEditorScreen() {
         try {
             if (!user) {
                 console.error('No user found');
-                Toast.error('Please login to set an alarm');
+                showPopup('Please login to set an alarm', '#FF6B6B');
                 return;
             }
 
@@ -124,10 +125,10 @@ export default function AlarmEditorScreen() {
                     id: alarmId,
                     ...payload
                 });
-                Toast.success('Alarm Updated Successfully');
+                showPopup('Alarm Updated Successfully', '#4CAF50');
             } else {
                 await createAlarm(payload);
-                Toast.success('Alarm Saved Successfully');
+                showPopup('Alarm Saved Successfully', '#4CAF50');
             }
 
             // Schedule native Android alarm
@@ -149,7 +150,7 @@ export default function AlarmEditorScreen() {
                 if ((alarmError && alarmError.message === 'PERMISSION_REQUIRED') ||
                     (alarmError && alarmError.toString && alarmError.toString().includes('PERMISSION_REQUIRED')) ||
                     (alarmError && alarmError.toString && alarmError.toString().includes('SCHEDULE_EXACT_ALARM'))) {
-                    Toast.error('Please enable Alarms permission in Settings');
+                    showPopup('Please enable Alarms permission in Settings', '#FF6B6B');
                     await requestExactAlarmPermission();
                 } else {
                     console.log('Alarm saved to database, native alarm scheduling skipped');
@@ -174,7 +175,7 @@ export default function AlarmEditorScreen() {
             router.back();
         } catch (error) {
             console.error('Error saving alarm:', error);
-            Toast.error('Failed to save alarm');
+            showPopup('Failed to save alarm', '#FF6B6B');
         } finally {
             setIsLoading(false);
         }

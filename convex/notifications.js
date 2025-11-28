@@ -56,3 +56,74 @@ export const updateNotificationStatus = mutation({
         await ctx.db.patch(args.id, { status: args.status });
     }
 });
+
+export const acceptBuddyRequest = mutation({
+    args: {
+        notificationId: v.id("notifications"),
+        receiverUserId: v.id("users"),
+        receiverEmail: v.string()
+    },
+    handler: async (ctx, args) => {
+        // 1. Get notification details
+        const notification = await ctx.db.get(args.notificationId);
+        if (!notification) {
+            throw new Error("Notification not found");
+        }
+
+        // 2. Update notification status to accepted (1)
+        await ctx.db.patch(args.notificationId, { status: 1 });
+
+        // 3. Get sender user details
+        const sender = await ctx.db.get(notification.created_by);
+        if (!sender) {
+            throw new Error("Sender not found");
+        }
+
+        // 4. Create alarm for RECEIVER (User B)
+        await ctx.db.insert("alarms", {
+            time: notification.alarm_time,
+            ampm: notification.ampm,
+            label: 'Wake Buddy',
+            enabled: true,
+            days: [0, 0, 0, 0, 0, 0, 0],
+            user_id: args.receiverUserId,
+            solo_mode: false,
+            buddy: sender.email  // Link to sender
+        });
+
+        // 5. Check if sender already has an alarm at this time with this buddy
+        const senderAlarms = await ctx.db
+            .query("alarms")
+            .withIndex("by_user", (q) => q.eq("user_id", notification.created_by))
+            .collect();
+
+        const existingAlarm = senderAlarms.find(alarm =>
+            alarm.time === notification.alarm_time &&
+            alarm.ampm === notification.ampm &&
+            alarm.buddy === args.receiverEmail
+        );
+
+        if (existingAlarm) {
+            // Update existing alarm to ensure it's enabled and linked
+            await ctx.db.patch(existingAlarm._id, {
+                buddy: args.receiverEmail,
+                solo_mode: false,
+                enabled: true
+            });
+        } else {
+            // Create new alarm for sender
+            await ctx.db.insert("alarms", {
+                time: notification.alarm_time,
+                ampm: notification.ampm,
+                label: 'Wake Buddy',
+                enabled: true,
+                days: [0, 0, 0, 0, 0, 0, 0],
+                user_id: notification.created_by,
+                solo_mode: false,
+                buddy: args.receiverEmail  // Link to receiver
+            });
+        }
+
+        return { success: true, alarm_time: notification.alarm_time, ampm: notification.ampm };
+    }
+});

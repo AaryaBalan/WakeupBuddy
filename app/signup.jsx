@@ -2,15 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import ToastManager, { Toast } from 'toastify-react-native';
+import { usePopup } from "../contexts/PopupContext";
 import { api } from "../convex/_generated/api";
 import styles from '../styles/signup.styles';
 
 export default function Signup() {
     const router = useRouter();
     const createUser = useMutation(api.users.createUser);
+    const { showPopup } = usePopup();
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
@@ -40,13 +41,13 @@ export default function Signup() {
             });
             console.log('Registration Successful:', userId);
             // You might want to navigate to login or home screen here
-            Toast.success('Registration Successful!')
+            showPopup('Registration Successful!', '#4CAF50')
             setTimeout(() => {
                 router.replace('/login');
             }, 2000);
         } catch (error) {
             console.error('Registration Failed:', error);
-            Toast.error(error.message || 'Registration Failed');
+            showPopup(error.message || 'Registration Failed', '#FF6B6B');
         } finally {
             setIsLoading(false);
         }
@@ -192,8 +193,6 @@ export default function Signup() {
 
                 </View>
             </ScrollView>
-            {/* Toast provider should be at the root level */}
-            <ToastManager />
         </SafeAreaView>
     );
 }

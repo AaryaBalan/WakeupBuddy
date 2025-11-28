@@ -2,17 +2,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useConvex } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import ToastManager, { Toast } from 'toastify-react-native';
+import { usePopup } from "../contexts/PopupContext";
 import { useUser } from "../contexts/UserContext";
 import { api } from "../convex/_generated/api";
-import styles from '../styles/login.styles.js'
+import styles from '../styles/login.styles.js';
 
 export default function Login() {
     const router = useRouter();
     const convex = useConvex();
     const { login } = useUser();
+    const { showPopup } = usePopup();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -31,19 +32,19 @@ export default function Login() {
             if (user) {
                 if (user.password === password) {
                     await login(user);
-                    Toast.success('Login Successful!')
+                    showPopup('Login Successful!', '#4CAF50')
                     setTimeout(() => {
                         router.replace('/(tabs)/home');
                     }, 2000);
                 } else {
-                    Toast.error('Incorrect Password...!',)
+                    showPopup('Incorrect Password...!', '#FF6B6B')
                 }
             } else {
-                Toast.error('User Not Found!')
+                showPopup('User Not Found!', '#FF6B6B')
             }
         } catch (error) {
             console.error('Login Failed:', error);
-            Toast.error('Login Failed');
+            showPopup('Login Failed', '#FF6B6B');
         } finally {
             setIsLoading(false);
         }
@@ -143,8 +144,8 @@ export default function Login() {
                     </Link>
                 </View>
 
+
             </View>
-            <ToastManager />
         </SafeAreaView>
     );
 }

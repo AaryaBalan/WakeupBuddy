@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Toast } from 'toastify-react-native';
+import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/alarms.styles';
@@ -11,6 +11,7 @@ import styles from '../../styles/alarms.styles';
 export default function AlarmsScreen() {
     const router = useRouter();
     const { user } = useUser();
+    const { showPopup } = usePopup();
     const userId = user?._id;
     const alarms = useQuery(api.alarms.getAlarmsByUser, userId ? { user_id: userId } : "skip");
     const toggleAlarmMutation = useMutation(api.alarms.toggleAlarm);
@@ -26,17 +27,17 @@ export default function AlarmsScreen() {
             await toggleAlarmMutation({ id, enabled: !currentStatus });
         } catch (error) {
             console.error('Error toggling alarm:', error);
-            Toast.error('Failed to toggle alarm');
+            showPopup('Failed to toggle alarm', '#FF6B6B');
         }
     };
 
     const deleteAlarm = async (id) => {
         try {
             await deleteAlarmMutation({ id });
-            Toast.success('Alarm deleted');
+            showPopup('Alarm deleted', '#4CAF50');
         } catch (error) {
             console.error('Error deleting alarm:', error);
-            Toast.error('Failed to delete alarm');
+            showPopup('Failed to delete alarm', '#FF6B6B');
         }
     };
 

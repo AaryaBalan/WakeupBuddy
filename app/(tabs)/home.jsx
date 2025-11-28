@@ -5,8 +5,8 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Toast } from 'toastify-react-native';
 import ProfilePic from '../../components/ProfilePic';
+import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/home.styles';
@@ -14,6 +14,7 @@ import styles from '../../styles/home.styles';
 export default function HomeScreen() {
     const router = useRouter();
     const { user, updateUser } = useUser();
+    const { showPopup } = usePopup();
     const [isEnabled, setIsEnabled] = useState(true);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
@@ -27,7 +28,7 @@ export default function HomeScreen() {
         try {
             // Check if user is authenticated
             if (!user || !user.email) {
-                Toast.error("Please log in first");
+                showPopup("Please log in first", '#FF6B6B');
                 router.push('/login');
                 return;
             }
@@ -49,15 +50,15 @@ export default function HomeScreen() {
 
             if (result.status === 'success') {
                 updateUser({ streak: result.streak, maxStreak: result.maxStreak });
-                Toast.success(`Streak: ${result.streak} days! 🔥 (Wakeup #${result.wakeupCount} today)`);
+                showPopup(`Streak: ${result.streak} days! 🔥 (Wakeup #${result.wakeupCount} today)`, '#4CAF50');
             } else if (result.status === 'incremented') {
-                Toast.success(`Wakeup #${result.wakeupCount} today! Keep it up! 💪`);
+                showPopup(`Wakeup #${result.wakeupCount} today! Keep it up! 💪`, '#4CAF50');
             } else {
-                Toast.success("Marked awake!");
+                showPopup("Marked awake!", '#4CAF50');
             }
         } catch (error) {
             console.error("Failed to mark awake:", error);
-            Toast.error(error.message || "Failed to update streak");
+            showPopup(error.message || "Failed to update streak", '#FF6B6B');
         }
     };
 

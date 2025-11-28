@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Toast } from 'toastify-react-native';
+import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/notifications.styles';
@@ -12,6 +12,7 @@ import styles from '../../styles/notifications.styles';
 export default function NotificationsScreen() {
     const router = useRouter();
     const { user } = useUser();
+    const { showPopup } = usePopup();
     const userEmail = user?.email;
 
     // Fetch notifications using Convex query
@@ -20,34 +21,22 @@ export default function NotificationsScreen() {
 
     const createAlarm = useMutation(api.alarms.createAlarm);
     const updateNotificationStatus = useMutation(api.notifications.updateNotificationStatus);
+    const acceptBuddyRequest = useMutation(api.notifications.acceptBuddyRequest);
 
     const handleAccept = async (item) => {
         setProcessingId(item._id);
         try {
-            // 1. Accept the notification
-            await updateNotificationStatus({ id: item._id, status: 1 });
+            // Use new acceptBuddyRequest mutation that creates alarms for both users
+            const result = await acceptBuddyRequest({
+                notificationId: item._id,
+                receiverUserId: user._id,
+                receiverEmail: user.email
+            });
 
-            // 2. Create the alarm for the current user
-            if (user) {
-                // Parse time from separate fields
-                const payload = {
-                    time: item.alarm_time,
-                    ampm: item.ampm,
-                    label: 'Wake Buddy',
-                    days: [0, 0, 0, 0, 0, 0, 0], // One-time alarm
-                    user_id: user._id,
-                    solo_mode: false,
-                    buddy: item.created_by.email, // Sender's email
-                    // wake_method: 'call', // Removed as per schema
-                    enabled: true
-                };
-
-                await createAlarm(payload);
-                Toast.success(`Alarm set for ${item.alarm_time} ${item.ampm}`);
-            }
+            showPopup(`Alarm set for ${result.alarm_time} ${result.ampm} - You and ${item.created_by.name} will wake up together!`, '#4CAF50');
         } catch (error) {
             console.error('Error accepting invitation:', error);
-            Toast.error('Failed to accept invitation');
+            showPopup('Failed to accept invitation', '#FF6B6B');
         } finally {
             setProcessingId(null);
         }
@@ -57,10 +46,10 @@ export default function NotificationsScreen() {
         setProcessingId(id);
         try {
             await updateNotificationStatus({ id, status: -1 });
-            Toast.success('Invitation Declined');
+            showPopup('Invitation Declined', '#4CAF50');
         } catch (error) {
             console.error('Error declining invitation:', error);
-            Toast.error('Failed to decline invitation');
+            showPopup('Failed to decline invitation', '#FF6B6B');
         } finally {
             setProcessingId(null);
         }

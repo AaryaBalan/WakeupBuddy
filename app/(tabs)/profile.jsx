@@ -4,8 +4,8 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Toast } from 'toastify-react-native';
 import ProfilePic from '../../components/ProfilePic';
+import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/profile.styles';
@@ -19,6 +19,7 @@ export default function Profile() {
   const router = useRouter();
   const { user, logout, updateUser: updateContextUser } = useUser();
   const updateUserMutation = useMutation(api.users.updateUser);
+  const { showPopup } = usePopup();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editName, setEditName] = useState('');
@@ -65,10 +66,10 @@ export default function Profile() {
 
       await updateContextUser(updatedUser);
       setModalVisible(false);
-      Toast.success('Profile updated successfully');
+      showPopup('Profile updated successfully', '#4CAF50');
     } catch (error) {
       console.error('Failed to update profile:', error);
-      Toast.error('Failed to update profile');
+      showPopup('Failed to update profile', '#FF6B6B');
     } finally {
       setIsSaving(false);
     }
