@@ -3,17 +3,14 @@ import { mutation, query } from "./_generated/server";
 
 export const markAwake = mutation({
     args: {
+        userEmail: v.string(), // User email to identify who is marking awake
         userDate: v.optional(v.string()) // YYYY-MM-DD from client
     },
     handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity();
-        if (!identity) {
-            throw new Error("Unauthenticated");
-        }
-
+        // Get user by email instead of using auth context
         const user = await ctx.db
             .query("users")
-            .withIndex("by_email", (q) => q.eq("email", identity.email))
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
             .unique();
 
         if (!user) {
@@ -71,14 +68,13 @@ export const markAwake = mutation({
 });
 
 export const getStreak = query({
-    args: {},
-    handler: async (ctx) => {
-        const identity = await ctx.auth.getUserIdentity();
-        if (!identity) return null;
-
+    args: {
+        userEmail: v.string(),
+    },
+    handler: async (ctx, args) => {
         const user = await ctx.db
             .query("users")
-            .withIndex("by_email", (q) => q.eq("email", identity.email))
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
             .unique();
 
         if (!user) return null;

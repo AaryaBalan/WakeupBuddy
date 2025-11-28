@@ -1,16 +1,42 @@
+import { useMutation } from 'convex/react';
 import { BackHandler, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useUser } from '../../contexts/UserContext';
+import { api } from '../../convex/_generated/api';
 import { cancelAlarm } from '../native/AlarmNative';
 
 export default function AlarmScreen() {
+    const { user } = useUser();
+    const markAwake = useMutation(api.streaks.markAwake);
+
     const handleImAwake = async () => {
         try {
+            // Cancel the alarm first
             await cancelAlarm(1001);
             console.log('Alarm cancelled successfully');
+
+            // Mark as awake if user is logged in
+            if (user && user.email) {
+                // Get local date YYYY-MM-DD
+                const now = new Date();
+                const localDate = now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0');
+
+                const result = await markAwake({
+                    userEmail: user.email,
+                    userDate: localDate
+                });
+
+                console.log('Streak updated successfully:', result);
+            } else {
+                console.warn('User not logged in, skipping streak update');
+            }
+
             // Close the alarm activity
             BackHandler.exitApp();
         } catch (error) {
-            console.error('Error cancelling alarm:', error);
-            // Close anyway even if cancel fails
+            console.error('Error in handleImAwake:', error);
+            // Close anyway even if there's an error
             BackHandler.exitApp();
         }
     };

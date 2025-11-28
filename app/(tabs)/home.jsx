@@ -3,7 +3,7 @@ import { useMutation } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import ProfilePic from '../../components/ProfilePic';
@@ -12,7 +12,7 @@ import { api } from "../../convex/_generated/api";
 
 export default function HomeScreen() {
     const router = useRouter();
-    const { user, updateContextUser } = useUser();
+    const { user, updateUser } = useUser();
     const [isEnabled, setIsEnabled] = useState(true);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
@@ -21,9 +21,9 @@ export default function HomeScreen() {
     const handleMarkAwake = async () => {
         try {
             // Check if user is authenticated
-            if (!user || !user._id) {
+            if (!user || !user.email) {
                 Toast.error("Please log in first");
-                router.push('/auth/login');
+                router.push('/login');
                 return;
             }
 
@@ -33,37 +33,40 @@ export default function HomeScreen() {
                 String(now.getMonth() + 1).padStart(2, '0') + '-' +
                 String(now.getDate()).padStart(2, '0');
 
-            const result = await markAwake({ userDate: localDate });
+            const result = await markAwake({
+                userEmail: user.email,
+                userDate: localDate
+            });
+
             if (result.status === 'already_marked') {
                 Toast.info("You're already marked awake for today!");
             } else {
                 Toast.success(`Streak updated! Current streak: ${result.streak}`);
                 // Optimistically update user context if needed, though context might auto-refresh
                 if (user) {
-                    updateContextUser({ ...user, streak: result.streak, maxStreak: result.maxStreak });
+                    updateUser({ streak: result.streak, maxStreak: result.maxStreak });
                 }
             }
         } catch (error) {
             console.error("Failed to mark awake:", error);
-            if (error.message && error.message.includes('Unauthenticated')) {
-                Toast.error("Please log in to update your streak");
-                router.push('/auth/login');
-            } else {
-                Toast.error("Failed to update streak");
-            }
+            Toast.error(error.message || "Failed to update streak");
         }
     };
 
+
     useEffect(() => {
         const handleDeepLink = (event) => {
-            if (event.url && event.url.includes('wakeupbuddy://awake')) {
+            const url = event.url;
+            if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
+                console.log('Alarm dismissed via deep link, marking awake...');
                 handleMarkAwake();
             }
         };
 
         // Check if app was opened via deep link
         Linking.getInitialURL().then((url) => {
-            if (url && url.includes('wakeupbuddy://awake')) {
+            if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
+                console.log('App opened with alarm deep link, marking awake...');
                 handleMarkAwake();
             }
         });
@@ -74,6 +77,40 @@ export default function HomeScreen() {
         return () => {
             subscription.remove();
         };
+    }, []);
+
+    useEffect(() => {
+        // Check permissions when home screen loads
+        const checkPerms = async () => {
+            try {
+                const { checkAllPermissions } = await import('../native/AlarmNative');
+                const perms = await checkAllPermissions();
+
+                if (!perms.allGranted) {
+                    // Show a simple alert to guide user to permissions setup
+                    setTimeout(() => {
+                        Alert.alert(
+                            'Setup Required',
+                            'To ensure alarms work reliably in the background, please complete the permission setup.',
+                            [
+                                {
+                                    text: 'Later',
+                                    style: 'cancel'
+                                },
+                                {
+                                    text: 'Setup Now',
+                                    onPress: () => router.push('/screens/PermissionsGuide')
+                                }
+                            ]
+                        );
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error checking permissions:', error);
+            }
+        };
+
+        checkPerms();
     }, []);
 
     return (

@@ -58,6 +58,75 @@ public class AlarmModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void isBatteryOptimizationDisabled(Promise promise) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                android.os.PowerManager pm = (android.os.PowerManager) reactContext.getSystemService(Context.POWER_SERVICE);
+                if (pm != null) {
+                    boolean isIgnoring = pm.isIgnoringBatteryOptimizations(reactContext.getPackageName());
+                    promise.resolve(isIgnoring);
+                } else {
+                    promise.resolve(false);
+                }
+            } else {
+                // Pre-Android 6.0, battery optimization doesn't exist
+                promise.resolve(true);
+            }
+        } catch (Exception e) {
+            promise.reject("ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void requestBatteryOptimizationExemption(Promise promise) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + reactContext.getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                reactContext.startActivity(intent);
+                promise.resolve(true);
+            } else {
+                promise.resolve(true);
+            }
+        } catch (Exception e) {
+            promise.reject("ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void canDrawOverlays(Promise promise) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                boolean canDraw = Settings.canDrawOverlays(reactContext);
+                promise.resolve(canDraw);
+            } else {
+                // Pre-Android 6.0, always allowed
+                promise.resolve(true);
+            }
+        } catch (Exception e) {
+            promise.reject("ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void requestDrawOverlays(Promise promise) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                intent.setData(Uri.parse("package:" + reactContext.getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                reactContext.startActivity(intent);
+                promise.resolve(true);
+            } else {
+                promise.resolve(true);
+            }
+        } catch (Exception e) {
+            promise.reject("ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
     public void scheduleExactAlarm(double timestampMs, int requestCode, Promise promise) {
         try {
             Context ctx = getReactApplicationContext();

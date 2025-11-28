@@ -65,9 +65,10 @@ public class AlarmActivity extends Activity {
             player = null;
         }
 
-        // Launch the main app to mark as awake
+        // Launch the main app home screen with alarm dismissed parameter
         try {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("wakeupbuddy://awake"));
+            // Use the home route directly to avoid unmatched route errors
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("wakeupbuddy://(tabs)/home?alarm=dismissed"));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         } catch (Exception e) {
