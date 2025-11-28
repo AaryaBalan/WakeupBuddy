@@ -4,7 +4,7 @@ const getAvatarUrl = (seed) =>
     `https://api.dicebear.com/9.x/adventurer/png?seed=${seed}`;
 
 export default function ProfilePic({ user, size = 60 }) {
-    const seed = user?.profileImageSeed || user?.username || user?.id || "user";
+    const seed = user?.profileImageSeed || user?.username || user?.id || "";
 
     return (
         <Image

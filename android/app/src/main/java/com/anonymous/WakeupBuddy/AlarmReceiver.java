@@ -78,7 +78,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Alarm Notifications",
-                    NotificationManager.IMPORTANCE_HIGH
+                    NotificationManager.IMPORTANCE_MAX  // MAX priority for full-screen intents
             );
             channel.setDescription("Notifications for alarm clock");
             channel.enableVibration(true);
