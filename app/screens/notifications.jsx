@@ -8,6 +8,7 @@ import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/notifications.styles';
+import { requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
 
 export default function NotificationsScreen() {
     const router = useRouter();
@@ -33,7 +34,55 @@ export default function NotificationsScreen() {
                 receiverEmail: user.email
             });
 
-            showPopup(`Alarm set for ${result.alarm_time} ${result.ampm} - You and ${item.created_by.name} will wake up together!`, '#4CAF50');
+            // Schedule native Android alarm on buddy's device
+            try {
+                // Parse the alarm time (e.g., "7:00") and AM/PM
+                const [hoursStr, minutesStr] = result.alarm_time.split(':');
+                let hours = parseInt(hoursStr);
+                const minutes = parseInt(minutesStr);
+
+                // Convert to 24-hour format
+                if (result.ampm === 'PM' && hours !== 12) {
+                    hours += 12;
+                }
+                if (result.ampm === 'AM' && hours === 12) {
+                    hours = 0;
+                }
+
+                // Create alarm date
+                const now = new Date();
+                let alarmDate = new Date();
+                alarmDate.setHours(hours);
+                alarmDate.setMinutes(minutes);
+                alarmDate.setSeconds(0);
+                alarmDate.setMilliseconds(0);
+
+                // If the time has already passed today, schedule for tomorrow
+                if (alarmDate <= now) {
+                    alarmDate.setDate(alarmDate.getDate() + 1);
+                }
+
+                // Schedule the native alarm
+                await scheduleAlarm(alarmDate);
+                console.log('Native alarm scheduled successfully for buddy at:', alarmDate.toLocaleString());
+
+                showPopup(`Alarm set for ${result.alarm_time} ${result.ampm} - You and ${item.created_by.name} will wake up together!`, '#4CAF50');
+            } catch (alarmError) {
+                console.error('Failed to schedule native alarm:', alarmError);
+
+                // If permission error, show helpful alert
+                if (alarmError && (
+                    alarmError.message === 'EXACT_ALARM_PERMISSION_REQUIRED' ||
+                    alarmError.message === 'BATTERY_OPTIMIZATION_REQUIRED' ||
+                    alarmError.message === 'DISPLAY_OVERLAY_REQUIRED'
+                )) {
+                    showPopup('Please enable all alarm permissions in Settings', '#FF6B6B');
+                    await requestExactAlarmPermission();
+                } else {
+                    // Alarm saved to database but native scheduling failed
+                    showPopup(`Accepted but alarm may not ring. Please check permissions.`, '#FFA500');
+                }
+            }
         } catch (error) {
             console.error('Error accepting invitation:', error);
             showPopup('Failed to accept invitation', '#FF6B6B');
