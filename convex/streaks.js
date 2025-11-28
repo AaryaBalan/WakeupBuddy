@@ -101,3 +101,46 @@ export const getStreak = query({
         };
     }
 });
+
+export const getRecentStreaks = query({
+    args: {
+        userEmail: v.string(),
+        days: v.optional(v.number()) // Number of days to fetch (default 10)
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .unique();
+
+        if (!user) return [];
+
+        const numberOfDays = args.days || 10;
+
+        // Calculate date range (last X days from today)
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - (numberOfDays - 1));
+
+        // Format dates as YYYY-MM-DD
+        const endDateStr = today.toISOString().split('T')[0];
+        const startDateStr = startDate.toISOString().split('T')[0];
+
+        // Get all streak entries for this user in date range
+        const streaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user_date", (q) => q.eq("user_id", user._id))
+            .collect();
+
+        // Filter by date range and map to return format
+        const filteredStreaks = streaks
+            .filter(s => s.date >= startDateStr && s.date <= endDateStr)
+            .map(s => ({
+                date: s.date,
+                count: s.count
+            }))
+            .sort((a, b) => a.date.localeCompare(b.date)); // Sort by date ascending
+
+        return filteredStreaks;
+    }
+});

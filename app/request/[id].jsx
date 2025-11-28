@@ -3,10 +3,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import styles from '../../styles/request.styles'; 
 
 const NEON = '#C9E265';
-const BG = '#000';
-const GRAY = '#BDBDBD';
 
 export default function FriendRequestScreen() {
     const params = useLocalSearchParams();
@@ -118,43 +117,3 @@ export default function FriendRequestScreen() {
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: BG, padding: 20 },
-    headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40, marginTop: 20 },
-    headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
-    iconButton: { padding: 6 },
-
-    content: { flex: 1, alignItems: 'center' },
-
-    avatarsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 40, width: '100%' },
-    userCol: { alignItems: 'center' },
-    avatar: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: '#333' },
-    username: { color: '#fff', marginTop: 8, fontWeight: '600' },
-
-    connector: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
-    line: { height: 2, backgroundColor: '#333', flex: 1, position: 'absolute', left: 0, right: 0 },
-    iconCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: NEON, justifyContent: 'center', alignItems: 'center', zIndex: 1 },
-
-    actionContainer: { width: '100%', alignItems: 'center' },
-    promptText: { color: GRAY, textAlign: 'center', marginBottom: 24, fontSize: 16 },
-    primaryBtn: { backgroundColor: NEON, paddingVertical: 16, borderRadius: 12, alignItems: 'center', width: '100%' },
-    primaryBtnText: { color: '#000', fontWeight: '700', fontSize: 16 },
-
-    successContainer: { width: '100%', alignItems: 'center' },
-    successBadge: { marginBottom: 16 },
-    successTitle: { color: '#fff', fontSize: 24, fontWeight: '700', marginBottom: 8 },
-    successText: { color: GRAY, textAlign: 'center', marginBottom: 40, fontSize: 16, lineHeight: 24 },
-
-    streakComparison: { backgroundColor: '#111', padding: 20, borderRadius: 16, width: '100%', marginBottom: 30 },
-    streakTitle: { color: GRAY, fontSize: 14, textAlign: 'center', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 },
-    streakRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
-    streakBox: { alignItems: 'center' },
-    streakNum: { color: '#fff', fontSize: 24, fontWeight: '700', marginVertical: 4 },
-    streakLabel: { color: GRAY, fontSize: 12 },
-    vsBadge: { backgroundColor: '#222', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
-    vsText: { color: '#666', fontSize: 10, fontWeight: '700' },
-
-    secondaryBtn: { backgroundColor: '#222', paddingVertical: 16, borderRadius: 12, alignItems: 'center', width: '100%' },
-    secondaryBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-});

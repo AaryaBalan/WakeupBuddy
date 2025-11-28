@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -9,6 +9,7 @@ import { Toast } from 'toastify-react-native';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
+import styles from '../../styles/home.styles'
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -17,6 +18,10 @@ export default function HomeScreen() {
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
     const markAwake = useMutation(api.streaks.markAwake);
+    const recentStreaks = useQuery(
+        api.streaks.getRecentStreaks,
+        user?.email ? { userEmail: user.email, days: 10 } : "skip"
+    );
 
     const handleMarkAwake = async () => {
         try {
@@ -161,14 +166,52 @@ export default function HomeScreen() {
                         <Text style={styles.fireEmoji}>🔥</Text>
                     </View>
                     <Text style={styles.streakSubtext}>You're on fire! Keep it up.</Text>
-                    <View style={styles.streakProgress}>
-                        {[...Array(7)].map((_, i) => (
-                            <View key={i} style={[styles.progressSquare, i < 5 && styles.progressSquareActive]} />
-                        ))}
-                        <View style={[styles.progressSquare, styles.progressSquareInactive]} />
-                        <View style={[styles.progressSquare, styles.progressSquareActive]} />
-                        <View style={[styles.progressSquare, styles.progressSquareActive]} />
-                        <View style={[styles.progressSquare, styles.progressSquareInactive]} />
+
+                    {/* Last 10 Days Heatmap */}
+                    <View style={styles.heatmapContainer}>
+                        <Text style={styles.heatmapTitle}>Last 10 Days Activity</Text>
+                        <View style={styles.heatmap}>
+                            {(() => {
+                                // Generate last 10 days
+                                const days = [];
+                                for (let i = 9; i >= 0; i--) {
+                                    const date = new Date();
+                                    date.setDate(date.getDate() - i);
+                                    const dateStr = date.toISOString().split('T')[0];
+                                    days.push(dateStr);
+                                }
+
+                                // Map to counts
+                                return days.map((dateStr, index) => {
+                                    const streakData = recentStreaks?.find(s => s.date === dateStr);
+                                    const count = streakData?.count || 0;
+
+                                    // Color based on count
+                                    let boxColor = '#1a1a1a'; // Gray for 0
+                                    if (count >= 5) boxColor = '#4d7c0f'; // Dark green for 5+
+                                    else if (count >= 3) boxColor = '#65a30d'; // Medium green for 3-4
+                                    else if (count >= 1) boxColor = '#84cc16'; // Light green for 1-2
+
+                                    return (
+                                        <View key={index} style={styles.heatmapDayContainer}>
+                                            <View style={[styles.heatmapBox, { backgroundColor: boxColor }]}>
+                                                {count > 0 && (
+                                                    <Text style={styles.heatmapCount}>{count}</Text>
+                                                )}
+                                            </View>
+                                        </View>
+                                    );
+                                });
+                            })()}
+                        </View>
+                        <View style={styles.heatmapLegend}>
+                            <Text style={styles.legendText}>Less</Text>
+                            <View style={[styles.legendBox, { backgroundColor: '#1a1a1a' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#84cc16' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#65a30d' }]} />
+                            <View style={[styles.legendBox, { backgroundColor: '#4d7c0f' }]} />
+                            <Text style={styles.legendText}>More</Text>
+                        </View>
                     </View>
                 </View>
 
@@ -255,302 +298,3 @@ export default function HomeScreen() {
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000',
-    },
-    scrollContent: {
-        padding: 20,
-        paddingBottom: 40,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    headerLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    logoContainer: {
-        width: 32,
-        height: 32,
-        backgroundColor: '#C9E265',
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    headerRight: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 15,
-    },
-    notificationButton: {
-        position: 'relative',
-    },
-    badge: {
-        position: 'absolute',
-        top: -5,
-        right: -5,
-        backgroundColor: 'red',
-        borderRadius: 10,
-        width: 16,
-        height: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    badgeText: {
-        color: '#fff',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    profileImageContainer: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        overflow: 'hidden',
-        backgroundColor: '#333',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    profileImage: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 16,
-    },
-    profilePlaceholder: {
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#C9E265',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    profileInitials: {
-        color: '#000',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    streakCard: {
-        backgroundColor: '#111',
-        borderRadius: 20,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#333',
-        marginBottom: 30,
-    },
-    streakHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    streakLabel: {
-        color: '#888',
-        fontSize: 14,
-    },
-    shareBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        backgroundColor: '#2a2a1a',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 15,
-        borderWidth: 1,
-        borderColor: '#C9E265',
-    },
-    shareBadgeText: {
-        color: '#C9E265',
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    streakCountContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        marginBottom: 5,
-    },
-    streakCount: {
-        fontSize: 36,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    fireEmoji: {
-        fontSize: 32,
-    },
-    streakSubtext: {
-        color: '#888',
-        fontSize: 14,
-        marginBottom: 20,
-    },
-    streakProgress: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    progressSquare: {
-        width: 25,
-        height: 25,
-        borderRadius: 4,
-        backgroundColor: '#222',
-    },
-    progressSquareActive: {
-        backgroundColor: '#C9E265',
-    },
-    progressSquareInactive: {
-        backgroundColor: '#222',
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    seeAllText: {
-        color: '#C9E265',
-        fontSize: 14,
-    },
-    alarmCard: {
-        backgroundColor: '#000', // Or slightly lighter if needed, but design looks black/dark
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 30,
-        // Add subtle shadow or border if needed to separate from background
-        borderWidth: 1,
-        borderColor: '#222',
-    },
-    alarmHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    alarmDate: {
-        color: '#888',
-        fontSize: 14,
-    },
-    alarmActions: {
-        flexDirection: 'row',
-        gap: 10,
-    },
-    actionButton: {
-        padding: 5,
-        backgroundColor: '#1a1a1a',
-        borderRadius: 8,
-    },
-    timeContainer: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        marginBottom: 20,
-    },
-    timeText: {
-        fontSize: 48,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    ampmText: {
-        fontSize: 20,
-        color: '#888',
-        marginLeft: 10,
-    },
-    alarmFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    modeContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    modeText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    quickActionsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 30,
-        marginTop: 15,
-    },
-    quickActionItem: {
-        backgroundColor: '#111',
-        borderRadius: 20,
-        padding: 20,
-        alignItems: 'center',
-        width: '30%',
-        aspectRatio: 1,
-        justifyContent: 'center',
-    },
-    quickActionIcon: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#1a1a1a',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    quickActionText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    socialCard: {
-        backgroundColor: '#111',
-        borderRadius: 20,
-        padding: 15,
-        marginBottom: 20,
-    },
-    socialContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 15,
-    },
-    socialAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#333', // Placeholder image bg
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
-    },
-    socialTextContainer: {
-        flex: 1,
-    },
-    socialTitle: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-        marginBottom: 2,
-    },
-    socialSubtitle: {
-        color: '#888',
-        fontSize: 12,
-    },
-    thumbsUpButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#1a1a1a', // Darker background for button
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#333',
-    },
-});
