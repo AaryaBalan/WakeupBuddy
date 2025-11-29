@@ -33,7 +33,8 @@ export const getNotificationsByEmail = query({
         const notifications = await ctx.db
             .query("notifications")
             .withIndex("by_receiver", (q) => q.eq("with_whom", args.email))
-            .collect();
+            .order("desc")
+            .collect()
 
         // Enrich with sender details
         const enrichedNotifications = await Promise.all(
