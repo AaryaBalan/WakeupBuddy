@@ -152,7 +152,10 @@ public class AlarmModule extends ReactContextBaseJavaModule {
             PendingIntent pi = PendingIntent.getBroadcast(ctx, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
             if (am != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    AlarmManager.AlarmClockInfo info = new AlarmManager.AlarmClockInfo(when, pi);
+                    am.setAlarmClock(info, pi);
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pi);
                 } else {
                     am.setExact(AlarmManager.RTC_WAKEUP, when, pi);
