@@ -141,7 +141,7 @@ export default function AlarmEditorScreen() {
             }
 
             try {
-                await scheduleAlarm(alarmDate);
+                await scheduleAlarm(alarmDate, buddyValue);
                 console.log('Native alarm scheduled successfully for:', alarmDate.toLocaleString());
             } catch (alarmError) {
                 console.error('Failed to schedule native alarm:', alarmError);

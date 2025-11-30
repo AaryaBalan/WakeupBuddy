@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { ConvexHttpClient } from "convex/browser";
 import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
@@ -10,6 +11,11 @@ import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/home.styles';
+import { makePhoneCall, requestCallPhonePermission } from '../native/AlarmNative';
+
+// Initialize Convex HTTP client for imperative queries
+const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || "";
+const convexClient = new ConvexHttpClient(CONVEX_URL);
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -24,6 +30,38 @@ export default function HomeScreen() {
         user?.email ? { userEmail: user.email, days: 10 } : "skip"
     );
 
+    // Fetch user's alarms to find the active one with a buddy
+    const alarms = useQuery(api.alarms.getAlarmsByUser, user ? { user_id: user._id } : "skip");
+
+    // Debug: Log all alarms
+    useEffect(() => {
+        if (alarms) {
+            console.log('📋 All alarms:', JSON.stringify(alarms, null, 2));
+        }
+    }, [alarms]);
+
+    // Request CALL_PHONE permission when user is logged in
+    useEffect(() => {
+        if (user) {
+            requestCallPhonePermission().catch(err =>
+                console.log('Call permission request declined or failed:', err)
+            );
+        }
+    }, [user]);
+
+    // Find the alarm that is likely ringing (enabled and has a buddy)
+    // Accept both email format (with @) or just a name
+    const activeBuddyAlarm = alarms?.find(a => a.enabled && a.buddy && a.buddy.trim() !== '');
+
+    // Fetch buddy details if we found an alarm with a buddy
+    // Only if buddy looks like an email
+    const buddy = useQuery(
+        api.users.getUserByEmail,
+        activeBuddyAlarm && activeBuddyAlarm.buddy.includes('@')
+            ? { email: activeBuddyAlarm.buddy }
+            : "skip"
+    );
+
     const handleMarkAwake = async () => {
         try {
             // Check if user is authenticated
@@ -32,6 +70,13 @@ export default function HomeScreen() {
                 router.push('/login');
                 return;
             }
+
+            console.log('🔍 Checking for buddy to call...');
+            console.log('User loaded:', !!user);
+            console.log('User ID:', user._id);
+            console.log('Alarms data:', alarms);
+            console.log('Active buddy alarm found:', activeBuddyAlarm);
+            console.log('Buddy data:', buddy);
 
             // Get current date in local timezone
             const now = new Date();
@@ -56,6 +101,30 @@ export default function HomeScreen() {
             } else {
                 showPopup("Marked awake!", '#4CAF50');
             }
+
+            // Call buddy if available
+            console.log('🔍 Checking buddy alarm...');
+            console.log('Active buddy alarm:', activeBuddyAlarm);
+            console.log('Buddy details from DB:', buddy);
+
+            if (buddy && buddy.phone) {
+                console.log(`✅ CALLING BUDDY: ${buddy.name} at ${buddy.phone}`);
+                await makePhoneCall(buddy.phone).catch(err => console.error('Call failed:', err));
+            } else if (activeBuddyAlarm && activeBuddyAlarm.buddy) {
+                if (activeBuddyAlarm.buddy.includes('@')) {
+                    console.log('❌ Buddy email found but user has no phone number in database');
+                    console.log('Buddy email:', activeBuddyAlarm.buddy);
+                } else {
+                    console.log('❌ Buddy is stored as NAME only, not email. Cannot fetch phone number.');
+                    console.log('Buddy name:', activeBuddyAlarm.buddy);
+                    console.log('💡 SOLUTION: When creating alarm, use buddy EMAIL (e.g., latha@gmail.com) not just name');
+                }
+            } else {
+                console.log('ℹ️ No buddy alarm found');
+                if (!alarms || alarms.length === 0) {
+                    console.log('⚠️ WARNING: No alarms found in database. Alarms might have been deleted or user data not loaded.');
+                }
+            }
         } catch (error) {
             console.error("Failed to mark awake:", error);
             showPopup(error.message || "Failed to update streak", '#FF6B6B');
@@ -64,18 +133,66 @@ export default function HomeScreen() {
 
 
     useEffect(() => {
-        const handleDeepLink = (event) => {
+        const handleDeepLink = async (event) => {
             const url = event.url;
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
                 console.log('Alarm dismissed via deep link, marking awake...');
+
+                // Extract buddy email from URL if present
+                const buddyMatch = url.match(/[?&]buddy=([^&]+)/);
+                if (buddyMatch) {
+                    const buddyEmail = decodeURIComponent(buddyMatch[1]);
+                    console.log('📧 Buddy email from deep link:', buddyEmail);
+
+                    // Fetch buddy's phone number and call them
+                    if (buddyEmail && buddyEmail.includes('@')) {
+                        try {
+                            const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
+                            if (buddyUser && buddyUser.phone) {
+                                console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
+                                await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
+                            } else {
+                                console.log('❌ Buddy found but no phone number:', buddyEmail);
+                            }
+                        } catch (error) {
+                            console.error('Error fetching buddy for call:', error);
+                        }
+                    }
+                }
+
+                // Mark awake
                 handleMarkAwake();
             }
         };
 
         // Check if app was opened via deep link
-        Linking.getInitialURL().then((url) => {
+        Linking.getInitialURL().then(async (url) => {
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
                 console.log('App opened with alarm deep link, marking awake...');
+
+                // Extract buddy email from URL if present
+                const buddyMatch = url.match(/[?&]buddy=([^&]+)/);
+                if (buddyMatch) {
+                    const buddyEmail = decodeURIComponent(buddyMatch[1]);
+                    console.log('📧 Buddy email from deep link:', buddyEmail);
+
+                    // Fetch buddy's phone number and call them
+                    if (buddyEmail && buddyEmail.includes('@')) {
+                        try {
+                            const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
+                            if (buddyUser && buddyUser.phone) {
+                                console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
+                                await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
+                            } else {
+                                console.log('❌ Buddy found but no phone number:', buddyEmail);
+                            }
+                        } catch (error) {
+                            console.error('Error fetching buddy for call:', error);
+                        }
+                    }
+                }
+
+                // Mark awake
                 handleMarkAwake();
             }
         });

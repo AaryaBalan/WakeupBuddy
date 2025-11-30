@@ -84,8 +84,19 @@ public class AlarmActivity extends Activity {
 
         // Launch the main app home screen with alarm dismissed parameter
         try {
-            // Use the home route directly to avoid unmatched route errors
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("wakeupbuddy://(tabs)/home?alarm=dismissed"));
+            // Get buddy email from the intent that started this activity
+            String buddyEmail = getIntent().getStringExtra("buddyName");
+            
+            // Build deep link URL with buddy email parameter
+            String deepLinkUrl = "wakeupbuddy://(tabs)/home?alarm=dismissed";
+            if (buddyEmail != null && !buddyEmail.isEmpty()) {
+                // URI encode the email to handle special characters
+                String encodedEmail = Uri.encode(buddyEmail);
+                deepLinkUrl += "&buddy=" + encodedEmail;
+            }
+            
+            Log.d(TAG, "Launching app with deep link: " + deepLinkUrl);
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUrl));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         } catch (Exception e) {

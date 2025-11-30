@@ -2,10 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { checkAllPermissions, requestBatteryOptimization, requestDrawOverlays, requestExactAlarmPermission } from '../native/AlarmNative';
-import styles from "../../styles/permissionsGuide.styles"
+import styles from "../../styles/permissionsGuide.styles";
+import { checkAllPermissions, requestBatteryOptimization, requestCallPhonePermission, requestDrawOverlays, requestExactAlarmPermission } from '../native/AlarmNative';
 
 export default function PermissionsGuide() {
     const router = useRouter();
@@ -13,6 +13,7 @@ export default function PermissionsGuide() {
         canScheduleExactAlarms: false,
         batteryOptimizationDisabled: false,
         canDrawOverlays: false,
+        hasCallPermission: false,
         allGranted: false
     });
     const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +43,12 @@ export default function PermissionsGuide() {
 
     const handleOverlayPress = async () => {
         await requestDrawOverlays();
+    };
+
+    const handleCallPhonePress = async () => {
+        await requestCallPhonePermission();
+        // Refresh permissions after requesting
+        setTimeout(checkPermissions, 500);
     };
 
     const openAppSettings = () => {
@@ -154,6 +161,32 @@ export default function PermissionsGuide() {
                             </TouchableOpacity>
                         )}
                     </View>
+
+                    {/* Step 4: Call Phone Permission */}
+                    <View style={styles.permissionCard}>
+                        <View style={styles.cardHeader}>
+                            <View style={styles.stepNumber}>
+                                <Text style={styles.stepNumberText}>4</Text>
+                            </View>
+                            <View style={styles.cardTitleContainer}>
+                                <Text style={styles.cardTitle}>Allow Phone Calls</Text>
+                                <Text style={styles.cardSubtitle}>
+                                    Required to call your buddy when alarm is dismissed
+                                </Text>
+                            </View>
+                            {permissions.hasCallPermission ? (
+                                <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
+                            ) : (
+                                <Ionicons name="ellipse-outline" size={32} color="#666" />
+                            )}
+                        </View>
+                        {!permissions.hasCallPermission && (
+                            <TouchableOpacity style={styles.actionButton} onPress={handleCallPhonePress}>
+                                <Text style={styles.actionButtonText}>Grant Permission</Text>
+                                <Ionicons name="arrow-forward" size={20} color="#000" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
 
                 {/* Manual Steps Section */}
@@ -166,11 +199,11 @@ export default function PermissionsGuide() {
                         The following settings must be enabled manually in Android Settings:
                     </Text>
 
-                    {/* Step 4: Notifications */}
+                    {/* Step 5: Notifications */}
                     <View style={styles.manualCard}>
                         <View style={styles.manualCardHeader}>
                             <View style={[styles.stepNumber, styles.manualStepNumber]}>
-                                <Text style={styles.stepNumberText}>4</Text>
+                                <Text style={styles.stepNumberText}>5</Text>
                             </View>
                             <View style={styles.cardTitleContainer}>
                                 <Text style={styles.cardTitle}>Enable Notifications</Text>
@@ -186,11 +219,11 @@ export default function PermissionsGuide() {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Step 5: Background Activity */}
+                    {/* Step 6: Background Activity */}
                     <View style={styles.manualCard}>
                         <View style={styles.manualCardHeader}>
                             <View style={[styles.stepNumber, styles.manualStepNumber]}>
-                                <Text style={styles.stepNumberText}>5</Text>
+                                <Text style={styles.stepNumberText}>6</Text>
                             </View>
                             <View style={styles.cardTitleContainer}>
                                 <Text style={styles.cardTitle}>Allow Background Activity</Text>
@@ -211,7 +244,7 @@ export default function PermissionsGuide() {
                 <View style={styles.infoBox}>
                     <Ionicons name="information-circle" size={24} color="#C9E265" />
                     <Text style={styles.infoText}>
-                        All 5 permissions are essential for WakeBuddy to wake you up reliably, even when the app isn't open.
+                        All 6 permissions are essential for WakeBuddy to wake you up reliably and call your buddy, even when the app isn't open.
                     </Text>
                 </View>
 
@@ -222,7 +255,7 @@ export default function PermissionsGuide() {
                     disabled={!permissions.allGranted}
                 >
                     <Text style={[styles.continueButtonText, permissions.allGranted && styles.continueButtonTextActive]}>
-                        {permissions.allGranted ? "Continue (Complete steps 4-5 manually)" : "Complete Steps 1-3 First"}
+                        {permissions.allGranted ? "Continue (Complete steps 5-6 manually)" : "Complete Steps 1-4 First"}
                     </Text>
                 </TouchableOpacity>
 
@@ -230,8 +263,8 @@ export default function PermissionsGuide() {
                 <View style={styles.statusContainer}>
                     <Text style={styles.statusText}>
                         {permissions.allGranted
-                            ? "Steps 1-3 complete ✓ Now complete steps 4-5 in Android Settings"
-                            : `${(permissions.canScheduleExactAlarms ? 1 : 0) + (permissions.batteryOptimizationDisabled ? 1 : 0) + (permissions.canDrawOverlays ? 1 : 0)}/3 automatic permissions granted`
+                            ? "Steps 1-4 complete ✓ Now complete steps 5-6 in Android Settings"
+                            : `${(permissions.canScheduleExactAlarms ? 1 : 0) + (permissions.batteryOptimizationDisabled ? 1 : 0) + (permissions.canDrawOverlays ? 1 : 0) + (permissions.hasCallPermission ? 1 : 0)}/4 automatic permissions granted`
                         }
                     </Text>
                 </View>

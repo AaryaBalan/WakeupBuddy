@@ -7,6 +7,10 @@ import android.content.Context;
 import android.os.Build;
 import android.provider.Settings;
 import android.net.Uri;
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
+import android.Manifest;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -185,6 +189,40 @@ public class AlarmModule extends ReactContextBaseJavaModule {
             }
         } catch (Exception e) {
             promise.reject("ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void makePhoneCall(String phoneNumber, Promise promise) {
+        try {
+            if (phoneNumber == null || phoneNumber.isEmpty()) {
+                promise.reject("ERROR", "Phone number is required");
+                return;
+            }
+
+            // Check if we have CALL_PHONE permission
+            if (ContextCompat.checkSelfPermission(reactContext, Manifest.permission.CALL_PHONE) 
+                != PackageManager.PERMISSION_GRANTED) {
+                
+                // Request permission
+                ActivityCompat.requestPermissions(
+                    getCurrentActivity(),
+                    new String[]{Manifest.permission.CALL_PHONE},
+                    1
+                );
+                
+                promise.reject("PERMISSION_REQUIRED", "CALL_PHONE permission not granted. Please grant permission and try again.");
+                return;
+            }
+
+            // Permission granted, make the call
+            Intent callIntent = new Intent(Intent.ACTION_CALL);
+            callIntent.setData(Uri.parse("tel:" + phoneNumber));
+            callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            reactContext.startActivity(callIntent);
+            promise.resolve(true);
+        } catch (Exception e) {
+            promise.reject("ERROR", "Failed to make call: " + e.getMessage());
         }
     }
 }

@@ -142,16 +142,61 @@ export async function requestDrawOverlays() {
     );
 }
 
+/**
+ * Check if CALL_PHONE permission is granted
+ */
+export async function hasCallPhonePermission() {
+    if (Platform.OS !== 'android') return true;
+
+    try {
+        const { PermissionsAndroid } = require('react-native');
+        const granted = await PermissionsAndroid.check(
+            PermissionsAndroid.PERMISSIONS.CALL_PHONE
+        );
+        return granted;
+    } catch (error) {
+        console.error('Error checking CALL_PHONE permission:', error);
+        return false;
+    }
+}
+
+/**
+ * Request CALL_PHONE permission
+ */
+export async function requestCallPhonePermission() {
+    if (Platform.OS !== 'android') return true;
+
+    try {
+        const { PermissionsAndroid } = require('react-native');
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.CALL_PHONE,
+            {
+                title: "Phone Call Permission",
+                message: "WakeBuddy needs permission to call your buddy when you dismiss an alarm.",
+                buttonNeutral: "Ask Me Later",
+                buttonNegative: "Cancel",
+                buttonPositive: "OK"
+            }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (error) {
+        console.error('Error requesting CALL_PHONE permission:', error);
+        return false;
+    }
+}
+
 export async function checkAllPermissions() {
     const exactAlarms = await canScheduleExactAlarms();
     const batteryOpt = await isBatteryOptimizationDisabled();
     const overlays = await canDrawOverlays();
+    const callPhone = await hasCallPhonePermission();
 
     return {
         canScheduleExactAlarms: exactAlarms,
         batteryOptimizationDisabled: batteryOpt,
         canDrawOverlays: overlays,
-        allGranted: exactAlarms && batteryOpt && overlays
+        hasCallPermission: callPhone,
+        allGranted: exactAlarms && batteryOpt && overlays && callPhone
     };
 }
 
@@ -206,6 +251,26 @@ export async function cancelAlarm(requestCode = 1001) {
         return true;
     } catch (error) {
         console.error('Error cancelling alarm:', error);
+        throw error;
+    }
+}
+
+/**
+ * Make a phone call directly without user prompts
+ * @param {string} phoneNumber - Phone number to call
+ * @returns {Promise<boolean>}
+ */
+export async function makePhoneCall(phoneNumber) {
+    if (!AlarmModule) {
+        throw new Error('AlarmModule not available');
+    }
+
+    try {
+        console.log(`Making phone call to ${phoneNumber}`);
+        await AlarmModule.makePhoneCall(phoneNumber);
+        return true;
+    } catch (error) {
+        console.error('Error making phone call:', error);
         throw error;
     }
 }
