@@ -363,6 +363,34 @@ const profileStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    actionButtons: {
+        marginTop: 24,
+        gap: 12,
+    },
+    primaryBtn: {
+        backgroundColor: NEON,
+        padding: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    primaryBtnText: {
+        color: '#000',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    secondaryBtn: {
+        backgroundColor: '#222',
+        padding: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#333',
+    },
+    secondaryBtnText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
 });
 
 export default profileStyles;
