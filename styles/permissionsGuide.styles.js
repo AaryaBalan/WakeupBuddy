@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
         padding: 20,
         marginBottom: 30,
         borderWidth: 2,
-        borderColor: '#FFA500',
+        borderColor: '#C9E265',
     },
     manualHeader: {
         flexDirection: 'row',
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     manualHeaderText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#FFA500',
+        color: '#C9E265',
     },
     manualDescription: {
         fontSize: 14,
@@ -189,10 +189,10 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     manualStepNumber: {
-        backgroundColor: '#FFA500',
+        backgroundColor: '#C9E265',
     },
     manualButton: {
-        backgroundColor: '#FFA500',
+        backgroundColor: '#C9E265',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
         color: '#000',
     },
     settingsButton: {
-        backgroundColor: '#FFA500',
+        backgroundColor: '#C9E265',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',

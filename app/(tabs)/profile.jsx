@@ -100,7 +100,11 @@ export default function Profile() {
               >
                 <Ionicons name="pencil" size={24} color={NEON} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.iconButton}
+                activeOpacity={0.7}
+                onPress={() => router.push('/screens/PermissionsGuide')}
+              >
                 <Ionicons name="settings-outline" size={24} color={GRAY} />
               </TouchableOpacity>
             </View>
@@ -217,11 +221,16 @@ export default function Profile() {
           <View style={styles.settingsCard}>
             {[
               { key: 'account', label: 'Account Details', icon: 'person-outline' },
-              { key: 'wake', label: 'Wake Preferences', icon: 'time-outline' },
+              { key: 'wake', label: 'Wake Preferences', icon: 'time-outline', route: '/screens/PermissionsGuide' },
               { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline' },
-              { key: 'notifications', label: 'Notifications', icon: 'notifications-outline' },
+              { key: 'notifications', label: 'Notifications', icon: 'notifications-outline', route: '/screens/PermissionsGuide' },
             ].map((item) => (
-              <TouchableOpacity key={item.key} style={styles.settingRow} activeOpacity={0.7}>
+              <TouchableOpacity
+                key={item.key}
+                style={styles.settingRow}
+                activeOpacity={0.7}
+                onPress={() => item.route && router.push(item.route)}
+              >
                 <View style={styles.settingLeft}>
                   <Ionicons name={item.icon} size={20} color={GRAY} />
                   <Text style={styles.settingLabel}>{item.label}</Text>

@@ -192,7 +192,7 @@ export default function PermissionsGuide() {
                 {/* Manual Steps Section */}
                 <View style={styles.manualSection}>
                     <View style={styles.manualHeader}>
-                        <Ionicons name="warning" size={24} color="#FFA500" />
+                        <Ionicons name="warning" size={24} color="#C9E265" />
                         <Text style={styles.manualHeaderText}>Additional Manual Steps Required</Text>
                     </View>
                     <Text style={styles.manualDescription}>
