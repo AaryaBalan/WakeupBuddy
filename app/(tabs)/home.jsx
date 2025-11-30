@@ -62,6 +62,19 @@ export default function HomeScreen() {
             : "skip"
     );
 
+    // Check if buddy relationship is accepted (status = 1 in notifications) for THIS specific alarm
+    const isBuddyRelationshipAccepted = useQuery(
+        api.notifications.isBuddyAccepted,
+        user && activeBuddyAlarm && activeBuddyAlarm.buddy.includes('@')
+            ? {
+                userEmail: user.email,
+                buddyEmail: activeBuddyAlarm.buddy,
+                alarmTime: activeBuddyAlarm.time,
+                alarmAmpm: activeBuddyAlarm.ampm
+            }
+            : "skip"
+    );
+
     const handleMarkAwake = async () => {
         try {
             // Check if user is authenticated
@@ -102,16 +115,20 @@ export default function HomeScreen() {
                 showPopup("Marked awake!", '#4CAF50');
             }
 
-            // Call buddy if available
+            // Call buddy if available AND relationship is accepted
             console.log('🔍 Checking buddy alarm...');
             console.log('Active buddy alarm:', activeBuddyAlarm);
             console.log('Buddy details from DB:', buddy);
+            console.log('Buddy relationship accepted:', isBuddyRelationshipAccepted);
 
-            if (buddy && buddy.phone) {
+            if (buddy && buddy.phone && isBuddyRelationshipAccepted) {
                 console.log(`✅ CALLING BUDDY: ${buddy.name} at ${buddy.phone}`);
                 await makePhoneCall(buddy.phone).catch(err => console.error('Call failed:', err));
             } else if (activeBuddyAlarm && activeBuddyAlarm.buddy) {
-                if (activeBuddyAlarm.buddy.includes('@')) {
+                if (!isBuddyRelationshipAccepted) {
+                    console.log('⏸️ Buddy request not accepted yet. Skipping call.');
+                    console.log('💡 Buddy must accept your invitation for calls to work.');
+                } else if (activeBuddyAlarm.buddy.includes('@')) {
                     console.log('❌ Buddy email found but user has no phone number in database');
                     console.log('Buddy email:', activeBuddyAlarm.buddy);
                 } else {
@@ -144,15 +161,37 @@ export default function HomeScreen() {
                     const buddyEmail = decodeURIComponent(buddyMatch[1]);
                     console.log('📧 Buddy email from deep link:', buddyEmail);
 
-                    // Fetch buddy's phone number and call them
-                    if (buddyEmail && buddyEmail.includes('@')) {
+                    // Fetch buddy's phone number and call them IF relationship is accepted
+                    if (buddyEmail && buddyEmail.includes('@') && user && user.email) {
                         try {
-                            const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
-                            if (buddyUser && buddyUser.phone) {
-                                console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
-                                await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
+                            // Extract alarm time from URL
+                            const timeMatch = url.match(/[?&]time=([^&]+)/);
+                            const ampmMatch = url.match(/[?&]ampm=([^&]+)/);
+                            const alarmTime = timeMatch ? decodeURIComponent(timeMatch[1]) : null;
+                            const alarmAmpm = ampmMatch ? decodeURIComponent(ampmMatch[1]) : null;
+
+                            console.log(`Checking acceptance for: ${buddyEmail}, time=${alarmTime}, ampm=${alarmAmpm}`);
+
+                            // Check if buddy relationship is accepted
+                            const isAccepted = await convexClient.query(api.notifications.isBuddyAccepted, {
+                                userEmail: user.email,
+                                buddyEmail: buddyEmail,
+                                alarmTime: alarmTime,
+                                alarmAmpm: alarmAmpm
+                            });
+
+                            console.log('🔍 Deep link (listener): isAccepted =', isAccepted);
+
+                            if (isAccepted) {
+                                const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
+                                if (buddyUser && buddyUser.phone) {
+                                    console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
+                                    await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
+                                } else {
+                                    console.log('❌ Buddy found but no phone number:', buddyEmail);
+                                }
                             } else {
-                                console.log('❌ Buddy found but no phone number:', buddyEmail);
+                                console.log('⏸️ Buddy request not accepted yet. Skipping call.');
                             }
                         } catch (error) {
                             console.error('Error fetching buddy for call:', error);
@@ -176,15 +215,37 @@ export default function HomeScreen() {
                     const buddyEmail = decodeURIComponent(buddyMatch[1]);
                     console.log('📧 Buddy email from deep link:', buddyEmail);
 
-                    // Fetch buddy's phone number and call them
-                    if (buddyEmail && buddyEmail.includes('@')) {
+                    // Fetch buddy's phone number and call them IF relationship is accepted
+                    if (buddyEmail && buddyEmail.includes('@') && user && user.email) {
                         try {
-                            const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
-                            if (buddyUser && buddyUser.phone) {
-                                console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
-                                await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
+                            // Extract alarm time from URL
+                            const timeMatch = url.match(/[?&]time=([^&]+)/);
+                            const ampmMatch = url.match(/[?&]ampm=([^&]+)/);
+                            const alarmTime = timeMatch ? decodeURIComponent(timeMatch[1]) : null;
+                            const alarmAmpm = ampmMatch ? decodeURIComponent(ampmMatch[1]) : null;
+
+                            console.log(`Checking acceptance for: ${buddyEmail}, time=${alarmTime}, ampm=${alarmAmpm}`);
+
+                            // Check if buddy relationship is accepted
+                            const isAccepted = await convexClient.query(api.notifications.isBuddyAccepted, {
+                                userEmail: user.email,
+                                buddyEmail: buddyEmail,
+                                alarmTime: alarmTime,
+                                alarmAmpm: alarmAmpm
+                            });
+
+                            console.log('🔍 Deep link (getInitialURL): isAccepted =', isAccepted);
+
+                            if (isAccepted) {
+                                const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
+                                if (buddyUser && buddyUser.phone) {
+                                    console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
+                                    await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
+                                } else {
+                                    console.log('❌ Buddy found but no phone number:', buddyEmail);
+                                }
                             } else {
-                                console.log('❌ Buddy found but no phone number:', buddyEmail);
+                                console.log('⏸️ Buddy request not accepted yet. Skipping call.');
                             }
                         } catch (error) {
                             console.error('Error fetching buddy for call:', error);

@@ -128,3 +128,73 @@ export const acceptBuddyRequest = mutation({
         return { success: true, alarm_time: notification.alarm_time, ampm: notification.ampm };
     }
 });
+
+/**
+ * Check if a buddy relationship is accepted between two users for a specific alarm time
+ * Returns true if there's an accepted notification (status = 1) with matching alarm time
+ */
+export const isBuddyAccepted = query({
+    args: {
+        userEmail: v.string(),
+        buddyEmail: v.string(),
+        alarmTime: v.optional(v.string()),  // e.g., "5:43"
+        alarmAmpm: v.optional(v.string())   // e.g., "PM"
+    },
+    handler: async (ctx, args) => {
+        console.log('🔍 isBuddyAccepted called with:', args);
+
+        // Find notification where one user created and other received, with status = 1
+        const notifications = await ctx.db
+            .query("notifications")
+            .withIndex("by_receiver", (q) => q.eq("with_whom", args.userEmail))
+            .collect();
+
+        console.log(`Found ${notifications.length} notifications for receiver: ${args.userEmail}`);
+
+        // Check if any notification from buddyEmail is accepted AND matches alarm time
+        for (const n of notifications) {
+            console.log(`Notification: status=${n.status}, alarm_time=${n.alarm_time}, ampm=${n.ampm}`);
+
+            // Check status AND alarm time match
+            const statusMatch = n.status === 1;
+            const timeMatch = !args.alarmTime || (n.alarm_time === args.alarmTime && n.ampm === args.alarmAmpm);
+
+            if (statusMatch && timeMatch) {
+                const creator = await ctx.db.get(n.created_by);
+                console.log(`Creator email: ${creator?.email}`);
+                if (creator && creator.email === args.buddyEmail) {
+                    console.log('✅ Found accepted notification with matching alarm time (direction 1)');
+                    return true;
+                }
+            }
+        }
+
+        // Also check reverse direction (user created, buddy received)
+        const reverseNotifications = await ctx.db
+            .query("notifications")
+            .withIndex("by_receiver", (q) => q.eq("with_whom", args.buddyEmail))
+            .collect();
+
+        console.log(`Found ${reverseNotifications.length} reverse notifications for receiver: ${args.buddyEmail}`);
+
+        for (const n of reverseNotifications) {
+            console.log(`Reverse notification: status=${n.status}, alarm_time=${n.alarm_time}, ampm=${n.ampm}`);
+
+            // Check status AND alarm time match
+            const statusMatch = n.status === 1;
+            const timeMatch = !args.alarmTime || (n.alarm_time === args.alarmTime && n.ampm === args.alarmAmpm);
+
+            if (statusMatch && timeMatch) {
+                const creator = await ctx.db.get(n.created_by);
+                console.log(`Reverse creator email: ${creator?.email}`);
+                if (creator && creator.email === args.userEmail) {
+                    console.log('✅ Found accepted notification with matching alarm time (direction 2)');
+                    return true;
+                }
+            }
+        }
+
+        console.log('❌ No accepted notifications found');
+        return false;
+    }
+});
