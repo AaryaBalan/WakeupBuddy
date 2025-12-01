@@ -274,3 +274,17 @@ export async function makePhoneCall(phoneNumber) {
         throw error;
     }
 }
+export default {
+    canScheduleExactAlarms,
+    requestExactAlarmPermission,
+    isBatteryOptimizationDisabled,
+    requestBatteryOptimization,
+    canDrawOverlays,
+    requestDrawOverlays,
+    hasCallPhonePermission,
+    requestCallPhonePermission,
+    checkAllPermissions,
+    scheduleAlarm,
+    cancelAlarm,
+    makePhoneCall
+};

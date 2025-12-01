@@ -108,6 +108,15 @@ public class AlarmActivity extends Activity {
                 deepLinkUrl += "&time=" + Uri.encode(timeStr) + "&ampm=" + Uri.encode(ampmStr);
             }
             
+            // Show toast to inform user
+            android.widget.Toast.makeText(this, "Opening WakeupBuddy...", android.widget.Toast.LENGTH_SHORT).show();
+
+            // Request Keyguard dismissal for Android O+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                android.app.KeyguardManager keyguardManager = (android.app.KeyguardManager) getSystemService(android.content.Context.KEYGUARD_SERVICE);
+                keyguardManager.requestDismissKeyguard(this, null);
+            }
+
             Log.d(TAG, "Launching app with deep link: " + deepLinkUrl);
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUrl));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
