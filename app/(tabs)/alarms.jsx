@@ -8,6 +8,8 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/alarms.styles';
 
+import { cancelAlarm, scheduleAlarm } from '../native/AlarmNative';
+
 export default function AlarmsScreen() {
     const router = useRouter();
     const { user } = useUser();
@@ -17,14 +19,38 @@ export default function AlarmsScreen() {
     const toggleAlarmMutation = useMutation(api.alarms.toggleAlarm);
     const deleteAlarmMutation = useMutation(api.alarms.deleteAlarm);
 
-    // useFocusEffect is no longer strictly needed for fetching user if we rely on context, 
-    // but if we want to refetch alarms when screen comes into focus, useQuery handles that automatically mostly.
-    // However, if we want to ensure user is loaded, context handles that.
-    // We can remove the manual user fetching logic.
-
-    const toggleAlarm = async (id, currentStatus) => {
+    const toggleAlarm = async (alarm) => {
+        const newStatus = !alarm.enabled;
         try {
-            await toggleAlarmMutation({ id, enabled: !currentStatus });
+            await toggleAlarmMutation({ id: alarm._id, enabled: newStatus });
+
+            if (newStatus) {
+                // Enable: Schedule the alarm
+                // Parse time logic similar to alarm-editor
+                const [hoursStr, minutesStr] = alarm.time.split(':');
+                let hours = parseInt(hoursStr);
+                const minutes = parseInt(minutesStr);
+
+                if (alarm.ampm === 'PM' && hours !== 12) hours += 12;
+                if (alarm.ampm === 'AM' && hours === 12) hours = 0;
+
+                const now = new Date();
+                const alarmDate = new Date();
+                alarmDate.setHours(hours);
+                alarmDate.setMinutes(minutes);
+                alarmDate.setSeconds(0);
+
+                if (alarmDate <= now) {
+                    alarmDate.setDate(alarmDate.getDate() + 1);
+                }
+
+                await scheduleAlarm(alarmDate, alarm.buddy);
+                showPopup('Alarm enabled', '#4CAF50');
+            } else {
+                // Disable: Cancel the alarm
+                await cancelAlarm();
+                showPopup('Alarm disabled', '#4CAF50');
+            }
         } catch (error) {
             console.error('Error toggling alarm:', error);
             showPopup('Failed to toggle alarm', '#FF6B6B');
@@ -34,6 +60,8 @@ export default function AlarmsScreen() {
     const deleteAlarm = async (id) => {
         try {
             await deleteAlarmMutation({ id });
+            // Cancel the native alarm as well
+            await cancelAlarm();
             showPopup('Alarm deleted', '#4CAF50');
         } catch (error) {
             console.error('Error deleting alarm:', error);
@@ -83,7 +111,7 @@ export default function AlarmsScreen() {
                     trackColor={{ false: "#333", true: "#C9E265" }}
                     thumbColor={item.enabled ? "#000" : "#f4f3f4"}
                     ios_backgroundColor="#3e3e3e"
-                    onValueChange={() => toggleAlarm(item._id, item.enabled)}
+                    onValueChange={() => toggleAlarm(item)}
                     value={item.enabled}
                 />
                 <TouchableOpacity onPress={() => deleteAlarm(item._id)} style={styles.deleteButton}>
