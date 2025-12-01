@@ -105,6 +105,29 @@ export default function AlarmsScreen() {
                     <Text style={[styles.ampmText, !item.enabled && styles.disabledText]}>{item.ampm}</Text>
                 </View>
                 <Text style={styles.alarmLabel}>{item.label} • {formatDays(item.days)}</Text>
+
+                {/* Mode Badge */}
+                <View style={[
+                    styles.modeBadge,
+                    item.solo_mode ? styles.soloBadge : (item.buddy ? styles.buddyBadge : styles.strangerBadge)
+                ]}>
+                    <Ionicons
+                        name={item.solo_mode ? "person" : "people"}
+                        size={12}
+                        color={item.solo_mode ? "#888" : (item.buddy ? "#C9E265" : "#C9E265")}
+                    />
+                    <Text style={[
+                        styles.modeText,
+                        item.solo_mode ? styles.soloText : (item.buddy ? styles.buddyText : styles.strangerText)
+                    ]}>
+                        {item.solo_mode
+                            ? "Solo Mode"
+                            : item.buddy
+                                ? `Buddy: ${item.buddy}`
+                                : "Stranger Mode"
+                        }
+                    </Text>
+                </View>
             </View>
             <View style={styles.actions}>
                 <Switch

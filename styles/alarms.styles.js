@@ -114,6 +114,42 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    modeBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 20,
+        marginTop: 8,
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+    },
+    modeText: {
+        fontSize: 12,
+        fontWeight: '600',
+        marginLeft: 6,
+    },
+    soloBadge: {
+        backgroundColor: '#1a1a1a',
+        borderColor: '#333',
+    },
+    buddyBadge: {
+        backgroundColor: 'rgba(201, 226, 101, 0.1)',
+        borderColor: 'rgba(201, 226, 101, 0.3)',
+    },
+    strangerBadge: {
+        backgroundColor: 'rgba(201, 226, 101, 0.1)',
+        borderColor: 'rgba(201, 226, 101, 0.3)',
+    },
+    soloText: {
+        color: '#888',
+    },
+    buddyText: {
+        color: '#C9E265',
+    },
+    strangerText: {
+        color: '#C9E265',
+    },
 });
 
 export default styles;
