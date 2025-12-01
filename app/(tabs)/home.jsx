@@ -437,11 +437,11 @@ export default function HomeScreen() {
                 {/* Quick Actions */}
                 <Text style={styles.sectionTitle}>Quick Actions</Text>
                 <View style={styles.quickActionsContainer}>
-                    <TouchableOpacity style={styles.quickActionItem} onPress={handleMarkAwake}>
+                    <TouchableOpacity style={styles.quickActionItem} onPress={() => router.push('/screens/alarm-editor')}>
                         <View style={[styles.quickActionIcon, { backgroundColor: '#2a2a1a' }]}>
-                            <Ionicons name="sunny" size={24} color="#C9E265" />
+                            <Ionicons name="alarm-outline" size={24} color="#C9E265" />
                         </View>
-                        <Text style={styles.quickActionText}>I'm Awake</Text>
+                        <Text style={styles.quickActionText}>Add Alarm</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.quickActionItem}>
                         <View style={styles.quickActionIcon}>
