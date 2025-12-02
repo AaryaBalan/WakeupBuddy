@@ -193,11 +193,11 @@ const profileStyles = StyleSheet.create({
     gridContainer: {
         marginTop: 10,
         width: '100%',
-        flexDirection: 'row',
+        flexDirection: 'column',
         flexWrap: 'wrap',
-        paddingHorizontal: 30,
-        justifyContent: 'center',
+        alignItems: 'center',
         gap: 6,
+        height: 170, // Height to accommodate vertical layout
     },
     gridSquare: {
         width: 15,

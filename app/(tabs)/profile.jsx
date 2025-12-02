@@ -30,7 +30,7 @@ export default function Profile() {
   // Get 60-day streak data for heatmap
   const recentStreaks = useQuery(
     api.streaks.getRecentStreaks,
-    user?.email ? { userEmail: user.email, days: 80 } : "skip"
+    user?.email ? { userEmail: user.email, days: 60 } : "skip"
   );
 
   useEffect(() => {
@@ -170,7 +170,7 @@ export default function Profile() {
             {(() => {
               // Generate last 60 days
               const days = [];
-              for (let i = 79; i >= 0; i--) {
+              for (let i = 149; i >= 0; i--) {
                 const date = new Date();
                 date.setDate(date.getDate() - i);
                 const dateStr = date.toISOString().split('T')[0];
