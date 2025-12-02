@@ -108,11 +108,14 @@ export default function AlarmEditorScreen() {
                 // If stranger, buddyValue remains null
             }
 
+            // For known buddy alarms, force days to all zeros (no repeat)
+            const isKnownBuddy = mode === 'buddy' && buddyType === 'request';
+
             const payload = {
                 time: time,
                 ampm: ampm,
                 label: 'Work', // Hardcoded for now as per UI
-                days: repeatDays.map(day => day ? 1 : 0),
+                days: isKnownBuddy ? [0, 0, 0, 0, 0, 0, 0] : repeatDays.map(day => day ? 1 : 0),
                 user_id: user._id,
                 solo_mode: mode === 'solo',
                 buddy: buddyValue,
@@ -310,21 +313,23 @@ export default function AlarmEditorScreen() {
 
                 <Text style={styles.sectionLabel}>CONFIGURATION</Text>
 
-                {/* Repeat */}
-                <View style={styles.configItem}>
-                    <Text style={styles.configLabel}>Repeat</Text>
-                    <View style={styles.daysContainer}>
-                        {days.map((day, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={[styles.dayButton, repeatDays[index] && styles.dayButtonActive]}
-                                onPress={() => toggleDay(index)}
-                            >
-                                <Text style={[styles.dayText, repeatDays[index] && styles.dayTextActive]}>{day}</Text>
-                            </TouchableOpacity>
-                        ))}
+                {/* Repeat - Hidden for known buddy alarms */}
+                {!(mode === 'buddy' && buddyType === 'request') && (
+                    <View style={styles.configItem}>
+                        <Text style={styles.configLabel}>Repeat</Text>
+                        <View style={styles.daysContainer}>
+                            {days.map((day, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[styles.dayButton, repeatDays[index] && styles.dayButtonActive]}
+                                    onPress={() => toggleDay(index)}
+                                >
+                                    <Text style={[styles.dayText, repeatDays[index] && styles.dayTextActive]}>{day}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
-                </View>
+                )}
 
                 {/* Wake Method */}
                 <View style={styles.configItem}>
