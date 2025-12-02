@@ -84,9 +84,10 @@ public class AlarmActivity extends Activity {
 
         // Launch the main app home screen with alarm dismissed parameter
         try {
-            // Get buddy email and alarm time from the intent
+            // Get buddy email, alarm time, and alarm ID from the intent
             String buddyEmail = getIntent().getStringExtra("buddyName");
             long alarmTimeMs = getIntent().getLongExtra("alarmTime", 0);
+            String alarmId = getIntent().getStringExtra("alarmId");
             
             // Build deep link URL with parameters
             String deepLinkUrl = "wakeupbuddy://(tabs)/home?alarm=dismissed";
@@ -94,6 +95,11 @@ public class AlarmActivity extends Activity {
             if (buddyEmail != null && !buddyEmail.isEmpty()) {
                 String encodedEmail = Uri.encode(buddyEmail);
                 deepLinkUrl += "&buddy=" + encodedEmail;
+            }
+            
+            if (alarmId != null && !alarmId.isEmpty()) {
+                String encodedAlarmId = Uri.encode(alarmId);
+                deepLinkUrl += "&alarmId=" + encodedAlarmId;
             }
             
             if (alarmTimeMs > 0) {

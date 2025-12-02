@@ -26,12 +26,16 @@ public class AlarmReceiver extends BroadcastReceiver {
         try {
             long alarmTime = intent.getLongExtra("alarmTime", System.currentTimeMillis());
             String buddyName = intent.getStringExtra("buddyName");
+            String alarmId = intent.getStringExtra("alarmId");
             
             // 1. Start Foreground Service (Plays Sound & Vibrate)
             Intent serviceIntent = new Intent(context, AlarmService.class);
             serviceIntent.putExtra("alarmTime", alarmTime);
             if (buddyName != null) {
                 serviceIntent.putExtra("buddyName", buddyName);
+            }
+            if (alarmId != null) {
+                serviceIntent.putExtra("alarmId", alarmId);
             }
             
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -46,6 +50,9 @@ public class AlarmReceiver extends BroadcastReceiver {
             fullScreenIntent.putExtra("alarmTime", alarmTime);
             if (buddyName != null) {
                 fullScreenIntent.putExtra("buddyName", buddyName);
+            }
+            if (alarmId != null) {
+                fullScreenIntent.putExtra("alarmId", alarmId);
             }
             context.startActivity(fullScreenIntent);
             

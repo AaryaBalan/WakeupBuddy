@@ -1,14 +1,40 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
+import { useEffect, useRef } from 'react';
 import { BackHandler, Linking, Text, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from '../../styles/alarmScreen.styles';
-import { cancelAlarm } from '../native/AlarmNative';
+import { cancelAlarm, subscribeToCallState } from '../native/AlarmNative';
 
 export default function AlarmScreen() {
     const { user } = useUser();
     const markAwake = useMutation(api.streaks.markAwake);
+    const createCall = useMutation(api.calls.createCall);
+    const updateCallDuration = useMutation(api.calls.updateCallDuration);
+    const callIdRef = useRef(null);
+
+    // Listen for call state changes to update duration
+    useEffect(() => {
+        const unsubscribe = subscribeToCallState(async (event) => {
+            console.log('Call state changed:', event);
+
+            if (event.status === 'ended' && callIdRef.current && event.duration) {
+                try {
+                    await updateCallDuration({
+                        callId: callIdRef.current,
+                        duration: Math.round(event.duration)
+                    });
+                    console.log(`Call duration updated: ${event.duration} seconds`);
+                } catch (error) {
+                    console.error('Failed to update call duration:', error);
+                }
+                callIdRef.current = null;
+            }
+        });
+
+        return () => unsubscribe();
+    }, [updateCallDuration]);
 
     // Fetch user's alarms to find the active one with a buddy
     const alarms = useQuery(api.alarms.getAlarmsByUser, user ? { user_id: user._id } : "skip");
@@ -57,6 +83,21 @@ export default function AlarmScreen() {
             // Call buddy if available
             if (buddy && buddy.phone) {
                 console.log(`✅ CALLING BUDDY: ${buddy.name} at ${buddy.phone}`);
+
+                // Record the call in database
+                try {
+                    const callRecord = await createCall({
+                        user1Email: user.email,
+                        user2Email: buddy.email,
+                        alarmId: activeBuddyAlarm._id.toString()
+                    });
+                    console.log('Call record created:', callRecord);
+                    // Store call ID to update duration later
+                    callIdRef.current = callRecord.callId;
+                } catch (callError) {
+                    console.error('Failed to create call record:', callError);
+                }
+
                 Linking.openURL(`tel:${buddy.phone}`);
             } else if (activeBuddyAlarm) {
                 console.log('❌ Buddy alarm found but buddy has no phone number');

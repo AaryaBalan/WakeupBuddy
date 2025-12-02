@@ -3,7 +3,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProfilePic from '../../components/ProfilePic';
@@ -11,7 +11,7 @@ import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/home.styles';
-import { makePhoneCall, requestCallPhonePermission } from '../native/AlarmNative';
+import { checkPendingCall, clearPendingCall, getLastCallDuration, getMostRecentCallDuration, makePhoneCall, requestCallPhonePermission, requestReadCallLogPermission, requestReadPhoneStatePermission, savePendingCall, subscribeToCallState } from '../native/AlarmNative';
 
 // Initialize Convex HTTP client for imperative queries
 const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || "";
@@ -23,8 +23,13 @@ export default function HomeScreen() {
     const { showPopup } = usePopup();
     const [isEnabled, setIsEnabled] = useState(true);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+    const callIdRef = useRef(null);
+    const lastCalledNumberRef = useRef(null);
+    const callInProgressRef = useRef(false);
 
     const markAwake = useMutation(api.streaks.markAwake);
+    const createCall = useMutation(api.calls.createCall);
+    const updateCallDuration = useMutation(api.calls.updateCallDuration);
     const recentStreaks = useQuery(
         api.streaks.getRecentStreaks,
         user?.email ? { userEmail: user.email, days: 10 } : "skip"
@@ -33,6 +38,61 @@ export default function HomeScreen() {
     // Fetch user's alarms to find the active one with a buddy
     const alarms = useQuery(api.alarms.getAlarmsByUser, user ? { user_id: user._id } : "skip");
 
+    // Listen for call state changes to detect when call ends
+    useEffect(() => {
+        const unsubscribe = subscribeToCallState(async (event) => {
+            console.log('Call state changed:', event);
+
+            if (event.status === 'started') {
+                callInProgressRef.current = true;
+                console.log('📞 Call started, tracking...');
+            } else if (event.status === 'ended' && callInProgressRef.current) {
+                callInProgressRef.current = false;
+                console.log('📴 Call ended, fetching duration from call log...');
+
+                // Wait for call log to update, then fetch duration
+                setTimeout(async () => {
+                    if (!callIdRef.current || !lastCalledNumberRef.current) {
+                        console.log('⚠️ No call ID or phone number to update');
+                        return;
+                    }
+
+                    try {
+                        // First try to get duration by phone number
+                        let duration = await getLastCallDuration(lastCalledNumberRef.current);
+                        console.log(`Got call duration from getLastCallDuration: ${duration} seconds`);
+
+                        // If still 0, try the most recent call as fallback
+                        if (duration <= 0) {
+                            console.log('Duration was 0, trying getMostRecentCallDuration as fallback...');
+                            duration = await getMostRecentCallDuration();
+                            console.log(`Got call duration from getMostRecentCallDuration: ${duration} seconds`);
+                        }
+
+                        if (duration > 0) {
+                            await updateCallDuration({
+                                callId: callIdRef.current,
+                                duration: duration
+                            });
+                            console.log(`✅ Call duration updated in database: ${duration} seconds`);
+                            showPopup(`Call duration: ${duration} seconds`, '#4CAF50');
+                        } else {
+                            console.log('❌ Could not retrieve call duration from call log');
+                        }
+                    } catch (error) {
+                        console.error('Failed to update call duration:', error);
+                    } finally {
+                        // Reset refs
+                        callIdRef.current = null;
+                        lastCalledNumberRef.current = null;
+                    }
+                }, 3000); // Wait 3 seconds for call log to be updated
+            }
+        });
+
+        return () => unsubscribe();
+    }, [updateCallDuration, showPopup]);
+
     // Debug: Log all alarms
     useEffect(() => {
         if (alarms) {
@@ -40,14 +100,91 @@ export default function HomeScreen() {
         }
     }, [alarms]);
 
-    // Request CALL_PHONE permission when user is logged in
+    // Request CALL_PHONE, READ_PHONE_STATE and READ_CALL_LOG permissions when user is logged in
     useEffect(() => {
         if (user) {
-            requestCallPhonePermission().catch(err =>
-                console.log('Call permission request declined or failed:', err)
+            // Request all permissions for calling and tracking call duration
+            Promise.all([
+                requestCallPhonePermission(),
+                requestReadPhoneStatePermission(),
+                requestReadCallLogPermission()
+            ]).catch(err =>
+                console.log('Permission request declined or failed:', err)
             );
         }
     }, [user]);
+
+    // Check for call duration when app comes back to foreground (backup method)
+    useEffect(() => {
+        const { AppState } = require('react-native');
+        let isProcessing = false;
+
+        const handleAppStateChange = async (nextAppState) => {
+            if (nextAppState === 'active' && !isProcessing) {
+                isProcessing = true;
+                console.log('App became active, checking for pending calls...');
+
+                try {
+                    // Check if there's a pending call to update
+                    const pendingCall = await checkPendingCall();
+
+                    if (pendingCall && pendingCall.callId) {
+                        console.log('Found pending call:', pendingCall);
+                        console.log('Duration from call log:', pendingCall.duration);
+
+                        if (pendingCall.duration > 0) {
+                            await updateCallDuration({
+                                callId: pendingCall.callId,
+                                duration: pendingCall.duration
+                            });
+                            console.log(`✅ Call duration updated in database: ${pendingCall.duration} seconds`);
+                            showPopup(`Call duration: ${pendingCall.duration} seconds`, '#4CAF50');
+
+                            // Clear the pending call
+                            await clearPendingCall();
+                            callIdRef.current = null;
+                            lastCalledNumberRef.current = null;
+                        } else {
+                            console.log('⏳ Call duration still 0, will check again later');
+                        }
+                    } else if (callIdRef.current && lastCalledNumberRef.current && !callInProgressRef.current) {
+                        // Fallback: use refs if pending call not found
+                        console.log('No pending call found, using refs as fallback');
+                        console.log('Looking for calls to number:', lastCalledNumberRef.current);
+                        console.log('Call ID to update:', callIdRef.current);
+
+                        let duration = await getLastCallDuration(lastCalledNumberRef.current);
+                        console.log(`Got call duration from getLastCallDuration: ${duration} seconds`);
+
+                        if (duration <= 0) {
+                            console.log('Duration was 0, trying getMostRecentCallDuration as fallback...');
+                            duration = await getMostRecentCallDuration();
+                            console.log(`Got call duration from getMostRecentCallDuration: ${duration} seconds`);
+                        }
+
+                        if (duration > 0 && callIdRef.current) {
+                            await updateCallDuration({
+                                callId: callIdRef.current,
+                                duration: duration
+                            });
+                            console.log(`✅ Call duration updated in database (via AppState): ${duration} seconds`);
+                            showPopup(`Call duration: ${duration} seconds`, '#4CAF50');
+                        }
+
+                        callIdRef.current = null;
+                        lastCalledNumberRef.current = null;
+                    }
+                } catch (error) {
+                    console.error('Error in AppState handler:', error);
+                } finally {
+                    isProcessing = false;
+                }
+            }
+        };
+
+        const subscription = AppState.addEventListener('change', handleAppStateChange);
+        return () => subscription.remove();
+    }, [updateCallDuration, showPopup]);
 
     // Find the alarm that is likely ringing (enabled and has a buddy)
     // Accept both email format (with @) or just a name
@@ -123,6 +260,22 @@ export default function HomeScreen() {
 
             if (buddy && buddy.phone && isBuddyRelationshipAccepted) {
                 console.log(`✅ CALLING BUDDY: ${buddy.name} at ${buddy.phone}`);
+
+                // Record the call in database (alarmId is required)
+                try {
+                    const callRecord = await createCall({
+                        user1Email: user.email,
+                        user2Email: buddy.email,
+                        alarmId: activeBuddyAlarm._id, // Required foreign key to alarms table
+                    });
+                    console.log('Call record created:', callRecord);
+                    // Store call ID and phone number to update duration later
+                    callIdRef.current = callRecord.callId;
+                    lastCalledNumberRef.current = buddy.phone;
+                } catch (callError) {
+                    console.error('Failed to create call record:', callError);
+                }
+
                 await makePhoneCall(buddy.phone).catch(err => console.error('Call failed:', err));
             } else if (activeBuddyAlarm && activeBuddyAlarm.buddy) {
                 if (!isBuddyRelationshipAccepted) {
@@ -154,12 +307,17 @@ export default function HomeScreen() {
             const url = event.url;
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
                 console.log('Alarm dismissed via deep link, marking awake...');
+                console.log('Full URL:', url);
 
                 // Extract buddy email from URL if present
                 const buddyMatch = url.match(/[?&]buddy=([^&]+)/);
+                const alarmIdMatch = url.match(/[?&]alarmId=([^&]+)/);
                 if (buddyMatch) {
                     const buddyEmail = decodeURIComponent(buddyMatch[1]);
+                    const alarmId = alarmIdMatch ? decodeURIComponent(alarmIdMatch[1]) : null;
                     console.log('📧 Buddy email from deep link:', buddyEmail);
+                    console.log('🆔 Alarm ID from deep link:', alarmId);
+                    console.log('🔍 alarmIdMatch result:', alarmIdMatch);
 
                     // Fetch buddy's phone number and call them IF relationship is accepted
                     if (buddyEmail && buddyEmail.includes('@') && user && user.email) {
@@ -186,6 +344,46 @@ export default function HomeScreen() {
                                 const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
                                 if (buddyUser && buddyUser.phone) {
                                     console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
+
+                                    // Get alarmId - either from URL or look it up from database
+                                    let resolvedAlarmId = alarmId;
+                                    if (!resolvedAlarmId && alarmTime && alarmAmpm) {
+                                        console.log('🔍 alarmId not in URL, looking up from database...');
+                                        const foundAlarm = await convexClient.query(api.alarms.findAlarmByDetails, {
+                                            userEmail: user.email,
+                                            buddyEmail: buddyEmail,
+                                            time: alarmTime,
+                                            ampm: alarmAmpm
+                                        });
+                                        if (foundAlarm) {
+                                            resolvedAlarmId = foundAlarm._id;
+                                            console.log('✅ Found alarm in database:', resolvedAlarmId);
+                                        } else {
+                                            console.log('❌ Could not find alarm in database');
+                                        }
+                                    }
+
+                                    // Record the call in database (alarmId is required)
+                                    if (!resolvedAlarmId) {
+                                        console.error('❌ Cannot create call record: alarmId is required and could not be resolved');
+                                    } else {
+                                        try {
+                                            const callRecord = await createCall({
+                                                user1Email: user.email,
+                                                user2Email: buddyEmail,
+                                                alarmId: resolvedAlarmId, // Required foreign key to alarms table
+                                            });
+                                            console.log('Call record created:', callRecord);
+                                            callIdRef.current = callRecord.callId;
+                                            lastCalledNumberRef.current = buddyUser.phone;
+
+                                            // Save to SharedPreferences for persistent tracking
+                                            await savePendingCall(callRecord.callId, buddyUser.phone);
+                                        } catch (callError) {
+                                            console.error('Failed to create call record:', callError);
+                                        }
+                                    }
+
                                     await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
                                 } else {
                                     console.log('❌ Buddy found but no phone number:', buddyEmail);
@@ -208,12 +406,17 @@ export default function HomeScreen() {
         Linking.getInitialURL().then(async (url) => {
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
                 console.log('App opened with alarm deep link, marking awake...');
+                console.log('Full URL:', url);
 
                 // Extract buddy email from URL if present
                 const buddyMatch = url.match(/[?&]buddy=([^&]+)/);
+                const alarmIdMatch = url.match(/[?&]alarmId=([^&]+)/);
                 if (buddyMatch) {
                     const buddyEmail = decodeURIComponent(buddyMatch[1]);
+                    const alarmId = alarmIdMatch ? decodeURIComponent(alarmIdMatch[1]) : null;
                     console.log('📧 Buddy email from deep link:', buddyEmail);
+                    console.log('🆔 Alarm ID from deep link:', alarmId);
+                    console.log('🔍 alarmIdMatch result:', alarmIdMatch);
 
                     // Fetch buddy's phone number and call them IF relationship is accepted
                     if (buddyEmail && buddyEmail.includes('@') && user && user.email) {
@@ -240,6 +443,46 @@ export default function HomeScreen() {
                                 const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
                                 if (buddyUser && buddyUser.phone) {
                                     console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
+
+                                    // Get alarmId - either from URL or look it up from database
+                                    let resolvedAlarmId = alarmId;
+                                    if (!resolvedAlarmId && alarmTime && alarmAmpm) {
+                                        console.log('🔍 alarmId not in URL, looking up from database...');
+                                        const foundAlarm = await convexClient.query(api.alarms.findAlarmByDetails, {
+                                            userEmail: user.email,
+                                            buddyEmail: buddyEmail,
+                                            time: alarmTime,
+                                            ampm: alarmAmpm
+                                        });
+                                        if (foundAlarm) {
+                                            resolvedAlarmId = foundAlarm._id;
+                                            console.log('✅ Found alarm in database:', resolvedAlarmId);
+                                        } else {
+                                            console.log('❌ Could not find alarm in database');
+                                        }
+                                    }
+
+                                    // Record the call in database (alarmId is required)
+                                    if (!resolvedAlarmId) {
+                                        console.error('❌ Cannot create call record: alarmId is required and could not be resolved');
+                                    } else {
+                                        try {
+                                            const callRecord = await createCall({
+                                                user1Email: user.email,
+                                                user2Email: buddyEmail,
+                                                alarmId: resolvedAlarmId, // Required foreign key to alarms table
+                                            });
+                                            console.log('Call record created:', callRecord);
+                                            callIdRef.current = callRecord.callId;
+                                            lastCalledNumberRef.current = buddyUser.phone;
+
+                                            // Save to SharedPreferences for persistent tracking
+                                            await savePendingCall(callRecord.callId, buddyUser.phone);
+                                        } catch (callError) {
+                                            console.error('Failed to create call record:', callError);
+                                        }
+                                    }
+
                                     await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
                                 } else {
                                     console.log('❌ Buddy found but no phone number:', buddyEmail);
@@ -449,11 +692,43 @@ export default function HomeScreen() {
                         </View>
                         <Text style={styles.quickActionText}>Solo Mode</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.quickActionItem}>
+                    <TouchableOpacity
+                        style={styles.quickActionItem}
+                        onPress={async () => {
+                            console.log('=== TEST: Checking call duration ===');
+                            console.log('Last called number:', lastCalledNumberRef.current);
+                            console.log('Call ID:', callIdRef.current);
+
+                            if (lastCalledNumberRef.current) {
+                                try {
+                                    const duration1 = await getLastCallDuration(lastCalledNumberRef.current);
+                                    console.log('getLastCallDuration result:', duration1);
+                                    Alert.alert('Call Duration', `getLastCallDuration: ${duration1}s`);
+
+                                    const duration2 = await getMostRecentCallDuration();
+                                    console.log('getMostRecentCallDuration result:', duration2);
+                                    Alert.alert('Call Duration', `getMostRecentCallDuration: ${duration2}s`);
+                                } catch (error) {
+                                    console.error('Error checking call duration:', error);
+                                    Alert.alert('Error', error.message);
+                                }
+                            } else {
+                                // Try to get most recent call anyway
+                                try {
+                                    const duration = await getMostRecentCallDuration();
+                                    console.log('getMostRecentCallDuration result:', duration);
+                                    Alert.alert('Most Recent Call', `Duration: ${duration}s`);
+                                } catch (error) {
+                                    console.error('Error:', error);
+                                    Alert.alert('Error', 'No call data available');
+                                }
+                            }
+                        }}
+                    >
                         <View style={styles.quickActionIcon}>
-                            <Ionicons name="bar-chart-outline" size={24} color="#888" />
+                            <Ionicons name="bug-outline" size={24} color="#888" />
                         </View>
-                        <Text style={styles.quickActionText}>Analytics</Text>
+                        <Text style={styles.quickActionText}>Test Call Log</Text>
                     </TouchableOpacity>
                 </View>
 

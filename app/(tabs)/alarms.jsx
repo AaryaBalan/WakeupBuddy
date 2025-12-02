@@ -44,7 +44,7 @@ export default function AlarmsScreen() {
                     alarmDate.setDate(alarmDate.getDate() + 1);
                 }
 
-                await scheduleAlarm(alarmDate, alarm.buddy);
+                await scheduleAlarm(alarmDate, alarm.buddy, alarm._id.toString());
                 showPopup('Alarm enabled', '#4CAF50');
             } else {
                 // Disable: Cancel the alarm

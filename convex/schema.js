@@ -41,6 +41,15 @@ export default defineSchema({
         count: v.number()
     })
         .index('by_user', ['user_id'])
-        .index('by_user_date', ['user_id', 'date'])
+        .index('by_user_date', ['user_id', 'date']),
+
+    calls: defineTable({
+        users: v.array(v.id('users')), // [id of person1, id of person2]
+        call_duration: v.number(),     // duration in seconds
+        call_time: v.string(),         // ISO timestamp of when call occurred
+        alarm_id: v.id('alarms')       // foreign key to alarms table
+    })
+        .index('by_user', ['users'])
+        .index('by_alarm', ['alarm_id'])
 
 })

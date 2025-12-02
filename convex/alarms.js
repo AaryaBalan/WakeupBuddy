@@ -75,3 +75,42 @@ export const toggleAlarm = mutation({
         await ctx.db.patch(args.id, { enabled: args.enabled });
     },
 });
+
+/**
+ * Find an alarm by user email, buddy email, time, and ampm
+ * Used to look up alarmId when it's not available in the deep link
+ */
+export const findAlarmByDetails = query({
+    args: {
+        userEmail: v.string(),
+        buddyEmail: v.string(),
+        time: v.string(),
+        ampm: v.string(),
+    },
+    handler: async (ctx, args) => {
+        // First, find the user by email
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .unique();
+
+        if (!user) {
+            return null;
+        }
+
+        // Get all alarms for this user
+        const alarms = await ctx.db
+            .query("alarms")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .collect();
+
+        // Find the alarm matching the criteria
+        const matchingAlarm = alarms.find(alarm =>
+            alarm.time === args.time &&
+            alarm.ampm === args.ampm &&
+            alarm.buddy === args.buddyEmail
+        );
+
+        return matchingAlarm || null;
+    },
+});

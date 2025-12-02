@@ -123,6 +123,8 @@ export default function AlarmEditorScreen() {
                 enabled: isEnabled // Use the state variable which is initialized from params or defaults to true
             };
 
+            let savedAlarmId = alarmId; // For editing, use existing ID
+
             if (isEditing) {
                 await updateAlarm({
                     id: alarmId,
@@ -130,11 +132,12 @@ export default function AlarmEditorScreen() {
                 });
                 showPopup('Alarm Updated Successfully', '#4CAF50');
             } else {
-                await createAlarm(payload);
+                // Create alarm and get the returned ID
+                savedAlarmId = await createAlarm(payload);
                 showPopup('Alarm Saved Successfully', '#4CAF50');
             }
 
-            // Schedule native Android alarm
+            // Schedule native Android alarm with the alarm ID
             const now = new Date();
             let alarmDate = new Date(date);
 
@@ -144,8 +147,9 @@ export default function AlarmEditorScreen() {
             }
 
             try {
-                await scheduleAlarm(alarmDate, buddyValue);
-                console.log('Native alarm scheduled successfully for:', alarmDate.toLocaleString());
+                // Pass the alarm ID (as string) to native scheduler
+                await scheduleAlarm(alarmDate, buddyValue, savedAlarmId.toString());
+                console.log('Native alarm scheduled successfully for:', alarmDate.toLocaleString(), 'with alarmId:', savedAlarmId);
             } catch (alarmError) {
                 console.error('Failed to schedule native alarm:', alarmError);
 
