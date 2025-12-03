@@ -811,49 +811,17 @@ export default function HomeScreen() {
                         </View>
                         <AppText style={styles.quickActionText}>Add Alarm</AppText>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.quickActionItem}>
-                        <View style={styles.quickActionIcon}>
-                            <Ionicons name="person-outline" size={24} color="#888" />
+                    <TouchableOpacity style={styles.quickActionItem} onPress={() => router.push('/screens/my-buddies')}>
+                        <View style={[styles.quickActionIcon, { backgroundColor: '#2a2a1a' }]}>
+                            <Ionicons name="people-outline" size={24} color="#C9E265" />
                         </View>
-                        <AppText style={styles.quickActionText}>Solo Mode</AppText>
+                        <AppText style={styles.quickActionText}>My Buddies</AppText>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.quickActionItem}
-                        onPress={async () => {
-                            console.log('=== TEST: Checking call duration ===');
-                            console.log('Last called number:', lastCalledNumberRef.current);
-                            console.log('Call ID:', callIdRef.current);
-
-                            if (lastCalledNumberRef.current) {
-                                try {
-                                    const duration1 = await getLastCallDuration(lastCalledNumberRef.current);
-                                    console.log('getLastCallDuration result:', duration1);
-                                    Alert.alert('Call Duration', `getLastCallDuration: ${duration1}s`);
-
-                                    const duration2 = await getMostRecentCallDuration();
-                                    console.log('getMostRecentCallDuration result:', duration2);
-                                    Alert.alert('Call Duration', `getMostRecentCallDuration: ${duration2}s`);
-                                } catch (error) {
-                                    console.error('Error checking call duration:', error);
-                                    Alert.alert('Error', error.message);
-                                }
-                            } else {
-                                // Try to get most recent call anyway
-                                try {
-                                    const duration = await getMostRecentCallDuration();
-                                    console.log('getMostRecentCallDuration result:', duration);
-                                    Alert.alert('Most Recent Call', `Duration: ${duration}s`);
-                                } catch (error) {
-                                    console.error('Error:', error);
-                                    Alert.alert('Error', 'No call data available');
-                                }
-                            }
-                        }}
-                    >
-                        <View style={styles.quickActionIcon}>
-                            <Ionicons name="bug-outline" size={24} color="#888" />
+                    <TouchableOpacity style={styles.quickActionItem} onPress={() => router.push('/screens/PermissionsGuide')}>
+                        <View style={[styles.quickActionIcon, { backgroundColor: '#2a2a1a' }]}>
+                            <Ionicons name="settings-outline" size={24} color="#C9E265" />
                         </View>
-                        <AppText style={styles.quickActionText}>Test Call Log</AppText>
+                        <AppText style={styles.quickActionText}>Setup</AppText>
                     </TouchableOpacity>
                 </View>
 
