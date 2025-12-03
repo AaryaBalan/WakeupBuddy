@@ -223,6 +223,7 @@ const profileStyles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 14,
+        marginBottom: 20,
     },
     achItem: {
         alignItems: 'center',
@@ -267,7 +268,7 @@ const profileStyles = StyleSheet.create({
         color: '#fff',
         fontFamily: 'Montserrat_700Bold',
         fontSize: 15,
-        marginTop: 16,
+        marginTop: 8,
         marginBottom: 10,
     },
     settingsCard: {

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -20,6 +20,7 @@ export default function PublicProfile() {
     const router = useRouter();
     const { user: currentUser } = useUser();
     const [isLoading, setIsLoading] = useState(false);
+    const [achievementsModalVisible, setAchievementsModalVisible] = useState(false);
 
     // Fetch user data from Convex by ID
     const fetchedUser = useQuery(
@@ -363,41 +364,140 @@ export default function PublicProfile() {
 
                     <View style={styles.achRow}>
                         {achievementsWithStatus ? (
-                            achievementsWithStatus.slice(0, 4).map((achievement) => (
-                                <View key={achievement.type} style={styles.achItem}>
-                                    <View style={[styles.achCircle, achievement.earned && styles.achievedRing]}>
-                                        <Ionicons
-                                            name={achievement.earned ? achievement.icon : 'lock-closed'}
-                                            size={22}
-                                            color={achievement.earned ? NEON : GRAY}
-                                        />
+                            <>
+                                {achievementsWithStatus.slice(0, 3).map((achievement) => (
+                                    <View key={achievement.type} style={styles.achItem}>
+                                        <View style={[styles.achCircle, achievement.earned && styles.achievedRing]}>
+                                            <Ionicons
+                                                name={achievement.earned ? achievement.icon : 'lock-closed'}
+                                                size={22}
+                                                color={achievement.earned ? NEON : GRAY}
+                                            />
+                                        </View>
+                                        <AppText style={styles.achLabel} numberOfLines={2}>
+                                            {achievement.earned ? achievement.name : 'Locked'}
+                                        </AppText>
                                     </View>
-                                    <AppText style={styles.achLabel} numberOfLines={2}>
-                                        {achievement.earned ? achievement.name : 'Locked'}
-                                    </AppText>
-                                </View>
-                            ))
+                                ))}
+                                {/* 4th item - Arrow to open modal */}
+                                <TouchableOpacity
+                                    style={styles.achItem}
+                                    onPress={() => setAchievementsModalVisible(true)}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={styles.achCircleArrow}>
+                                        <Ionicons name="chevron-forward" size={22} color={NEON} />
+                                    </View>
+                                    <AppText style={styles.achLabelMore}>See All</AppText>
+                                </TouchableOpacity>
+                            </>
                         ) : (
                             // Default placeholder achievements while loading
-                            [
-                                { key: '7day', label: '7 Day Streak', icon: 'flame' },
-                                { key: 'early', label: 'Early Bird', icon: 'sunny' },
-                                { key: 'help5', label: 'First Buddy', icon: 'people' },
-                                { key: 'locked', label: 'Locked', icon: 'lock-closed' },
-                            ].map((a) => (
-                                <View key={a.key} style={styles.achItem}>
-                                    <View style={styles.achCircle}>
-                                        <Ionicons name={a.icon} size={22} color={GRAY} />
+                            <>
+                                {[
+                                    { key: '7day', label: '7 Day Streak', icon: 'flame' },
+                                    { key: 'early', label: 'Early Bird', icon: 'sunny' },
+                                    { key: 'help5', label: 'First Buddy', icon: 'people' },
+                                ].map((a) => (
+                                    <View key={a.key} style={styles.achItem}>
+                                        <View style={styles.achCircle}>
+                                            <Ionicons name={a.icon} size={22} color={GRAY} />
+                                        </View>
+                                        <AppText style={styles.achLabel}>{a.label}</AppText>
                                     </View>
-                                    <AppText style={styles.achLabel}>{a.label}</AppText>
+                                ))}
+                                {/* 4th item - Arrow placeholder */}
+                                <View style={styles.achItem}>
+                                    <View style={styles.achCircleArrow}>
+                                        <Ionicons name="chevron-forward" size={22} color={NEON} />
+                                    </View>
+                                    <AppText style={styles.achLabelMore}>See All</AppText>
                                 </View>
-                            ))
+                            </>
                         )}
                     </View>
 
                     <View style={{ height: 40 }} />
                 </ScrollView>
             </View>
+
+            {/* Achievements Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={achievementsModalVisible}
+                onRequestClose={() => setAchievementsModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.achievementsModalContent}>
+                        <View style={styles.modalHeader}>
+                            <View>
+                                <AppText style={styles.modalTitle}>{user.name}'s Achievements</AppText>
+                                <AppText style={styles.achModalSubtitle}>
+                                    {achievementCount ? `${achievementCount.earned} of ${achievementCount.total} unlocked` : '0 of 0 unlocked'}
+                                </AppText>
+                            </View>
+                            <TouchableOpacity onPress={() => setAchievementsModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#fff" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView style={styles.achievementsList} showsVerticalScrollIndicator={false}>
+                            {achievementsWithStatus && achievementsWithStatus.length > 0 ? (
+                                achievementsWithStatus.map((achievement) => (
+                                    <View
+                                        key={achievement.type}
+                                        style={[
+                                            styles.achievementModalItem,
+                                            !achievement.earned && styles.achievementModalItemLocked
+                                        ]}
+                                    >
+                                        <View style={[
+                                            styles.achModalCircle,
+                                            achievement.earned && styles.achModalCircleEarned
+                                        ]}>
+                                            <Ionicons
+                                                name={achievement.icon}
+                                                size={28}
+                                                color={achievement.earned ? NEON : '#666'}
+                                            />
+                                        </View>
+                                        <View style={styles.achModalInfo}>
+                                            <AppText style={[
+                                                styles.achModalName,
+                                                !achievement.earned && styles.achModalNameLocked
+                                            ]}>
+                                                {achievement.name}
+                                            </AppText>
+                                            <AppText style={[
+                                                styles.achModalDesc,
+                                                !achievement.earned && styles.achModalDescLocked
+                                            ]}>
+                                                {achievement.description}
+                                            </AppText>
+                                            {achievement.earned && achievement.earnedAt && (
+                                                <AppText style={styles.achModalDate}>
+                                                    Earned {new Date(achievement.earnedAt).toLocaleDateString()}
+                                                </AppText>
+                                            )}
+                                        </View>
+                                        {achievement.earned ? (
+                                            <Ionicons name="checkmark-circle" size={24} color={NEON} />
+                                        ) : (
+                                            <Ionicons name="lock-closed" size={22} color="#666" />
+                                        )}
+                                    </View>
+                                ))
+                            ) : (
+                                <View style={styles.emptyAchievements}>
+                                    <Ionicons name="trophy-outline" size={60} color={GRAY} />
+                                    <AppText style={styles.emptyAchievementsText}>Loading achievements...</AppText>
+                                </View>
+                            )}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
