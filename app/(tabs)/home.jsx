@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import { BannerAd, BannerAdSize, InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -18,6 +19,15 @@ import { checkPendingCall, clearPendingCall, getLastCallDuration, getMostRecentC
 const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || "";
 const convexClient = new ConvexHttpClient(CONVEX_URL);
 
+// Ad Unit IDs - Use test IDs in development, real IDs in production
+const bannerAdUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // Replace with your real banner ID
+const interstitialAdUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX'; // Replace with your real interstitial ID
+
+// Create interstitial ad instance
+const interstitial = InterstitialAd.createForAdRequest(interstitialAdUnitId, {
+    requestNonPersonalizedAdsOnly: true,
+});
+
 export default function HomeScreen() {
     const router = useRouter();
     const { user, updateUser } = useUser();
@@ -25,6 +35,7 @@ export default function HomeScreen() {
     const callIdRef = useRef(null);
     const lastCalledNumberRef = useRef(null);
     const callInProgressRef = useRef(false);
+    const interstitialLoadedRef = useRef(false);
 
     const markAwake = useMutation(api.streaks.markAwake);
     const createCall = useMutation(api.calls.createCall);
@@ -42,6 +53,34 @@ export default function HomeScreen() {
         api.friends.getFriends,
         user?.email ? { userEmail: user.email } : "skip"
     );
+
+    // Load interstitial ad
+    useEffect(() => {
+        const unsubscribeLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+            console.log('📺 Interstitial ad loaded');
+            interstitialLoadedRef.current = true;
+        });
+
+        const unsubscribeClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
+            console.log('📺 Interstitial ad closed, reloading...');
+            interstitialLoadedRef.current = false;
+            interstitial.load(); // Reload for next time
+        });
+
+        const unsubscribeError = interstitial.addAdEventListener(AdEventType.ERROR, (error) => {
+            console.log('📺 Interstitial ad error:', error);
+            interstitialLoadedRef.current = false;
+        });
+
+        // Start loading the interstitial
+        interstitial.load();
+
+        return () => {
+            unsubscribeLoaded();
+            unsubscribeClosed();
+            unsubscribeError();
+        };
+    }, []);
 
     // Listen for call state changes to detect when call ends
     useEffect(() => {
@@ -299,6 +338,14 @@ export default function HomeScreen() {
                 if (!alarms || alarms.length === 0) {
                     console.log('⚠️ WARNING: No alarms found in database. Alarms might have been deleted or user data not loaded.');
                 }
+            }
+
+            // Show interstitial ad after marking awake (monetization)
+            if (interstitialLoadedRef.current) {
+                console.log('📺 Showing interstitial ad...');
+                interstitial.show();
+            } else {
+                console.log('📺 Interstitial ad not loaded yet, skipping...');
             }
         } catch (error) {
             console.error("Failed to mark awake:", error);
@@ -909,7 +956,23 @@ export default function HomeScreen() {
                     </View>
                 )}
 
+                {/* Spacer for banner ad */}
+                <View style={{ height: 60 }} />
+
             </ScrollView>
+
+            {/* Banner Ad at bottom */}
+            <View style={styles.bannerAdContainer}>
+                <BannerAd
+                    unitId={bannerAdUnitId}
+                    size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                    requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                    }}
+                    onAdLoaded={() => console.log('📺 Banner ad loaded')}
+                    onAdFailedToLoad={(error) => console.log('📺 Banner ad failed to load:', error)}
+                />
+            </View>
         </SafeAreaView>
     );
 }

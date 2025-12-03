@@ -12,6 +12,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
+import mobileAds from 'react-native-google-mobile-ads';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { PopupProvider } from "../contexts/PopupContext";
@@ -37,6 +38,14 @@ export default function RootLayout() {
   // Hide Android navigation bar to prevent collision with app navbar
   useEffect(() => {
     SystemNavigationBar.navigationHide();
+  }, []);
+
+  // Initialize Google Mobile Ads
+  useEffect(() => {
+    mobileAds()
+      .initialize()
+      .then(() => console.log('✅ AdMob initialized successfully'))
+      .catch((error) => console.error('❌ AdMob initialization failed:', error));
   }, []);
 
   // Hide splash screen and set default font when fonts are loaded

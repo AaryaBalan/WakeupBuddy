@@ -349,6 +349,16 @@ const homeStyles = StyleSheet.create({
         height: 10,
         borderRadius: 2,
     },
+    // Banner Ad
+    bannerAdContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        backgroundColor: '#000',
+        paddingVertical: 5,
+    },
 });
 
 export default homeStyles;
