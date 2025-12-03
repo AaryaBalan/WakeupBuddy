@@ -4,8 +4,9 @@ import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
@@ -543,7 +544,7 @@ export default function HomeScreen() {
                         <View style={styles.logoContainer}>
                             <Ionicons name="flash" size={24} color="#000" />
                         </View>
-                        <Text style={styles.headerTitle}>WakeBuddy</Text>
+                        <AppText style={styles.headerTitle}>WakeBuddy</AppText>
                     </View>
                     <View style={styles.headerRight}>
                         <TouchableOpacity
@@ -552,7 +553,7 @@ export default function HomeScreen() {
                         >
                             <Ionicons name="notifications-outline" size={24} color="#fff" />
                             <View style={styles.badge}>
-                                <Text style={styles.badgeText}>2</Text>
+                                <AppText style={styles.badgeText}>2</AppText>
                             </View>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -567,21 +568,21 @@ export default function HomeScreen() {
                 {/* Streak Card */}
                 <View style={styles.streakCard}>
                     <View style={styles.streakHeader}>
-                        <Text style={styles.streakLabel}>Current Streak</Text>
+                        <AppText style={styles.streakLabel}>Current Streak</AppText>
                         <TouchableOpacity style={styles.shareBadge}>
                             <Ionicons name="share-social-outline" size={16} color="#C9E265" />
-                            <Text style={styles.shareBadgeText}>Share Badge</Text>
+                            <AppText style={styles.shareBadgeText}>Share Badge</AppText>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.streakCountContainer}>
-                        <Text style={styles.streakCount}>{user?.streak || 0} days</Text>
+                        <AppText style={styles.streakCount}>{user?.streak || 0} days</AppText>
                         <Ionicons name="flame" size={32} color="#FF6B35" style={{ marginLeft: 8 }} />
                     </View>
-                    <Text style={styles.streakSubtext}>You're on fire! Keep it up.</Text>
+                    <AppText style={styles.streakSubtext}>You're on fire! Keep it up.</AppText>
 
                     {/* Last 10 Days Heatmap */}
                     <View style={styles.heatmapContainer}>
-                        <Text style={styles.heatmapTitle}>Last 10 Days Activity</Text>
+                        <AppText style={styles.heatmapTitle}>Last 10 Days Activity</AppText>
                         <View style={styles.heatmap}>
                             {(() => {
                                 // Generate last 10 days
@@ -609,7 +610,7 @@ export default function HomeScreen() {
                                         <View key={index} style={styles.heatmapDayContainer}>
                                             <View style={[styles.heatmapBox, { backgroundColor: boxColor }]}>
                                                 {count > 0 && (
-                                                    <Text style={styles.heatmapCount}>{count}</Text>
+                                                    <AppText style={styles.heatmapCount}>{count}</AppText>
                                                 )}
                                             </View>
                                         </View>
@@ -618,27 +619,27 @@ export default function HomeScreen() {
                             })()}
                         </View>
                         <View style={styles.heatmapLegend}>
-                            <Text style={styles.legendText}>Less</Text>
+                            <AppText style={styles.legendText}>Less</AppText>
                             <View style={[styles.legendBox, { backgroundColor: '#1a1a1a' }]} />
                             <View style={[styles.legendBox, { backgroundColor: '#2d4a2d' }]} />
                             <View style={[styles.legendBox, { backgroundColor: '#6a9a3d' }]} />
                             <View style={[styles.legendBox, { backgroundColor: '#C9E265' }]} />
-                            <Text style={styles.legendText}>More</Text>
+                            <AppText style={styles.legendText}>More</AppText>
                         </View>
                     </View>
                 </View>
 
                 {/* Up Next */}
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Up Next</Text>
+                    <AppText style={styles.sectionTitle}>Up Next</AppText>
                     <TouchableOpacity>
-                        <Text style={styles.seeAllText}>See All</Text>
+                        <AppText style={styles.seeAllText}>See All</AppText>
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.alarmCard}>
                     <View style={styles.alarmHeader}>
-                        <Text style={styles.alarmDate}>Tomorrow, Wed</Text>
+                        <AppText style={styles.alarmDate}>Tomorrow, Wed</AppText>
                         <View style={styles.alarmActions}>
                             <TouchableOpacity style={styles.actionButton}>
                                 <Ionicons name="pencil" size={16} color="#888" />
@@ -649,13 +650,13 @@ export default function HomeScreen() {
                         </View>
                     </View>
                     <View style={styles.timeContainer}>
-                        <Text style={styles.timeText}>07:00</Text>
-                        <Text style={styles.ampmText}>AM</Text>
+                        <AppText style={styles.timeText}>07:00</AppText>
+                        <AppText style={styles.ampmText}>AM</AppText>
                     </View>
                     <View style={styles.alarmFooter}>
                         <View style={styles.modeContainer}>
                             <Ionicons name="people-outline" size={20} color="#C9E265" />
-                            <Text style={styles.modeText}>Wake Buddy Mode</Text>
+                            <AppText style={styles.modeText}>Wake Buddy Mode</AppText>
                         </View>
                         <Switch
                             trackColor={{ false: "#333", true: "#C9E265" }}
@@ -668,19 +669,19 @@ export default function HomeScreen() {
                 </View>
 
                 {/* Quick Actions */}
-                <Text style={styles.sectionTitle}>Quick Actions</Text>
+                <AppText style={styles.sectionTitle}>Quick Actions</AppText>
                 <View style={styles.quickActionsContainer}>
                     <TouchableOpacity style={styles.quickActionItem} onPress={() => router.push('/screens/alarm-editor')}>
                         <View style={[styles.quickActionIcon, { backgroundColor: '#2a2a1a' }]}>
                             <Ionicons name="alarm-outline" size={24} color="#C9E265" />
                         </View>
-                        <Text style={styles.quickActionText}>Add Alarm</Text>
+                        <AppText style={styles.quickActionText}>Add Alarm</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.quickActionItem}>
                         <View style={styles.quickActionIcon}>
                             <Ionicons name="person-outline" size={24} color="#888" />
                         </View>
-                        <Text style={styles.quickActionText}>Solo Mode</Text>
+                        <AppText style={styles.quickActionText}>Solo Mode</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.quickActionItem}
@@ -718,7 +719,7 @@ export default function HomeScreen() {
                         <View style={styles.quickActionIcon}>
                             <Ionicons name="bug-outline" size={24} color="#888" />
                         </View>
-                        <Text style={styles.quickActionText}>Test Call Log</Text>
+                        <AppText style={styles.quickActionText}>Test Call Log</AppText>
                     </TouchableOpacity>
                 </View>
 
@@ -730,8 +731,8 @@ export default function HomeScreen() {
                             <Ionicons name="person" size={20} color="#fff" />
                         </View>
                         <View style={styles.socialTextContainer}>
-                            <Text style={styles.socialTitle}>Sarah just hit a 30 day streak!</Text>
-                            <Text style={styles.socialSubtitle}>Send her a congratulations.</Text>
+                            <AppText style={styles.socialTitle}>Sarah just hit a 30 day streak!</AppText>
+                            <AppText style={styles.socialSubtitle}>Send her a congratulations.</AppText>
                         </View>
                         <TouchableOpacity style={styles.thumbsUpButton}>
                             <Ionicons name="thumbs-up-outline" size={20} color="#C9E265" />

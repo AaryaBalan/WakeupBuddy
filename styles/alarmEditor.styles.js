@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     timeContainer: {
         flexDirection: 'row',
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     },
     timeText: {
         fontSize: 80,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
         letterSpacing: 2,
     },
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     sectionLabel: {
         color: '#888',
         fontSize: 12,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginBottom: 15,
         letterSpacing: 1,
     },
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     },
     modeButtonText: {
         color: '#888',
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     modeButtonTextActive: {
         color: '#fff',
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     },
     buddyTitle: {
         color: '#fff',
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         fontSize: 16,
     },
     buddySubtitle: {
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     },
     changeButtonText: {
         color: '#C9E265',
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     usernameInput: {
         backgroundColor: '#111',
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     configLabel: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
         marginBottom: 12,
     },
     daysContainer: {
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     },
     dayText: {
         color: '#888',
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     dayTextActive: {
         color: '#000',
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     },
     difficultyText: {
         color: '#888',
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     difficultyTextActive: {
         color: '#000',
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     saveButtonText: {
         color: '#000',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
 });
 

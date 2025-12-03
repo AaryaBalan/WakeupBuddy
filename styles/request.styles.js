@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         color: "#fff",
         fontSize: 18,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
     iconButton: {
         padding: 6,
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     username: {
         color: "#fff",
         marginTop: 8,
-        fontWeight: "600",
+        fontFamily: 'Montserrat_600SemiBold',
     },
 
     /* ---------- Connector Line ---------- */
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     primaryBtnText: {
         color: "#000",
         fontSize: 16,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
 
     /* ---------- Success State ---------- */
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     successTitle: {
         color: "#fff",
         fontSize: 24,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
         marginBottom: 8,
     },
     successText: {
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     streakNum: {
         color: "#fff",
         fontSize: 24,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
         marginVertical: 4,
     },
     streakLabel: {
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     vsText: {
         color: "#666",
         fontSize: 10,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
 
     /* ---------- Secondary Button ---------- */
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     secondaryBtnText: {
         color: "#fff",
         fontSize: 16,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
 });
 

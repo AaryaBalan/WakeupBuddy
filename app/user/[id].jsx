@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
@@ -171,7 +172,7 @@ export default function PublicProfile() {
                         onPress={handleSendFriendRequest}
                         activeOpacity={0.8}
                     >
-                        <Text style={styles.primaryBtnText}>Send Friend Request</Text>
+                        <AppText style={styles.primaryBtnText}>Send Friend Request</AppText>
                     </TouchableOpacity>
                 </View>
             );
@@ -183,7 +184,7 @@ export default function PublicProfile() {
                 return (
                     <View style={styles.actionButtons}>
                         <View style={[styles.secondaryBtn, { backgroundColor: '#333' }]}>
-                            <Text style={styles.secondaryBtnText}>Request Pending...</Text>
+                            <AppText style={styles.secondaryBtnText}>Request Pending...</AppText>
                         </View>
                     </View>
                 );
@@ -196,14 +197,14 @@ export default function PublicProfile() {
                             onPress={handleAcceptRequest}
                             activeOpacity={0.8}
                         >
-                            <Text style={styles.primaryBtnText}>Accept Request</Text>
+                            <AppText style={styles.primaryBtnText}>Accept Request</AppText>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.secondaryBtn, { backgroundColor: '#ff4444', borderColor: '#ff4444' }]}
                             onPress={handleRejectRequest}
                             activeOpacity={0.8}
                         >
-                            <Text style={[styles.secondaryBtnText, { color: '#fff' }]}>Decline</Text>
+                            <AppText style={[styles.secondaryBtnText, { color: '#fff' }]}>Decline</AppText>
                         </TouchableOpacity>
                     </View>
                 );
@@ -228,14 +229,14 @@ export default function PublicProfile() {
                         activeOpacity={0.8}
                     >
                         <Ionicons name="stats-chart" size={18} color="#000" />
-                        <Text style={styles.primaryBtnText}>View Stats</Text>
+                        <AppText style={styles.primaryBtnText}>View Stats</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.secondaryBtn}
                         onPress={handleRemoveFriend}
                         activeOpacity={0.8}
                     >
-                        <Text style={styles.secondaryBtnText}>Remove Friend</Text>
+                        <AppText style={styles.secondaryBtnText}>Remove Friend</AppText>
                     </TouchableOpacity>
                 </View>
             );
@@ -254,7 +255,7 @@ export default function PublicProfile() {
                         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
                             <Ionicons name="arrow-back" size={24} color="#fff" />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Profile</Text>
+                        <AppText style={styles.headerTitle}>Profile</AppText>
                         <View style={{ width: 40 }} />
                     </View>
 
@@ -266,11 +267,11 @@ export default function PublicProfile() {
                             </View>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Text style={styles.name}>{user.name}</Text>
-                            {user.badge ? <Text style={{ fontSize: 18 }}>{user.badge}</Text> : null}
+                            <AppText style={styles.name}>{user.name}</AppText>
+                            {user.badge ? <AppText style={{ fontSize: 18 }}>{user.badge}</AppText> : null}
                         </View>
-                        <Text style={styles.username}>@{user.username}</Text>
-                        <Text style={styles.bio}>{user.bio}</Text>
+                        <AppText style={styles.username}>@{user.username}</AppText>
+                        <AppText style={styles.bio}>{user.bio}</AppText>
 
                         {/* Friend Actions */}
                         {renderFriendActions()}
@@ -279,38 +280,38 @@ export default function PublicProfile() {
                     {/* Stats Section */}
                     <View style={styles.statsRow}>
                         <View style={styles.statBox}>
-                            <Text style={styles.statNumber}>{gridSquares.filter(s => s.filled).length}</Text>
-                            <Text style={styles.statLabel}>Wakeups</Text>
+                            <AppText style={styles.statNumber}>{gridSquares.filter(s => s.filled).length}</AppText>
+                            <AppText style={styles.statLabel}>Wakeups</AppText>
                         </View>
                         <View style={styles.statBox}>
-                            <Text style={styles.statNumber}>{user.streak}</Text>
-                            <Text style={styles.statLabel}>Streak</Text>
+                            <AppText style={styles.statNumber}>{user.streak}</AppText>
+                            <AppText style={styles.statLabel}>Streak</AppText>
                         </View>
                         <View style={styles.statBox}>
-                            <Text style={styles.statNumber}>{user.maxStreak}</Text>
-                            <Text style={styles.statLabel}>Best</Text>
+                            <AppText style={styles.statNumber}>{user.maxStreak}</AppText>
+                            <AppText style={styles.statLabel}>Best</AppText>
                         </View>
                     </View>
 
                     {/* Wake History */}
                     <View style={styles.sectionHeaderRow}>
-                        <Text style={styles.sectionTitle}>Wake History</Text>
+                        <AppText style={styles.sectionTitle}>Wake History</AppText>
                         <TouchableOpacity activeOpacity={0.8}>
-                            <Text style={styles.viewAllText}>Last 90 days</Text>
+                            <AppText style={styles.viewAllText}>Last 90 days</AppText>
                         </TouchableOpacity>
                     </View>
 
                     <View style={styles.historySubHeader}>
-                        <Text style={styles.monthText}>
+                        <AppText style={styles.monthText}>
                             {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </Text>
+                        </AppText>
                         <View style={styles.legend}>
-                            <Text style={styles.legendText}>Less</Text>
+                            <AppText style={styles.legendText}>Less</AppText>
                             <View style={styles.legendSquare1} />
                             <View style={styles.legendSquare2} />
                             <View style={styles.legendSquare3} />
                             <View style={styles.legendSquare4} />
-                            <Text style={styles.legendText}>More</Text>
+                            <AppText style={styles.legendText}>More</AppText>
                         </View>
                     </View>
 
@@ -331,8 +332,8 @@ export default function PublicProfile() {
 
                     {/* Achievements */}
                     <View style={styles.sectionHeaderRow}>
-                        <Text style={styles.sectionTitle}>Achievements</Text>
-                        <Text style={styles.achCount}>12/48 Unlocked</Text>
+                        <AppText style={styles.sectionTitle}>Achievements</AppText>
+                        <AppText style={styles.achCount}>12/48 Unlocked</AppText>
                     </View>
 
                     <View style={styles.achRow}>
@@ -343,7 +344,7 @@ export default function PublicProfile() {
                                     <View style={[styles.achCircle, achieved && styles.achievedRing]}>
                                         <Ionicons name={a.icon} size={22} color={achieved ? NEON : GRAY} />
                                     </View>
-                                    <Text style={styles.achLabel}>{a.label}</Text>
+                                    <AppText style={styles.achLabel}>{a.label}</AppText>
                                 </View>
                             );
                         })}

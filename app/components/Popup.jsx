@@ -1,5 +1,6 @@
+import AppText from '@/components/AppText';
 import { useEffect, useRef } from 'react';
-import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Animated, Dimensions, StyleSheet, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -64,7 +65,7 @@ const Popup = ({ text, color = '#C9E265', visible, onHide, duration = 3000 }) =>
             ]}
         >
             <View style={styles.content}>
-                <Text style={styles.text}>{text}</Text>
+                <AppText style={styles.text}>{text}</AppText>
             </View>
         </Animated.View>
     );
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontSize: 13,
         flex: 1,
-        fontWeight: '500',
+        fontWeight: 'medium',
     },
 });
 

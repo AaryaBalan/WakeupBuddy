@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import styles from "../../styles/permissionsGuide.styles";
 import { checkAllPermissions, requestBatteryOptimization, requestCallPhonePermission, requestDrawOverlays, requestExactAlarmPermission } from '../native/AlarmNative';
 
@@ -76,10 +77,10 @@ export default function PermissionsGuide() {
                     <View style={styles.iconContainer}>
                         <Ionicons name="notifications" size={48} color="#C9E265" />
                     </View>
-                    <Text style={styles.title}>Setup Alarm Permissions</Text>
-                    <Text style={styles.subtitle}>
+                    <AppText style={styles.title}>Setup Alarm Permissions</AppText>
+                    <AppText style={styles.subtitle}>
                         To ensure your alarms work reliably, we need a couple of permissions.
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* Permission Steps */}
@@ -88,13 +89,13 @@ export default function PermissionsGuide() {
                     <View style={styles.permissionCard}>
                         <View style={styles.cardHeader}>
                             <View style={styles.stepNumber}>
-                                <Text style={styles.stepNumberText}>1</Text>
+                                <AppText style={styles.stepNumberText}>1</AppText>
                             </View>
                             <View style={styles.cardTitleContainer}>
-                                <Text style={styles.cardTitle}>Allow Exact Alarms</Text>
-                                <Text style={styles.cardSubtitle}>
+                                <AppText style={styles.cardTitle}>Allow Exact Alarms</AppText>
+                                <AppText style={styles.cardSubtitle}>
                                     Required to schedule alarms at the exact time you set
-                                </Text>
+                                </AppText>
                             </View>
                             {permissions.canScheduleExactAlarms ? (
                                 <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
@@ -104,7 +105,7 @@ export default function PermissionsGuide() {
                         </View>
                         {!permissions.canScheduleExactAlarms && (
                             <TouchableOpacity style={styles.actionButton} onPress={handleExactAlarmPress}>
-                                <Text style={styles.actionButtonText}>Open Settings</Text>
+                                <AppText style={styles.actionButtonText}>Open Settings</AppText>
                                 <Ionicons name="arrow-forward" size={20} color="#000" />
                             </TouchableOpacity>
                         )}
@@ -114,13 +115,13 @@ export default function PermissionsGuide() {
                     <View style={styles.permissionCard}>
                         <View style={styles.cardHeader}>
                             <View style={styles.stepNumber}>
-                                <Text style={styles.stepNumberText}>2</Text>
+                                <AppText style={styles.stepNumberText}>2</AppText>
                             </View>
                             <View style={styles.cardTitleContainer}>
-                                <Text style={styles.cardTitle}>Disable Battery Optimization</Text>
-                                <Text style={styles.cardSubtitle}>
+                                <AppText style={styles.cardTitle}>Disable Battery Optimization</AppText>
+                                <AppText style={styles.cardSubtitle}>
                                     Ensures alarms work even when app is closed
-                                </Text>
+                                </AppText>
                             </View>
                             {permissions.batteryOptimizationDisabled ? (
                                 <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
@@ -130,7 +131,7 @@ export default function PermissionsGuide() {
                         </View>
                         {!permissions.batteryOptimizationDisabled && (
                             <TouchableOpacity style={styles.actionButton} onPress={handleBatteryOptPress}>
-                                <Text style={styles.actionButtonText}>Open Settings</Text>
+                                <AppText style={styles.actionButtonText}>Open Settings</AppText>
                                 <Ionicons name="arrow-forward" size={20} color="#000" />
                             </TouchableOpacity>
                         )}
@@ -140,13 +141,13 @@ export default function PermissionsGuide() {
                     <View style={styles.permissionCard}>
                         <View style={styles.cardHeader}>
                             <View style={styles.stepNumber}>
-                                <Text style={styles.stepNumberText}>3</Text>
+                                <AppText style={styles.stepNumberText}>3</AppText>
                             </View>
                             <View style={styles.cardTitleContainer}>
-                                <Text style={styles.cardTitle}>Display Over Other Apps</Text>
-                                <Text style={styles.cardSubtitle}>
+                                <AppText style={styles.cardTitle}>Display Over Other Apps</AppText>
+                                <AppText style={styles.cardSubtitle}>
                                     Allows alarm screen to appear over lock screen
-                                </Text>
+                                </AppText>
                             </View>
                             {permissions.canDrawOverlays ? (
                                 <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
@@ -156,7 +157,7 @@ export default function PermissionsGuide() {
                         </View>
                         {!permissions.canDrawOverlays && (
                             <TouchableOpacity style={styles.actionButton} onPress={handleOverlayPress}>
-                                <Text style={styles.actionButtonText}>Open Settings</Text>
+                                <AppText style={styles.actionButtonText}>Open Settings</AppText>
                                 <Ionicons name="arrow-forward" size={20} color="#000" />
                             </TouchableOpacity>
                         )}
@@ -166,13 +167,13 @@ export default function PermissionsGuide() {
                     <View style={styles.permissionCard}>
                         <View style={styles.cardHeader}>
                             <View style={styles.stepNumber}>
-                                <Text style={styles.stepNumberText}>4</Text>
+                                <AppText style={styles.stepNumberText}>4</AppText>
                             </View>
                             <View style={styles.cardTitleContainer}>
-                                <Text style={styles.cardTitle}>Allow Phone Calls</Text>
-                                <Text style={styles.cardSubtitle}>
+                                <AppText style={styles.cardTitle}>Allow Phone Calls</AppText>
+                                <AppText style={styles.cardSubtitle}>
                                     Required to call your buddy when alarm is dismissed
-                                </Text>
+                                </AppText>
                             </View>
                             {permissions.hasCallPermission ? (
                                 <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
@@ -182,7 +183,7 @@ export default function PermissionsGuide() {
                         </View>
                         {!permissions.hasCallPermission && (
                             <TouchableOpacity style={styles.actionButton} onPress={handleCallPhonePress}>
-                                <Text style={styles.actionButtonText}>Grant Permission</Text>
+                                <AppText style={styles.actionButtonText}>Grant Permission</AppText>
                                 <Ionicons name="arrow-forward" size={20} color="#000" />
                             </TouchableOpacity>
                         )}
@@ -193,28 +194,28 @@ export default function PermissionsGuide() {
                 <View style={styles.manualSection}>
                     <View style={styles.manualHeader}>
                         <Ionicons name="warning" size={24} color="#C9E265" />
-                        <Text style={styles.manualHeaderText}>Additional Manual Steps Required</Text>
+                        <AppText style={styles.manualHeaderText}>Additional Manual Steps Required</AppText>
                     </View>
-                    <Text style={styles.manualDescription}>
+                    <AppText style={styles.manualDescription}>
                         The following settings must be enabled manually in Android Settings:
-                    </Text>
+                    </AppText>
 
                     {/* Step 5: Notifications */}
                     <View style={styles.manualCard}>
                         <View style={styles.manualCardHeader}>
                             <View style={[styles.stepNumber, styles.manualStepNumber]}>
-                                <Text style={styles.stepNumberText}>5</Text>
+                                <AppText style={styles.stepNumberText}>5</AppText>
                             </View>
                             <View style={styles.cardTitleContainer}>
-                                <Text style={styles.cardTitle}>Enable Notifications</Text>
-                                <Text style={styles.cardSubtitle}>
+                                <AppText style={styles.cardTitle}>Enable Notifications</AppText>
+                                <AppText style={styles.cardSubtitle}>
                                     Allow notifications so the alarm can alert you
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
                         <TouchableOpacity style={styles.manualButton} onPress={openAppSettings}>
                             <Ionicons name="notifications-outline" size={18} color="#000" />
-                            <Text style={styles.manualButtonText}>Open Notification Settings</Text>
+                            <AppText style={styles.manualButtonText}>Open Notification Settings</AppText>
                             <Ionicons name="arrow-forward" size={18} color="#000" />
                         </TouchableOpacity>
                     </View>
@@ -223,18 +224,18 @@ export default function PermissionsGuide() {
                     <View style={styles.manualCard}>
                         <View style={styles.manualCardHeader}>
                             <View style={[styles.stepNumber, styles.manualStepNumber]}>
-                                <Text style={styles.stepNumberText}>6</Text>
+                                <AppText style={styles.stepNumberText}>6</AppText>
                             </View>
                             <View style={styles.cardTitleContainer}>
-                                <Text style={styles.cardTitle}>Allow Background Activity</Text>
-                                <Text style={styles.cardSubtitle}>
+                                <AppText style={styles.cardTitle}>Allow Background Activity</AppText>
+                                <AppText style={styles.cardSubtitle}>
                                     Enable background activity and disable battery optimization
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
                         <TouchableOpacity style={styles.manualButton} onPress={openAppSettings}>
                             <Ionicons name="battery-charging" size={18} color="#000" />
-                            <Text style={styles.manualButtonText}>Open Battery Settings</Text>
+                            <AppText style={styles.manualButtonText}>Open Battery Settings</AppText>
                             <Ionicons name="arrow-forward" size={18} color="#000" />
                         </TouchableOpacity>
                     </View>
@@ -243,9 +244,9 @@ export default function PermissionsGuide() {
                 {/* Info Box */}
                 <View style={styles.infoBox}>
                     <Ionicons name="information-circle" size={24} color="#C9E265" />
-                    <Text style={styles.infoText}>
+                    <AppText style={styles.infoText}>
                         All 6 permissions are essential for WakeBuddy to wake you up reliably and call your buddy, even when the app isn't open.
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* Continue Button */}
@@ -254,19 +255,19 @@ export default function PermissionsGuide() {
                     onPress={handleContinue}
                     disabled={!permissions.allGranted}
                 >
-                    <Text style={[styles.continueButtonText, permissions.allGranted && styles.continueButtonTextActive]}>
+                    <AppText style={[styles.continueButtonText, permissions.allGranted && styles.continueButtonTextActive]}>
                         {permissions.allGranted ? "Continue (Complete steps 5-6 manually)" : "Complete Steps 1-4 First"}
-                    </Text>
+                    </AppText>
                 </TouchableOpacity>
 
                 {/* Status Indicator */}
                 <View style={styles.statusContainer}>
-                    <Text style={styles.statusText}>
+                    <AppText style={styles.statusText}>
                         {permissions.allGranted
                             ? "Steps 1-4 complete ✓ Now complete steps 5-6 in Android Settings"
                             : `${(permissions.canScheduleExactAlarms ? 1 : 0) + (permissions.batteryOptimizationDisabled ? 1 : 0) + (permissions.canDrawOverlays ? 1 : 0) + (permissions.hasCallPermission ? 1 : 0)}/4 automatic permissions granted`
                         }
-                    </Text>
+                    </AppText>
                 </View>
             </ScrollView>
         </SafeAreaView >

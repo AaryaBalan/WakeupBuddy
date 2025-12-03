@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 32,
-        fontWeight: "bold",
+        // fontFamily: 'Montserrat_700Bold',
         color: "white",
         marginBottom: 20,
         letterSpacing: 1,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     signupButtonText: {
         color: "#000",
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: 'Montserrat_700Bold',
     },
     loginButton: {
         paddingVertical: 12,
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     loginButtonText: {
         color: "#fff",
         fontSize: 16,
-        fontWeight: "bold",
+        fontFamily: 'Montserrat_700Bold',
     },
     socialSection: {
         alignItems: 'center',

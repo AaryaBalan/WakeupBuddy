@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, TextInput, TouchableOpacity, View } from 'react-native';
+import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import styles from '../../styles/rank.styles';
@@ -31,7 +32,7 @@ export default function RankScreen() {
         if (item.rank === 1) rankIcon = <Ionicons name="trophy" size={24} color={NEON} />;
         else if (item.rank === 2) rankIcon = <Ionicons name="medal-outline" size={24} color="#C0C0C0" />;
         else if (item.rank === 3) rankIcon = <Ionicons name="medal-outline" size={24} color="#CD7F32" />;
-        else rankIcon = <Text style={styles.rankText}>{item.rank}</Text>;
+        else rankIcon = <AppText style={styles.rankText}>{item.rank}</AppText>;
 
         return (
             <TouchableOpacity
@@ -56,22 +57,22 @@ export default function RankScreen() {
                         <Image source={{ uri: item.avatar }} style={styles.avatar} />
                     ) : (
                         <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                            <Text style={styles.avatarInitials}>{item.name.split(' ').map(n => n[0]).join('')}</Text>
+                            <AppText style={styles.avatarInitials}>{item.name.split(' ').map(n => n[0]).join('')}</AppText>
                         </View>
                     )}
                 </View>
 
                 <View style={styles.infoCol}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.nameText}>{item.name}</Text>
+                        <AppText style={styles.nameText}>{item.name}</AppText>
                         {item.badge ? <Ionicons name={item.badge} size={14} color="#FF6B35" style={{ marginLeft: 4 }} /> : null}
                     </View>
-                    <Text style={styles.locationText}>{item.location}</Text>
+                    <AppText style={styles.locationText}>{item.location}</AppText>
                 </View>
 
                 <View style={styles.pointsCol}>
-                    <Text style={styles.pointsText}>{item.points}</Text>
-                    {item.rank <= 3 && <Text style={styles.ptsLabel}>pts</Text>}
+                    <AppText style={styles.pointsText}>{item.points}</AppText>
+                    {item.rank <= 3 && <AppText style={styles.ptsLabel}>pts</AppText>}
                 </View>
             </TouchableOpacity>
         );
@@ -80,7 +81,7 @@ export default function RankScreen() {
     const ListHeader = () => (
         <View>
             <View style={styles.headerRow}>
-                <Text style={styles.headerTitle}>Leaderboard</Text>
+                <AppText style={styles.headerTitle}>Leaderboard</AppText>
                 <Ionicons name="information-circle-outline" size={24} color={GRAY} />
             </View>
 
@@ -99,20 +100,20 @@ export default function RankScreen() {
             {/* Tabs */}
             <View style={styles.tabsContainer}>
                 <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-                    <Text style={styles.activeTabText}>Global</Text>
+                    <AppText style={styles.activeTabText}>Global</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tab}>
-                    <Text style={styles.inactiveTabText}>Friends</Text>
+                    <AppText style={styles.inactiveTabText}>Friends</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tab}>
-                    <Text style={styles.inactiveTabText}>Today</Text>
+                    <AppText style={styles.inactiveTabText}>Today</AppText>
                 </TouchableOpacity>
             </View>
 
             {/* Banner */}
             <View style={styles.banner}>
                 <Ionicons name="people-outline" size={18} color={NEON} style={{ marginRight: 8 }} />
-                <Text style={styles.bannerText}>Earn points by waking up & solving puzzles together!</Text>
+                <AppText style={styles.bannerText}>Earn points by waking up & solving puzzles together!</AppText>
             </View>
         </View>
     );
@@ -125,7 +126,7 @@ export default function RankScreen() {
 
             <TouchableOpacity style={styles.inviteBtn} activeOpacity={0.8}>
                 <Ionicons name="share-social-outline" size={20} color="#000" style={{ marginRight: 8 }} />
-                <Text style={styles.inviteText}>Invite Friends to Compete</Text>
+                <AppText style={styles.inviteText}>Invite Friends to Compete</AppText>
             </TouchableOpacity>
         </View>
     );
@@ -145,16 +146,16 @@ export default function RankScreen() {
             {/* Sticky User Footer */}
             <View style={styles.stickyFooter}>
                 <View style={styles.footerLeft}>
-                    <Text style={styles.footerRank}>#42</Text>
+                    <AppText style={styles.footerRank}>#42</AppText>
                     <ProfilePic user={user} size={40} />
                     <View>
-                        <Text style={styles.footerName}>{user?.name || 'You'}</Text>
-                        <Text style={styles.footerPoints}>+150 pts today</Text>
+                        <AppText style={styles.footerName}>{user?.name || 'You'}</AppText>
+                        <AppText style={styles.footerPoints}>+150 pts today</AppText>
                     </View>
                 </View>
                 <View style={styles.footerRight}>
-                    <Text style={styles.footerTotal}>4,320</Text>
-                    <Text style={styles.footerPercent}>Top 15%</Text>
+                    <AppText style={styles.footerTotal}>4,320</AppText>
+                    <AppText style={styles.footerPercent}>Top 15%</AppText>
                 </View>
             </View>
         </View>

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
@@ -65,7 +66,7 @@ export default function BuddyStats() {
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={NEON} />
-                    <Text style={styles.loadingText}>Loading stats...</Text>
+                    <AppText style={styles.loadingText}>Loading stats...</AppText>
                 </View>
             </SafeAreaView>
         );
@@ -81,7 +82,7 @@ export default function BuddyStats() {
                     <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Buddy Stats</Text>
+                    <AppText style={styles.headerTitle}>Buddy Stats</AppText>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -98,81 +99,81 @@ export default function BuddyStats() {
                             <ProfilePic user={buddy} size={50} />
                         </View>
                     </View>
-                    <Text style={styles.buddyNames}>
+                    <AppText style={styles.buddyNames}>
                         You & {buddy.name}
-                    </Text>
-                    <Text style={styles.buddySubtitle}>Wake-up buddies</Text>
+                    </AppText>
+                    <AppText style={styles.buddySubtitle}>Wake-up buddies</AppText>
                 </View>
 
                 {/* Overview Stats */}
-                <Text style={styles.sectionTitle}>Overview</Text>
+                <AppText style={styles.sectionTitle}>Overview</AppText>
                 <View style={styles.overviewGrid}>
                     <View style={styles.overviewCard}>
                         <Ionicons name="sunny" size={28} color={NEON} />
-                        <Text style={styles.overviewValue}>{buddyStats.totalWakeups}</Text>
-                        <Text style={styles.overviewLabel}>Total Wakeups</Text>
+                        <AppText style={styles.overviewValue}>{buddyStats.totalWakeups}</AppText>
+                        <AppText style={styles.overviewLabel}>Total Wakeups</AppText>
                     </View>
                     <View style={styles.overviewCard}>
                         <Ionicons name="time" size={28} color={NEON} />
-                        <Text style={styles.overviewValue}>{totalTime.value}</Text>
-                        <Text style={styles.overviewLabel}>{totalTime.unit} together</Text>
+                        <AppText style={styles.overviewValue}>{totalTime.value}</AppText>
+                        <AppText style={styles.overviewLabel}>{totalTime.unit} together</AppText>
                     </View>
                     <View style={styles.overviewCard}>
                         <Ionicons name="flame" size={28} color={NEON} />
-                        <Text style={styles.overviewValue}>{buddyStats.currentStreak}</Text>
-                        <Text style={styles.overviewLabel}>Current Streak</Text>
+                        <AppText style={styles.overviewValue}>{buddyStats.currentStreak}</AppText>
+                        <AppText style={styles.overviewLabel}>Current Streak</AppText>
                     </View>
                     <View style={styles.overviewCard}>
                         <Ionicons name="trophy" size={28} color={NEON} />
-                        <Text style={styles.overviewValue}>{buddyStats.bestStreak}</Text>
-                        <Text style={styles.overviewLabel}>Best Streak</Text>
+                        <AppText style={styles.overviewValue}>{buddyStats.bestStreak}</AppText>
+                        <AppText style={styles.overviewLabel}>Best Streak</AppText>
                     </View>
                 </View>
 
                 {/* Call Stats */}
-                <Text style={styles.sectionTitle}>Call Statistics</Text>
+                <AppText style={styles.sectionTitle}>Call Statistics</AppText>
                 <View style={styles.callStatsCard}>
                     <View style={styles.callStatRow}>
                         <View style={styles.callStatItem}>
                             <Ionicons name="timer-outline" size={20} color={GRAY} />
-                            <Text style={styles.callStatLabel}>Average Call</Text>
+                            <AppText style={styles.callStatLabel}>Average Call</AppText>
                         </View>
-                        <Text style={styles.callStatValue}>{formatDuration(buddyStats.averageCallTime)}</Text>
+                        <AppText style={styles.callStatValue}>{formatDuration(buddyStats.averageCallTime)}</AppText>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.callStatRow}>
                         <View style={styles.callStatItem}>
                             <Ionicons name="ribbon-outline" size={20} color={GRAY} />
-                            <Text style={styles.callStatLabel}>Longest Call</Text>
+                            <AppText style={styles.callStatLabel}>Longest Call</AppText>
                         </View>
-                        <Text style={styles.callStatValue}>{formatDuration(buddyStats.longestCall)}</Text>
+                        <AppText style={styles.callStatValue}>{formatDuration(buddyStats.longestCall)}</AppText>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.callStatRow}>
                         <View style={styles.callStatItem}>
                             <Ionicons name="hourglass-outline" size={20} color={GRAY} />
-                            <Text style={styles.callStatLabel}>Total Time</Text>
+                            <AppText style={styles.callStatLabel}>Total Time</AppText>
                         </View>
-                        <Text style={styles.callStatValue}>{formatDuration(buddyStats.totalCallTime)}</Text>
+                        <AppText style={styles.callStatValue}>{formatDuration(buddyStats.totalCallTime)}</AppText>
                     </View>
                 </View>
 
                 {/* Monthly Stats */}
                 {buddyStats.monthlyStats.length > 0 && (
                     <>
-                        <Text style={styles.sectionTitle}>Monthly Breakdown</Text>
+                        <AppText style={styles.sectionTitle}>Monthly Breakdown</AppText>
                         <View style={styles.monthlyCard}>
                             {buddyStats.monthlyStats.slice(0, 6).map((month, index) => (
                                 <View key={month.month} style={styles.monthRow}>
-                                    <Text style={styles.monthLabel}>{month.label}</Text>
+                                    <AppText style={styles.monthLabel}>{month.label}</AppText>
                                     <View style={styles.monthStats}>
                                         <View style={styles.monthStatItem}>
                                             <Ionicons name="sunny" size={14} color={NEON} />
-                                            <Text style={styles.monthStatText}>{month.wakeups}</Text>
+                                            <AppText style={styles.monthStatText}>{month.wakeups}</AppText>
                                         </View>
                                         <View style={styles.monthStatItem}>
                                             <Ionicons name="time" size={14} color={GRAY} />
-                                            <Text style={styles.monthStatText}>{formatDuration(month.callTime)}</Text>
+                                            <AppText style={styles.monthStatText}>{formatDuration(month.callTime)}</AppText>
                                         </View>
                                     </View>
                                 </View>
@@ -184,18 +185,18 @@ export default function BuddyStats() {
                 {/* Daily Stats (Last 7 days) */}
                 {buddyStats.dailyStats.length > 0 && (
                     <>
-                        <Text style={styles.sectionTitle}>Recent Days</Text>
+                        <AppText style={styles.sectionTitle}>Recent Days</AppText>
                         <View style={styles.dailyCard}>
                             {buddyStats.dailyStats.slice(0, 7).map((day, index) => (
                                 <View key={day.date} style={styles.dayRow}>
-                                    <Text style={styles.dayLabel}>{day.label}</Text>
+                                    <AppText style={styles.dayLabel}>{day.label}</AppText>
                                     <View style={styles.dayStats}>
                                         <View style={[styles.dayBadge, day.wakeups > 0 && styles.dayBadgeActive]}>
-                                            <Text style={[styles.dayBadgeText, day.wakeups > 0 && styles.dayBadgeTextActive]}>
+                                            <AppText style={[styles.dayBadgeText, day.wakeups > 0 && styles.dayBadgeTextActive]}>
                                                 {day.wakeups} {day.wakeups === 1 ? 'wakeup' : 'wakeups'}
-                                            </Text>
+                                            </AppText>
                                         </View>
-                                        <Text style={styles.dayTime}>{formatDuration(day.callTime)}</Text>
+                                        <AppText style={styles.dayTime}>{formatDuration(day.callTime)}</AppText>
                                     </View>
                                 </View>
                             ))}
@@ -206,7 +207,7 @@ export default function BuddyStats() {
                 {/* Recent Calls */}
                 {buddyStats.recentCalls.length > 0 && (
                     <>
-                        <Text style={styles.sectionTitle}>Recent Wake-ups Together</Text>
+                        <AppText style={styles.sectionTitle}>Recent Wake-ups Together</AppText>
                         <View style={styles.recentCard}>
                             {buddyStats.recentCalls.map((call, index) => (
                                 <View key={call._id} style={styles.recentRow}>
@@ -214,10 +215,10 @@ export default function BuddyStats() {
                                         <Ionicons name="call" size={16} color={NEON} />
                                     </View>
                                     <View style={styles.recentInfo}>
-                                        <Text style={styles.recentDate}>{call.formattedDate}</Text>
-                                        <Text style={styles.recentDuration}>
+                                        <AppText style={styles.recentDate}>{call.formattedDate}</AppText>
+                                        <AppText style={styles.recentDuration}>
                                             {formatDuration(call.call_duration)}
-                                        </Text>
+                                        </AppText>
                                     </View>
                                 </View>
                             ))}
@@ -229,10 +230,10 @@ export default function BuddyStats() {
                 {buddyStats.totalWakeups === 0 && (
                     <View style={styles.emptyState}>
                         <Ionicons name="moon-outline" size={60} color={GRAY} />
-                        <Text style={styles.emptyTitle}>No wake-ups yet!</Text>
-                        <Text style={styles.emptySubtitle}>
+                        <AppText style={styles.emptyTitle}>No wake-ups yet!</AppText>
+                        <AppText style={styles.emptySubtitle}>
                             Set an alarm with {buddy.name} to start tracking your wake-up journey together.
-                        </Text>
+                        </AppText>
                     </View>
                 )}
 

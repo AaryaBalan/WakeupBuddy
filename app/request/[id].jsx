@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import styles from '../../styles/request.styles'; 
+import AppText from '../../components/AppText';
+import styles from '../../styles/request.styles';
 
 const NEON = '#C9E265';
 
@@ -40,7 +41,7 @@ export default function FriendRequestScreen() {
                     <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
                         <Ionicons name="close" size={28} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Friend Request</Text>
+                    <AppText style={styles.headerTitle}>Friend Request</AppText>
                     <View style={{ width: 40 }} />
                 </View>
 
@@ -49,7 +50,7 @@ export default function FriendRequestScreen() {
                     <View style={styles.avatarsRow}>
                         <View style={styles.userCol}>
                             <Image source={{ uri: currentUser.avatar }} style={styles.avatar} />
-                            <Text style={styles.username}>{currentUser.username}</Text>
+                            <AppText style={styles.username}>{currentUser.username}</AppText>
                         </View>
 
                         <View style={styles.connector}>
@@ -67,7 +68,7 @@ export default function FriendRequestScreen() {
                                     <Ionicons name="person" size={32} color="#666" />
                                 </View>
                             )}
-                            <Text style={styles.username}>{targetUser.username}</Text>
+                            <AppText style={styles.username}>{targetUser.username}</AppText>
                         </View>
                     </View>
 
@@ -76,39 +77,39 @@ export default function FriendRequestScreen() {
                             <View style={styles.successBadge}>
                                 <Ionicons name="checkmark-circle" size={48} color={NEON} />
                             </View>
-                            <Text style={styles.successTitle}>Request Sent!</Text>
-                            <Text style={styles.successText}>
-                                Wakeup buddy request has been sent to <Text style={{ color: '#fff', fontWeight: 'bold' }}>{targetUser.username}</Text>
-                            </Text>
+                            <AppText style={styles.successTitle}>Request Sent!</AppText>
+                            <AppText style={styles.successText}>
+                                Wakeup buddy request has been sent to <AppText style={{ color: '#fff', fontWeight: 'bold' }}>{targetUser.username}</AppText>
+                            </AppText>
 
                             <View style={styles.streakComparison}>
-                                <Text style={styles.streakTitle}>Current Streaks</Text>
+                                <AppText style={styles.streakTitle}>Current Streaks</AppText>
                                 <View style={styles.streakRow}>
                                     <View style={styles.streakBox}>
                                         <Ionicons name="flame" size={24} color={NEON} />
-                                        <Text style={styles.streakNum}>{currentUser.streak}</Text>
-                                        <Text style={styles.streakLabel}>You</Text>
+                                        <AppText style={styles.streakNum}>{currentUser.streak}</AppText>
+                                        <AppText style={styles.streakLabel}>You</AppText>
                                     </View>
                                     <View style={styles.vsBadge}>
-                                        <Text style={styles.vsText}>VS</Text>
+                                        <AppText style={styles.vsText}>VS</AppText>
                                     </View>
                                     <View style={styles.streakBox}>
                                         <Ionicons name="flame" size={24} color={NEON} />
-                                        <Text style={styles.streakNum}>{targetUser.streak}</Text>
-                                        <Text style={styles.streakLabel}>{targetUser.name.split(' ')[0]}</Text>
+                                        <AppText style={styles.streakNum}>{targetUser.streak}</AppText>
+                                        <AppText style={styles.streakLabel}>{targetUser.name.split(' ')[0]}</AppText>
                                     </View>
                                 </View>
                             </View>
 
                             <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.back()}>
-                                <Text style={styles.secondaryBtnText}>Back to Profile</Text>
+                                <AppText style={styles.secondaryBtnText}>Back to Profile</AppText>
                             </TouchableOpacity>
                         </View>
                     ) : (
                         <View style={styles.actionContainer}>
-                            <Text style={styles.promptText}>Send a request to become wake buddies with {targetUser.name.split(' ')[0]}!</Text>
+                            <AppText style={styles.promptText}>Send a request to become wake buddies with {targetUser.name.split(' ')[0]}!</AppText>
                             <TouchableOpacity style={styles.primaryBtn} onPress={handleSendRequest} activeOpacity={0.8}>
-                                <Text style={styles.primaryBtnText}>Give Friend Request</Text>
+                                <AppText style={styles.primaryBtnText}>Give Friend Request</AppText>
                             </TouchableOpacity>
                         </View>
                     )}

@@ -1,8 +1,9 @@
+import AppText from '@/components/AppText';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePopup } from "../contexts/PopupContext";
 import { api } from "../convex/_generated/api";
@@ -74,13 +75,13 @@ export default function Signup() {
                     </View>
 
                     {/* Title */}
-                    <Text style={styles.title}>Wake Up Winning</Text>
-                    <Text style={styles.subtitle}>Start your journey to better mornings.</Text>
+                    <AppText style={styles.title}>Wake Up Winning</AppText>
+                    <AppText style={styles.subtitle}>Start your journey to better mornings.</AppText>
 
                     {/* Form */}
                     <View style={styles.form}>
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Full Name</Text>
+                            <AppText style={styles.label}>Full Name</AppText>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Enter your name"
@@ -92,7 +93,7 @@ export default function Signup() {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Email Address</Text>
+                            <AppText style={styles.label}>Email Address</AppText>
                             <TextInput
                                 style={styles.input}
                                 placeholder="name@example.com"
@@ -105,7 +106,7 @@ export default function Signup() {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Phone Number</Text>
+                            <AppText style={styles.label}>Phone Number</AppText>
                             <TextInput
                                 style={styles.input}
                                 placeholder="+1 234 567 8900"
@@ -117,7 +118,7 @@ export default function Signup() {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Bio (Optional)</Text>
+                            <AppText style={styles.label}>Bio (Optional)</AppText>
                             <TextInput
                                 style={[styles.input, styles.textArea]}
                                 placeholder="Tell us about yourself"
@@ -130,7 +131,7 @@ export default function Signup() {
                         </View>
 
                         <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Password</Text>
+                            <AppText style={styles.label}>Password</AppText>
                             <View style={styles.passwordContainer}>
                                 <TextInput
                                     style={styles.passwordInput}
@@ -151,23 +152,23 @@ export default function Signup() {
                             <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
                                 {agreed && <Ionicons name="checkmark" size={14} color="#000" />}
                             </View>
-                            <Text style={styles.checkboxLabel}>
-                                I agree to the <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text>.
-                            </Text>
+                            <AppText style={styles.checkboxLabel}>
+                                I agree to the <AppText style={styles.linkText}>Terms of Service</AppText> and <AppText style={styles.linkText}>Privacy Policy</AppText>.
+                            </AppText>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isLoading}>
                             {isLoading ? (
                                 <ActivityIndicator color="#000" />
                             ) : (
-                                <Text style={styles.signupButtonText}>Create Account</Text>
+                                <AppText style={styles.signupButtonText}>Create Account</AppText>
                             )}
                         </TouchableOpacity>
                     </View>
 
                     {/* Social Login */}
                     <View style={styles.socialSection}>
-                        <Text style={styles.orText}>Or sign up with</Text>
+                        <AppText style={styles.orText}>Or sign up with</AppText>
                         <View style={styles.socialIcons}>
                             <TouchableOpacity style={styles.iconButton}>
                                 <Ionicons name="logo-apple" size={24} color="white" />
@@ -183,10 +184,10 @@ export default function Signup() {
 
                     {/* Footer */}
                     <View style={styles.footer}>
-                        <Text style={styles.footerText}>Already have an account? </Text>
+                        <AppText style={styles.footerText}>Already have an account? </AppText>
                         <Link href="/login" asChild>
                             <TouchableOpacity>
-                                <Text style={styles.footerLink}>Log In</Text>
+                                <AppText style={styles.footerLink}>Log In</AppText>
                             </TouchableOpacity>
                         </Link>
                     </View>

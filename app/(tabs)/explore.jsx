@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -48,7 +49,7 @@ export default function ExploreScreen() {
             >
                 {isMe && (
                     <View style={styles.youBadge}>
-                        <Text style={styles.youBadgeText}>YOU</Text>
+                        <AppText style={styles.youBadgeText}>YOU</AppText>
                     </View>
                 )}
                 <View style={styles.featuredImageContainer}>
@@ -62,12 +63,12 @@ export default function ExploreScreen() {
                         <View style={styles.meRing} />
                     )}
                 </View>
-                <Text style={[styles.featuredName, isMe && styles.featuredNameMe]} numberOfLines={1}>
+                <AppText style={[styles.featuredName, isMe && styles.featuredNameMe]} numberOfLines={1}>
                     {isMe ? 'You' : item.name}
-                </Text>
-                <Text style={[styles.featuredStreak, isMe && styles.featuredStreakMe]}>
+                </AppText>
+                <AppText style={[styles.featuredStreak, isMe && styles.featuredStreakMe]}>
                     {item.streak || 0} day streak
-                </Text>
+                </AppText>
             </TouchableOpacity>
         );
     };
@@ -99,12 +100,12 @@ export default function ExploreScreen() {
                     <View style={styles.onlineIndicator} />
                 </View>
                 <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{item.name}</Text>
-                    <Text style={styles.userUsername}>@{item.username}</Text>
+                    <AppText style={styles.userName}>{item.name}</AppText>
+                    <AppText style={styles.userUsername}>@{item.username}</AppText>
                     {item.bio ? (
-                        <Text style={styles.userBio} numberOfLines={2}>{item.bio}</Text>
+                        <AppText style={styles.userBio} numberOfLines={2}>{item.bio}</AppText>
                     ) : (
-                        <Text style={[styles.userBio, { fontStyle: 'italic' }]}>No bio yet</Text>
+                        <AppText style={[styles.userBio, { fontStyle: 'italic' }]}>No bio yet</AppText>
                     )}
                 </View>
             </View>
@@ -113,11 +114,11 @@ export default function ExploreScreen() {
                 <View style={styles.streakContainer}>
                     <View style={styles.streakBadge}>
                         <Ionicons name="flame" size={12} color="#FF6B35" />
-                        <Text style={styles.streakText}>{item.streak || 0}</Text>
+                        <AppText style={styles.streakText}>{item.streak || 0}</AppText>
                     </View>
                     <View style={styles.maxStreakBadge}>
                         <Ionicons name="trophy" size={12} color="#FFD700" />
-                        <Text style={styles.maxStreakText}>{item.maxStreak || 0}</Text>
+                        <AppText style={styles.maxStreakText}>{item.maxStreak || 0}</AppText>
                     </View>
                 </View>
 
@@ -130,7 +131,7 @@ export default function ExploreScreen() {
                         })}
                     >
                         <Ionicons name="alarm-outline" size={16} color="#000" />
-                        <Text style={styles.inviteButtonText}>Invite</Text>
+                        <AppText style={styles.inviteButtonText}>Invite</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.profileButton}
@@ -148,7 +149,7 @@ export default function ExploreScreen() {
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#C9E265" />
-                    <Text style={styles.loadingText}>Finding buddies...</Text>
+                    <AppText style={styles.loadingText}>Finding buddies...</AppText>
                 </View>
             </SafeAreaView>
         );
@@ -165,8 +166,8 @@ export default function ExploreScreen() {
                     <>
                         {/* Header */}
                         <View style={styles.header}>
-                            <Text style={styles.headerTitle}>Explore</Text>
-                            <Text style={styles.headerSubtitle}>Find your wake-up buddy</Text>
+                            <AppText style={styles.headerTitle}>Explore</AppText>
+                            <AppText style={styles.headerSubtitle}>Find your wake-up buddy</AppText>
                         </View>
 
                         {/* Search Bar */}
@@ -189,20 +190,20 @@ export default function ExploreScreen() {
                         {/* Stats */}
                         <View style={styles.statsContainer}>
                             <View style={styles.statCard}>
-                                <Text style={styles.statNumber}>{allUsersIncludingMe?.length || 0}</Text>
-                                <Text style={styles.statLabel}>Total Users</Text>
+                                <AppText style={styles.statNumber}>{allUsersIncludingMe?.length || 0}</AppText>
+                                <AppText style={styles.statLabel}>Total Users</AppText>
                             </View>
                             <View style={styles.statCard}>
-                                <Text style={styles.statNumber}>
+                                <AppText style={styles.statNumber}>
                                     {allUsersIncludingMe?.filter(u => (u.streak || 0) > 0).length || 0}
-                                </Text>
-                                <Text style={styles.statLabel}>Active Streaks</Text>
+                                </AppText>
+                                <AppText style={styles.statLabel}>Active Streaks</AppText>
                             </View>
                             <View style={styles.statCard}>
-                                <Text style={styles.statNumber}>
+                                <AppText style={styles.statNumber}>
                                     {Math.max(...(allUsersIncludingMe?.map(u => u.maxStreak || 0) || [0]))}
-                                </Text>
-                                <Text style={styles.statLabel}>Top Streak</Text>
+                                </AppText>
+                                <AppText style={styles.statLabel}>Top Streak</AppText>
                             </View>
                         </View>
 
@@ -211,7 +212,7 @@ export default function ExploreScreen() {
                             <View style={styles.featuredSection}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                     <Ionicons name="trophy" size={18} color="#FFD700" />
-                                    <Text style={styles.sectionTitle}>Top Streakers</Text>
+                                    <AppText style={styles.sectionTitle}>Top Streakers</AppText>
                                 </View>
                                 <ScrollView
                                     horizontal
@@ -224,22 +225,22 @@ export default function ExploreScreen() {
                         )}
 
                         {/* All Users Section Title */}
-                        <Text style={styles.sectionTitle}>
+                        <AppText style={styles.sectionTitle}>
                             {searchQuery ? `Results for "${searchQuery}"` : 'All Buddies'}
-                        </Text>
+                        </AppText>
                     </>
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="people-outline" size={60} color="#333" style={styles.emptyIcon} />
-                        <Text style={styles.emptyText}>
+                        <AppText style={styles.emptyText}>
                             {searchQuery ? 'No users found' : 'No buddies yet'}
-                        </Text>
-                        <Text style={styles.emptySubtext}>
+                        </AppText>
+                        <AppText style={styles.emptySubtext}>
                             {searchQuery
                                 ? 'Try a different search term'
                                 : 'Be the first to invite friends!'}
-                        </Text>
+                        </AppText>
                     </View>
                 }
             />

@@ -33,7 +33,7 @@ const statsStyles = StyleSheet.create({
     headerTitle: {
         color: '#fff',
         fontSize: 20,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     iconButton: {
         padding: 6,
@@ -69,7 +69,7 @@ const statsStyles = StyleSheet.create({
     buddyNames: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     buddySubtitle: {
         color: GRAY,
@@ -80,7 +80,7 @@ const statsStyles = StyleSheet.create({
     sectionTitle: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
         marginBottom: 12,
         marginTop: 8,
     },
@@ -104,7 +104,7 @@ const statsStyles = StyleSheet.create({
     overviewValue: {
         color: '#fff',
         fontSize: 28,
-        fontWeight: '800',
+        fontFamily: 'Montserrat_800ExtraBold',
         marginTop: 8,
     },
     overviewLabel: {
@@ -139,7 +139,7 @@ const statsStyles = StyleSheet.create({
     callStatValue: {
         color: NEON,
         fontSize: 16,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     divider: {
         height: 1,
@@ -166,7 +166,7 @@ const statsStyles = StyleSheet.create({
     monthLabel: {
         color: '#fff',
         fontSize: 14,
-        fontWeight: '500',
+        fontFamily: 'Montserrat_500Medium',
     },
     monthStats: {
         flexDirection: 'row',
@@ -221,7 +221,7 @@ const statsStyles = StyleSheet.create({
     dayBadgeText: {
         color: GRAY,
         fontSize: 11,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     dayBadgeTextActive: {
         color: NEON,
@@ -271,7 +271,7 @@ const statsStyles = StyleSheet.create({
     recentDuration: {
         color: NEON,
         fontSize: 13,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     // Empty State
     emptyState: {
@@ -282,7 +282,7 @@ const statsStyles = StyleSheet.create({
     emptyTitle: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
         marginTop: 16,
     },
     emptySubtitle: {

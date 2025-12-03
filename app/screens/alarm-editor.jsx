@@ -4,8 +4,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Switch, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -229,16 +230,16 @@ export default function AlarmEditorScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()}>
-                        <Text style={styles.cancelText}>Cancel</Text>
+                        <AppText style={styles.cancelText}>Cancel</AppText>
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>{isEditing ? 'Edit Alarm' : 'New Alarm'}</Text>
+                    <AppText style={styles.headerTitle}>{isEditing ? 'Edit Alarm' : 'New Alarm'}</AppText>
                     <View style={{ width: 50 }} />
                 </View>
 
                 {/* Time Display */}
                 <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.timeContainer}>
-                    <Text style={styles.timeText}>{time}</Text>
-                    <Text style={styles.ampmText}>{ampm}</Text>
+                    <AppText style={styles.timeText}>{time}</AppText>
+                    <AppText style={styles.ampmText}>{ampm}</AppText>
                 </TouchableOpacity>
 
                 {showPicker && (
@@ -253,7 +254,7 @@ export default function AlarmEditorScreen() {
                     />
                 )}
 
-                <Text style={styles.sectionLabel}>WAKE EXPERIENCE</Text>
+                <AppText style={styles.sectionLabel}>WAKE EXPERIENCE</AppText>
 
                 {/* Mode Toggle */}
                 <View style={styles.modeToggleContainer}>
@@ -261,13 +262,13 @@ export default function AlarmEditorScreen() {
                         style={[styles.modeButton, mode === 'solo' && styles.modeButtonActive]}
                         onPress={() => setMode('solo')}
                     >
-                        <Text style={[styles.modeButtonText, mode === 'solo' && styles.modeButtonTextActive]}>Solo Mode</Text>
+                        <AppText style={[styles.modeButtonText, mode === 'solo' && styles.modeButtonTextActive]}>Solo Mode</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.modeButton, mode === 'buddy' && styles.modeButtonActive]}
                         onPress={() => setMode('buddy')}
                     >
-                        <Text style={[styles.modeButtonText, mode === 'buddy' && styles.modeButtonTextActive]}>Wake Buddy</Text>
+                        <AppText style={[styles.modeButtonText, mode === 'buddy' && styles.modeButtonTextActive]}>Wake Buddy</AppText>
                     </TouchableOpacity>
                 </View>
 
@@ -279,18 +280,18 @@ export default function AlarmEditorScreen() {
                                 <Ionicons name="globe-outline" size={24} color="#fff" />
                             </View>
                             <View style={styles.buddyInfo}>
-                                <Text style={styles.buddyTitle}>
+                                <AppText style={styles.buddyTitle}>
                                     {buddyType === 'stranger' ? 'Stranger' : 'Request Pairing'}
-                                </Text>
-                                <Text style={styles.buddySubtitle}>
+                                </AppText>
+                                <AppText style={styles.buddySubtitle}>
                                     {buddyType === 'stranger' ? 'Random match' : 'Enter email'}
-                                </Text>
+                                </AppText>
                             </View>
                             <TouchableOpacity
                                 style={styles.changeButton}
                                 onPress={() => setBuddyType(buddyType === 'stranger' ? 'request' : 'stranger')}
                             >
-                                <Text style={styles.changeButtonText}>Change</Text>
+                                <AppText style={styles.changeButtonText}>Change</AppText>
                                 <Ionicons name="chevron-forward" size={16} color="#C9E265" />
                             </TouchableOpacity>
                         </View>
@@ -309,19 +310,19 @@ export default function AlarmEditorScreen() {
 
                         <View style={styles.buddyFooter}>
                             <Ionicons name="information-circle-outline" size={16} color="#888" />
-                            <Text style={styles.buddyFooterText}>
+                            <AppText style={styles.buddyFooterText}>
                                 We'll pair you with someone in your timezone. If you oversleep, you break the streak for both!
-                            </Text>
+                            </AppText>
                         </View>
                     </View>
                 )}
 
-                <Text style={styles.sectionLabel}>CONFIGURATION</Text>
+                <AppText style={styles.sectionLabel}>CONFIGURATION</AppText>
 
                 {/* Repeat - Hidden for known buddy alarms */}
                 {!(mode === 'buddy' && buddyType === 'request') && (
                     <View style={styles.configItem}>
-                        <Text style={styles.configLabel}>Repeat</Text>
+                        <AppText style={styles.configLabel}>Repeat</AppText>
                         <View style={styles.daysContainer}>
                             {days.map((day, index) => (
                                 <TouchableOpacity
@@ -329,7 +330,7 @@ export default function AlarmEditorScreen() {
                                     style={[styles.dayButton, repeatDays[index] && styles.dayButtonActive]}
                                     onPress={() => toggleDay(index)}
                                 >
-                                    <Text style={[styles.dayText, repeatDays[index] && styles.dayTextActive]}>{day}</Text>
+                                    <AppText style={[styles.dayText, repeatDays[index] && styles.dayTextActive]}>{day}</AppText>
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -338,7 +339,7 @@ export default function AlarmEditorScreen() {
 
                 {/* Wake Method */}
                 <View style={styles.configItem}>
-                    <Text style={styles.configLabel}>Wake Method</Text>
+                    <AppText style={styles.configLabel}>Wake Method</AppText>
                     <View style={styles.difficultyContainer}>
                         <TouchableOpacity
                             style={[styles.difficultyButton, styles.difficultyButtonActive]}
@@ -346,9 +347,9 @@ export default function AlarmEditorScreen() {
                         >
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                 <Ionicons name="call" size={20} color="#000" />
-                                <Text style={[styles.difficultyText, styles.difficultyTextActive]}>
+                                <AppText style={[styles.difficultyText, styles.difficultyTextActive]}>
                                     Voice Call
-                                </Text>
+                                </AppText>
                             </View>
                         </TouchableOpacity>
                     </View>
@@ -356,18 +357,18 @@ export default function AlarmEditorScreen() {
 
                 {/* Sound */}
                 <TouchableOpacity style={styles.configRow}>
-                    <Text style={styles.configLabel}>Sound</Text>
+                    <AppText style={styles.configLabel}>Sound</AppText>
                     <View style={styles.configValueContainer}>
-                        <Text style={styles.configValue}>Neon Rise</Text>
+                        <AppText style={styles.configValue}>Neon Rise</AppText>
                         <Ionicons name="chevron-forward" size={20} color="#666" />
                     </View>
                 </TouchableOpacity>
 
                 {/* Label */}
                 <TouchableOpacity style={styles.configRow}>
-                    <Text style={styles.configLabel}>Label</Text>
+                    <AppText style={styles.configLabel}>Label</AppText>
                     <View style={styles.configValueContainer}>
-                        <Text style={styles.configValue}>Work</Text>
+                        <AppText style={styles.configValue}>Work</AppText>
                         <Ionicons name="chevron-forward" size={20} color="#666" />
                     </View>
                 </TouchableOpacity>
@@ -375,8 +376,8 @@ export default function AlarmEditorScreen() {
                 {/* Pre-wake Notification */}
                 <View style={styles.configRow}>
                     <View>
-                        <Text style={styles.configLabel}>Pre-wake Notification</Text>
-                        <Text style={styles.configSublabel}>Get notified 5 min before to pair</Text>
+                        <AppText style={styles.configLabel}>Pre-wake Notification</AppText>
+                        <AppText style={styles.configSublabel}>Get notified 5 min before to pair</AppText>
                     </View>
                     <Switch
                         trackColor={{ false: "#333", true: "#C9E265" }}
@@ -392,7 +393,7 @@ export default function AlarmEditorScreen() {
                     {isLoading ? (
                         <ActivityIndicator color="#000" />
                     ) : (
-                        <Text style={styles.saveButtonText}>Save Alarm</Text>
+                        <AppText style={styles.saveButtonText}>Save Alarm</AppText>
                     )}
                 </TouchableOpacity>
 

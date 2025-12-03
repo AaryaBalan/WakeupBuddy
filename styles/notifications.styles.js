@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
     sectionHeader: {
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         color: '#666',
         fontSize: 12,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         letterSpacing: 1,
     },
     listContent: {
@@ -62,12 +62,12 @@ const styles = StyleSheet.create({
     avatarText: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     userName: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginBottom: 4,
     },
     inviteText: {
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     },
     boldText: {
         color: '#fff',
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     timeAgo: {
         color: '#666',
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     },
     alarmTime: {
         color: '#C9E265',
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginLeft: 6,
         marginRight: 6,
     },
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     },
     declineText: {
         color: '#fff',
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     acceptButton: {
         flex: 1,
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     },
     acceptText: {
         color: '#000',
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     emptyState: {
         alignItems: 'center',
@@ -164,12 +164,12 @@ const styles = StyleSheet.create({
     avatarTextSmall: {
         color: '#fff',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     userNameSmall: {
         color: '#fff',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginBottom: 2,
     },
     historyText: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     },
     historyStatus: {
         fontSize: 12,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginLeft: 5,
     },
     loadingContainer: {
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     },
     friendBadgeText: {
         color: '#6B8BE3',
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginLeft: 6,
     },
     friendAcceptButton: {
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     },
     friendAcceptText: {
         color: '#fff',
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     // Alarm request accent
     alarmRequestCard: {
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     tabText: {
         color: '#888',
         fontSize: 13,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     tabTextActive: {
         color: '#000',
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     tabBadgeText: {
         color: '#fff',
         fontSize: 10,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
 });
 

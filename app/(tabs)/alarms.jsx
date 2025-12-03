@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -106,10 +107,10 @@ export default function AlarmsScreen() {
         >
             <View style={styles.alarmInfo}>
                 <View style={styles.timeContainer}>
-                    <Text style={[styles.timeText, !item.enabled && styles.disabledText]}>{item.time}</Text>
-                    <Text style={[styles.ampmText, !item.enabled && styles.disabledText]}>{item.ampm}</Text>
+                    <AppText style={[styles.timeText, !item.enabled && styles.disabledText]}>{item.time}</AppText>
+                    <AppText style={[styles.ampmText, !item.enabled && styles.disabledText]}>{item.ampm}</AppText>
                 </View>
-                <Text style={styles.alarmLabel}>{item.label} • {formatDays(item.days)}</Text>
+                <AppText style={styles.alarmLabel}>{item.label} • {formatDays(item.days)}</AppText>
 
                 {/* Mode Badge */}
                 <View style={[
@@ -121,7 +122,7 @@ export default function AlarmsScreen() {
                         size={12}
                         color={item.solo_mode ? "#888" : (item.buddy ? "#C9E265" : "#C9E265")}
                     />
-                    <Text style={[
+                    <AppText style={[
                         styles.modeText,
                         item.solo_mode ? styles.soloText : (item.buddy ? styles.buddyText : styles.strangerText)
                     ]}>
@@ -131,7 +132,7 @@ export default function AlarmsScreen() {
                                 ? `Buddy: ${item.buddy}`
                                 : "Stranger Mode"
                         }
-                    </Text>
+                    </AppText>
                 </View>
             </View>
             <View style={styles.actions}>
@@ -152,7 +153,7 @@ export default function AlarmsScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Alarms</Text>
+                <AppText style={styles.headerTitle}>Alarms</AppText>
             </View>
 
             {alarms === undefined ? (
@@ -168,9 +169,9 @@ export default function AlarmsScreen() {
                     ListEmptyComponent={
                         <View style={styles.emptyState}>
                             <Ionicons name="alarm-outline" size={80} color="#C9E265" />
-                            <Text style={styles.emptyTitle}>No Alarms Set</Text>
-                            <Text style={styles.emptySubtitle}>Click add button to set the alarm</Text>
-                            <Text style={styles.emptyDescription}>Connect with stranger or set alarm in solo mode</Text>
+                            <AppText style={styles.emptyTitle}>No Alarms Set</AppText>
+                            <AppText style={styles.emptySubtitle}>Click add button to set the alarm</AppText>
+                            <AppText style={styles.emptyDescription}>Connect with stranger or set alarm in solo mode</AppText>
                         </View>
                     }
                 />

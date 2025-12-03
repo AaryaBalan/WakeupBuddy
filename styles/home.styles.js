@@ -30,7 +30,7 @@ const homeStyles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
     headerRight: {
@@ -55,7 +55,7 @@ const homeStyles = StyleSheet.create({
     badgeText: {
         color: '#fff',
         fontSize: 10,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     profileImageContainer: {
         width: 32,
@@ -81,7 +81,7 @@ const homeStyles = StyleSheet.create({
     profileInitials: {
         color: '#000',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     streakCard: {
         backgroundColor: '#111',
@@ -115,7 +115,7 @@ const homeStyles = StyleSheet.create({
     shareBadgeText: {
         color: '#C9E265',
         fontSize: 12,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     streakCountContainer: {
         flexDirection: 'row',
@@ -125,7 +125,7 @@ const homeStyles = StyleSheet.create({
     },
     streakCount: {
         fontSize: 36,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
     fireEmoji: {
@@ -160,7 +160,7 @@ const homeStyles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
     seeAllText: {
@@ -201,7 +201,7 @@ const homeStyles = StyleSheet.create({
     },
     timeText: {
         fontSize: 48,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
     ampmText: {
@@ -222,7 +222,7 @@ const homeStyles = StyleSheet.create({
     modeText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '500',
+        fontFamily: 'Montserrat_500Medium',
     },
     quickActionsContainer: {
         flexDirection: 'row',
@@ -251,7 +251,7 @@ const homeStyles = StyleSheet.create({
     quickActionText: {
         color: '#fff',
         fontSize: 14,
-        fontWeight: '500',
+        fontFamily: 'Montserrat_500Medium',
     },
     socialCard: {
         backgroundColor: '#111',
@@ -277,7 +277,7 @@ const homeStyles = StyleSheet.create({
     socialTitle: {
         color: '#fff',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginBottom: 2,
     },
     socialSubtitle: {
@@ -323,7 +323,7 @@ const homeStyles = StyleSheet.create({
     heatmapCount: {
         color: '#fff',
         fontSize: 10,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     heatmapLegend: {
         flexDirection: 'row',

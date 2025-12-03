@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#C9E265',
         textAlign: 'center',
         marginBottom: 10,
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     label: {
         color: '#fff',
         fontSize: 14,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
         marginBottom: 8,
     },
     input: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     loginButtonText: {
         color: '#000',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     socialSection: {
         alignItems: 'center',
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     footerLink: {
         color: '#C9E265',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
 });
 

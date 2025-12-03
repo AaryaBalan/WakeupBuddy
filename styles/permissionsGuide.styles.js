@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#C9E265',
         textAlign: 'center',
         marginBottom: 10,
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     },
     stepNumberText: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#000',
     },
     cardTitleContainer: {
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
         marginBottom: 4,
     },
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     },
     actionButtonText: {
         fontSize: 15,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#000',
     },
     infoBox: {
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     },
     continueButtonText: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#666',
     },
     continueButtonTextActive: {
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     },
     manualHeaderText: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#C9E265',
     },
     manualDescription: {
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     manualButtonText: {
         flex: 1,
         fontSize: 14,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
         color: '#000',
     },
     settingsButton: {
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     },
     settingsButtonText: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#000',
     },
 });

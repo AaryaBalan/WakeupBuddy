@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
@@ -174,16 +175,16 @@ export default function NotificationsScreen() {
             <View style={styles.historyHeader}>
                 <View style={styles.userInfo}>
                     <View style={styles.avatarPlaceholderSmall}>
-                        <Text style={styles.avatarTextSmall}>{item.created_by.name?.charAt(0).toUpperCase()}</Text>
+                        <AppText style={styles.avatarTextSmall}>{item.created_by.name?.charAt(0).toUpperCase()}</AppText>
                     </View>
                     <View>
-                        <Text style={styles.userNameSmall}>{item.created_by.name}</Text>
-                        <Text style={styles.historyText}>
+                        <AppText style={styles.userNameSmall}>{item.created_by.name}</AppText>
+                        <AppText style={styles.historyText}>
                             {item.status === 1 ? 'You accepted the request.' : 'You declined the request.'}
-                        </Text>
+                        </AppText>
                     </View>
                 </View>
-                <Text style={styles.timeAgo}>{formatRelativeTime(item.time)}</Text>
+                <AppText style={styles.timeAgo}>{formatRelativeTime(item.time)}</AppText>
             </View>
             <View style={styles.historyBadge}>
                 <Ionicons
@@ -191,9 +192,9 @@ export default function NotificationsScreen() {
                     size={16}
                     color={item.status === 1 ? "#C9E265" : "#ff4444"}
                 />
-                <Text style={[styles.historyStatus, { color: item.status === 1 ? "#C9E265" : "#ff4444" }]}>
+                <AppText style={[styles.historyStatus, { color: item.status === 1 ? "#C9E265" : "#ff4444" }]}>
                     {item.status === 1 ? 'Accepted' : 'Declined'}
-                </Text>
+                </AppText>
             </View>
         </View>
     );
@@ -204,22 +205,22 @@ export default function NotificationsScreen() {
                 <View style={styles.userInfo}>
                     {/* Placeholder Avatar */}
                     <View style={styles.avatarPlaceholder}>
-                        <Text style={styles.avatarText}>{item.created_by.name?.charAt(0).toUpperCase()}</Text>
+                        <AppText style={styles.avatarText}>{item.created_by.name?.charAt(0).toUpperCase()}</AppText>
                     </View>
                     <View>
-                        <Text style={styles.userName}>{item.created_by.name}</Text>
-                        <Text style={styles.inviteText}>
-                            Invited you to be their <Text style={styles.boldText}>Wake Buddy</Text> for tomorrow's alarm.
-                        </Text>
+                        <AppText style={styles.userName}>{item.created_by.name}</AppText>
+                        <AppText style={styles.inviteText}>
+                            Invited you to be their <AppText style={styles.boldText}>Wake Buddy</AppText> for tomorrow's alarm.
+                        </AppText>
                     </View>
                 </View>
-                <Text style={styles.timeAgo}>{formatRelativeTime(item.time)}</Text>
+                <AppText style={styles.timeAgo}>{formatRelativeTime(item.time)}</AppText>
             </View>
 
             <View style={styles.alarmBadge}>
                 <Ionicons name="alarm-outline" size={16} color="#C9E265" />
-                <Text style={styles.alarmTime}>{item.alarm_time} {item.ampm}</Text>
-                <Text style={styles.puzzleType}>• {item.with_whom || 'Medium Puzzle'}</Text>
+                <AppText style={styles.alarmTime}>{item.alarm_time} {item.ampm}</AppText>
+                <AppText style={styles.puzzleType}>• {item.with_whom || 'Medium Puzzle'}</AppText>
             </View>
 
             <View style={styles.actionButtons}>
@@ -227,14 +228,14 @@ export default function NotificationsScreen() {
                     {processingId === item._id ? (
                         <ActivityIndicator size="small" color="#fff" />
                     ) : (
-                        <Text style={styles.declineText}>Decline</Text>
+                        <AppText style={styles.declineText}>Decline</AppText>
                     )}
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item)} disabled={processingId === item._id}>
                     {processingId === item._id ? (
                         <ActivityIndicator size="small" color="#000" />
                     ) : (
-                        <Text style={styles.acceptText}>Accept</Text>
+                        <AppText style={styles.acceptText}>Accept</AppText>
                     )}
                 </TouchableOpacity>
             </View>
@@ -252,13 +253,13 @@ export default function NotificationsScreen() {
                                 <ProfilePic user={item.sender} size={32} />
                             </View>
                             <View>
-                                <Text style={styles.userNameSmall}>{item.sender.name}</Text>
-                                <Text style={styles.historyText}>
+                                <AppText style={styles.userNameSmall}>{item.sender.name}</AppText>
+                                <AppText style={styles.historyText}>
                                     {item.status === 1 ? 'You are now friends!' : 'You declined the request.'}
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
-                        <Text style={styles.timeAgo}>{formatRelativeTime(item.status === 1 ? item.friendsSince : item.createdAt)}</Text>
+                        <AppText style={styles.timeAgo}>{formatRelativeTime(item.status === 1 ? item.friendsSince : item.createdAt)}</AppText>
                     </View>
                     <View style={styles.historyBadge}>
                         <Ionicons
@@ -266,9 +267,9 @@ export default function NotificationsScreen() {
                             size={16}
                             color={item.status === 1 ? "#6B8BE3" : "#ff4444"}
                         />
-                        <Text style={[styles.historyStatus, { color: item.status === 1 ? "#6B8BE3" : "#ff4444" }]}>
+                        <AppText style={[styles.historyStatus, { color: item.status === 1 ? "#6B8BE3" : "#ff4444" }]}>
                             {item.status === 1 ? 'Friends' : 'Declined'}
-                        </Text>
+                        </AppText>
                     </View>
                 </View>
             );
@@ -283,24 +284,24 @@ export default function NotificationsScreen() {
                             <ProfilePic user={item.sender} size={40} />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.userName}>{item.sender.name}</Text>
-                            <Text style={styles.inviteText}>
-                                Wants to be your <Text style={[styles.boldText, { color: '#6B8BE3' }]}>Friend</Text>
-                            </Text>
+                            <AppText style={styles.userName}>{item.sender.name}</AppText>
+                            <AppText style={styles.inviteText}>
+                                Wants to be your <AppText style={[styles.boldText, { color: '#6B8BE3' }]}>Friend</AppText>
+                            </AppText>
                         </View>
                     </View>
-                    <Text style={styles.timeAgo}>{formatRelativeTime(item.createdAt)}</Text>
+                    <AppText style={styles.timeAgo}>{formatRelativeTime(item.createdAt)}</AppText>
                 </View>
 
                 <View style={styles.friendBadge}>
                     <Ionicons name="people" size={16} color="#6B8BE3" />
-                    <Text style={styles.friendBadgeText}>Friend Request</Text>
+                    <AppText style={styles.friendBadgeText}>Friend Request</AppText>
                     {item.sender.streak > 0 && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
                             <Ionicons name="flame" size={12} color="#FF6B35" />
-                            <Text style={{ color: '#888', marginLeft: 4, fontSize: 12 }}>
+                            <AppText style={{ color: '#888', marginLeft: 4, fontSize: 12 }}>
                                 {item.sender.streak} day streak
-                            </Text>
+                            </AppText>
                         </View>
                     )}
                 </View>
@@ -314,7 +315,7 @@ export default function NotificationsScreen() {
                         {processingId === item.friendshipId ? (
                             <ActivityIndicator size="small" color="#fff" />
                         ) : (
-                            <Text style={styles.declineText}>Decline</Text>
+                            <AppText style={styles.declineText}>Decline</AppText>
                         )}
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -325,7 +326,7 @@ export default function NotificationsScreen() {
                         {processingId === item.friendshipId ? (
                             <ActivityIndicator size="small" color="#fff" />
                         ) : (
-                            <Text style={styles.friendAcceptText}>Accept</Text>
+                            <AppText style={styles.friendAcceptText}>Accept</AppText>
                         )}
                     </TouchableOpacity>
                 </View>
@@ -378,7 +379,7 @@ export default function NotificationsScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="chevron-back" size={24} color="#fff" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Notifications</Text>
+                <AppText style={styles.headerTitle}>Notifications</AppText>
                 <Ionicons name="checkmark-done-outline" size={24} color="#888" />
             </View>
 
@@ -388,12 +389,12 @@ export default function NotificationsScreen() {
                     style={[styles.tab, activeTab === 'all' && styles.tabActive]}
                     onPress={() => setActiveTab('all')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>
+                    <AppText style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>
                         All
-                    </Text>
+                    </AppText>
                     {(pendingAlarms + pendingFriends) > 0 && (
                         <View style={styles.tabBadge}>
-                            <Text style={styles.tabBadgeText}>{pendingAlarms + pendingFriends}</Text>
+                            <AppText style={styles.tabBadgeText}>{pendingAlarms + pendingFriends}</AppText>
                         </View>
                     )}
                 </TouchableOpacity>
@@ -404,13 +405,13 @@ export default function NotificationsScreen() {
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Ionicons name="notifications" size={14} color={activeTab === 'alarms' ? '#000' : '#888'} />
-                        <Text style={[styles.tabText, activeTab === 'alarms' && styles.tabTextActive]}>
+                        <AppText style={[styles.tabText, activeTab === 'alarms' && styles.tabTextActive]}>
                             Alarms
-                        </Text>
+                        </AppText>
                     </View>
                     {pendingAlarms > 0 && (
                         <View style={styles.tabBadge}>
-                            <Text style={styles.tabBadgeText}>{pendingAlarms}</Text>
+                            <AppText style={styles.tabBadgeText}>{pendingAlarms}</AppText>
                         </View>
                     )}
                 </TouchableOpacity>
@@ -421,23 +422,23 @@ export default function NotificationsScreen() {
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Ionicons name="people" size={14} color={activeTab === 'friends' ? '#000' : '#888'} />
-                        <Text style={[styles.tabText, activeTab === 'friends' && styles.tabTextActive]}>
+                        <AppText style={[styles.tabText, activeTab === 'friends' && styles.tabTextActive]}>
                             Friends
-                        </Text>
+                        </AppText>
                     </View>
                     {pendingFriends > 0 && (
                         <View style={styles.tabBadge}>
-                            <Text style={styles.tabBadgeText}>{pendingFriends}</Text>
+                            <AppText style={styles.tabBadgeText}>{pendingFriends}</AppText>
                         </View>
                     )}
                 </TouchableOpacity>
             </View>
 
             <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>
+                <AppText style={styles.sectionTitle}>
                     {activeTab === 'all' ? 'ALL NOTIFICATIONS' :
                         activeTab === 'alarms' ? 'ALARM INVITES' : 'FRIEND REQUESTS'}
-                </Text>
+                </AppText>
             </View>
 
             {isLoading ? (
@@ -453,10 +454,10 @@ export default function NotificationsScreen() {
                     ListEmptyComponent={
                         (
                             <View style={styles.emptyState}>
-                                <Text style={styles.emptyText}>
+                                <AppText style={styles.emptyText}>
                                     {activeTab === 'all' ? 'No notifications' :
                                         activeTab === 'alarms' ? 'No alarm invites' : 'No friend requests'}
-                                </Text>
+                                </AppText>
                             </View>
                         )
                     }

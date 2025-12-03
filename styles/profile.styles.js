@@ -23,7 +23,7 @@ const profileStyles = StyleSheet.create({
     headerTitle: {
         color: '#fff',
         fontSize: 24,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     iconButton: {
         padding: 6,
@@ -75,7 +75,7 @@ const profileStyles = StyleSheet.create({
     name: {
         color: '#fff',
         fontSize: 22,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     username: {
         color: GRAY,
@@ -99,7 +99,7 @@ const profileStyles = StyleSheet.create({
     },
     shareText: {
         color: '#000',
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     statsRow: {
         flexDirection: 'row',
@@ -119,7 +119,7 @@ const profileStyles = StyleSheet.create({
     statNumber: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     statLabel: {
         color: GRAY,
@@ -135,13 +135,13 @@ const profileStyles = StyleSheet.create({
     },
     sectionTitle: {
         color: '#fff',
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
         fontSize: 16,
     },
     viewAllText: {
         color: NEON,
         fontSize: 12,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     historySubHeader: {
         flexDirection: 'row',
@@ -248,7 +248,7 @@ const profileStyles = StyleSheet.create({
     },
     settingsHeader: {
         color: '#fff',
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
         fontSize: 16,
         marginTop: 20,
         marginBottom: 12,
@@ -303,7 +303,7 @@ const profileStyles = StyleSheet.create({
     logoutText: {
         color: '#000',
         fontSize: 15,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     versionText: {
         color: GRAY,
@@ -334,7 +334,7 @@ const profileStyles = StyleSheet.create({
     modalTitle: {
         color: '#fff',
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     modalForm: {
         flex: 1,
@@ -346,7 +346,7 @@ const profileStyles = StyleSheet.create({
         color: '#888',
         fontSize: 14,
         marginBottom: 8,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     input: {
         backgroundColor: '#222',
@@ -372,7 +372,7 @@ const profileStyles = StyleSheet.create({
     saveButtonText: {
         color: '#000',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     // Friends Button Styles
     friendsButton: {
@@ -388,7 +388,7 @@ const profileStyles = StyleSheet.create({
     friendsButtonText: {
         color: '#000',
         fontSize: 15,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     friendsCountBadge: {
         backgroundColor: '#000',
@@ -400,7 +400,7 @@ const profileStyles = StyleSheet.create({
     friendsCountText: {
         color: NEON,
         fontSize: 13,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     // Friends Modal Styles
     friendsModalContent: {
@@ -430,7 +430,7 @@ const profileStyles = StyleSheet.create({
     friendName: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     friendBio: {
         color: GRAY,
@@ -446,7 +446,7 @@ const profileStyles = StyleSheet.create({
     emptyFriendsText: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
         marginTop: 16,
     },
     emptyFriendsSubtext: {
@@ -467,7 +467,7 @@ const profileStyles = StyleSheet.create({
     exploreFriendsText: {
         color: '#000',
         fontSize: 15,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     actionButtons: {
         marginTop: 24,
@@ -482,7 +482,7 @@ const profileStyles = StyleSheet.create({
     primaryBtnText: {
         color: '#000',
         fontSize: 16,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     secondaryBtn: {
         backgroundColor: '#222',
@@ -495,7 +495,7 @@ const profileStyles = StyleSheet.create({
     secondaryBtnText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     // Avatar Picker Modal Styles
     avatarPickerContent: {
@@ -549,7 +549,7 @@ const profileStyles = StyleSheet.create({
     refreshAvatarsText: {
         color: '#000',
         fontSize: 15,
-        fontWeight: '700',
+        fontFamily: 'Montserrat_700Bold',
     },
     savingOverlay: {
         position: 'absolute',

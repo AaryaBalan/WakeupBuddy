@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         color: "#fff",
         fontSize: 28,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
 
     /* ---------- Search Bar ---------- */
@@ -67,12 +67,12 @@ const styles = StyleSheet.create({
     },
     activeTabText: {
         color: "#fff",
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
         fontSize: 14,
     },
     inactiveTabText: {
         color: "#666",
-        fontWeight: "600",
+        fontFamily: 'Montserrat_600SemiBold',
         fontSize: 14,
     },
 
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     rankText: {
         color: "#666",
         fontSize: 18,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
 
     /* Avatar */
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     },
     avatarInitials: {
         color: "#888",
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
 
     /* Info */
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     nameText: {
         color: "#fff",
         fontSize: 16,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
     badgeText: {
         fontSize: 14,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     pointsText: {
         color: NEON,
         fontSize: 16,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
     },
     ptsLabel: {
         color: "#666",
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     },
     inviteText: {
         color: "#000",
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
         fontSize: 16,
     },
 
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     },
     footerRank: {
         color: NEON,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
         fontSize: 16,
     },
     footerAvatar: {
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     },
     footerName: {
         color: "#fff",
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
         fontSize: 14,
     },
     footerPoints: {
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     },
     footerTotal: {
         color: NEON,
-        fontWeight: "700",
+        fontFamily: 'Montserrat_700Bold',
         fontSize: 18,
     },
     footerPercent: {

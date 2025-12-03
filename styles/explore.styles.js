@@ -14,7 +14,7 @@ const exploreStyles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 32,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
         marginBottom: 5,
     },
@@ -58,7 +58,7 @@ const exploreStyles = StyleSheet.create({
     },
     statNumber: {
         fontSize: 28,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#C9E265',
         marginBottom: 4,
     },
@@ -69,7 +69,7 @@ const exploreStyles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
         marginBottom: 16,
     },
@@ -106,7 +106,7 @@ const exploreStyles = StyleSheet.create({
     },
     userName: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
         marginBottom: 2,
     },
@@ -146,7 +146,7 @@ const exploreStyles = StyleSheet.create({
     streakText: {
         color: '#C9E265',
         fontSize: 14,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     maxStreakBadge: {
         flexDirection: 'row',
@@ -160,7 +160,7 @@ const exploreStyles = StyleSheet.create({
     maxStreakText: {
         color: '#6B8AFF',
         fontSize: 14,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     actionButtons: {
         flexDirection: 'row',
@@ -178,7 +178,7 @@ const exploreStyles = StyleSheet.create({
     inviteButtonText: {
         color: '#000',
         fontSize: 14,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     profileButton: {
         flexDirection: 'row',
@@ -209,7 +209,7 @@ const exploreStyles = StyleSheet.create({
     emptyText: {
         color: '#888',
         fontSize: 18,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
         marginBottom: 8,
     },
     emptySubtext: {
@@ -258,7 +258,7 @@ const exploreStyles = StyleSheet.create({
     youBadgeText: {
         color: '#000',
         fontSize: 10,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
     meRing: {
         position: 'absolute',
@@ -290,7 +290,7 @@ const exploreStyles = StyleSheet.create({
     },
     featuredName: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
         marginBottom: 4,
         textAlign: 'center',
@@ -301,7 +301,7 @@ const exploreStyles = StyleSheet.create({
     featuredStreak: {
         fontSize: 14,
         color: '#C9E265',
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
     },
     featuredStreakMe: {
         color: '#fff',

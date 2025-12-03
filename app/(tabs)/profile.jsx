@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
@@ -149,7 +150,7 @@ export default function Profile() {
         <ScrollView contentContainerStyle={styles.scroll}>
           {/* Header */}
           <View style={styles.headerRow}>
-            <Text style={styles.headerTitle}>Profile</Text>
+            <AppText style={styles.headerTitle}>Profile</AppText>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
                 style={styles.iconButton}
@@ -182,29 +183,29 @@ export default function Profile() {
                 <Ionicons name="camera" size={14} color="#000" />
               </TouchableOpacity>
             </View>
-            <Text style={styles.name}>{user?.name || 'User'}</Text>
-            <Text style={styles.username}>{generateUsername()}</Text>
-            <Text style={styles.bio}>{user?.bio || 'Welcome to WakeBuddy! Start your journey to better mornings.'}</Text>
+            <AppText style={styles.name}>{user?.name || 'User'}</AppText>
+            <AppText style={styles.username}>{generateUsername()}</AppText>
+            <AppText style={styles.bio}>{user?.bio || 'Welcome to WakeBuddy! Start your journey to better mornings.'}</AppText>
 
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.8}>
               <Ionicons name="share-social" size={16} color="#000" style={{ marginRight: 6 }} />
-              <Text style={styles.shareText}>Share Profile</Text>
+              <AppText style={styles.shareText}>Share Profile</AppText>
             </TouchableOpacity>
           </View>
 
           {/* Stats Section */}
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{recentStreaks?.length || 0}</Text>
-              <Text style={styles.statLabel}>Wakeups</Text>
+              <AppText style={styles.statNumber}>{recentStreaks?.length || 0}</AppText>
+              <AppText style={styles.statLabel}>Wakeups</AppText>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{user?.streak || 0}</Text>
-              <Text style={styles.statLabel}>Streak</Text>
+              <AppText style={styles.statNumber}>{user?.streak || 0}</AppText>
+              <AppText style={styles.statLabel}>Streak</AppText>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{user?.maxStreak || 0}</Text>
-              <Text style={styles.statLabel}>Best</Text>
+              <AppText style={styles.statNumber}>{user?.maxStreak || 0}</AppText>
+              <AppText style={styles.statLabel}>Best</AppText>
             </View>
           </View>
 
@@ -215,31 +216,31 @@ export default function Profile() {
             onPress={() => setFriendsModalVisible(true)}
           >
             <Ionicons name="people" size={20} color="#000" style={{ marginRight: 8 }} />
-            <Text style={styles.friendsButtonText}>My Buddies</Text>
+            <AppText style={styles.friendsButtonText}>My Buddies</AppText>
             <View style={styles.friendsCountBadge}>
-              <Text style={styles.friendsCountText}>{friendCount || 0}</Text>
+              <AppText style={styles.friendsCountText}>{friendCount || 0}</AppText>
             </View>
           </TouchableOpacity>
 
           {/* Wake History */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Wake History</Text>
+            <AppText style={styles.sectionTitle}>Wake History</AppText>
             <TouchableOpacity activeOpacity={0.8}>
-              <Text style={styles.viewAllText}>Last 90 days</Text>
+              <AppText style={styles.viewAllText}>Last 90 days</AppText>
             </TouchableOpacity>
           </View>
 
           <View style={styles.historySubHeader}>
-            <Text style={styles.monthText}>
+            <AppText style={styles.monthText}>
               {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </Text>
+            </AppText>
             <View style={styles.legend}>
-              <Text style={styles.legendText}>Less</Text>
+              <AppText style={styles.legendText}>Less</AppText>
               <View style={styles.legendSquare1} />
               <View style={styles.legendSquare2} />
               <View style={styles.legendSquare3} />
               <View style={styles.legendSquare4} />
-              <Text style={styles.legendText}>More</Text>
+              <AppText style={styles.legendText}>More</AppText>
             </View>
           </View>
 
@@ -282,8 +283,8 @@ export default function Profile() {
 
           {/* Achievements */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Achievements</Text>
-            <Text style={styles.achCount}>12/48 Unlocked</Text>
+            <AppText style={styles.sectionTitle}>Achievements</AppText>
+            <AppText style={styles.achCount}>12/48 Unlocked</AppText>
           </View>
 
           <View style={styles.achRow}>
@@ -294,14 +295,14 @@ export default function Profile() {
                   <View style={[styles.achCircle, achieved && styles.achievedRing]}>
                     <Ionicons name={a.icon} size={22} color={achieved ? NEON : GRAY} />
                   </View>
-                  <Text style={styles.achLabel}>{a.label}</Text>
+                  <AppText style={styles.achLabel}>{a.label}</AppText>
                 </View>
               );
             })}
           </View>
 
           {/* Settings */}
-          <Text style={styles.settingsHeader}>Settings</Text>
+          <AppText style={styles.settingsHeader}>Settings</AppText>
           <View style={styles.settingsCard}>
             {[
               { key: 'account', label: 'Account Details', icon: 'person-outline' },
@@ -317,7 +318,7 @@ export default function Profile() {
               >
                 <View style={styles.settingLeft}>
                   <Ionicons name={item.icon} size={20} color={GRAY} />
-                  <Text style={styles.settingLabel}>{item.label}</Text>
+                  <AppText style={styles.settingLabel}>{item.label}</AppText>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={GRAY} />
               </TouchableOpacity>
@@ -327,17 +328,17 @@ export default function Profile() {
           <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7}>
             <View style={styles.settingLeft}>
               <Ionicons name="star" size={20} color={NEON} />
-              <Text style={styles.premiumText}>Manage Premium</Text>
+              <AppText style={styles.premiumText}>Manage Premium</AppText>
             </View>
             <Ionicons name="chevron-forward" size={20} color={GRAY} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={20} color="#000" style={{ marginRight: 8 }} />
-            <Text style={styles.logoutText}>Log Out</Text>
+            <AppText style={styles.logoutText}>Log Out</AppText>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>WakeBuddy v1.0.2</Text>
+          <AppText style={styles.versionText}>WakeBuddy v1.0.2</AppText>
 
           <View style={{ height: 80 }} />
         </ScrollView>
@@ -356,7 +357,7 @@ export default function Profile() {
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Profile</Text>
+              <AppText style={styles.modalTitle}>Edit Profile</AppText>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
@@ -364,7 +365,7 @@ export default function Profile() {
 
             <ScrollView style={styles.modalForm}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Full Name</Text>
+                <AppText style={styles.inputLabel}>Full Name</AppText>
                 <TextInput
                   style={styles.input}
                   value={editName}
@@ -375,7 +376,7 @@ export default function Profile() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Bio</Text>
+                <AppText style={styles.inputLabel}>Bio</AppText>
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   value={editBio}
@@ -388,7 +389,7 @@ export default function Profile() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Phone</Text>
+                <AppText style={styles.inputLabel}>Phone</AppText>
                 <TextInput
                   style={styles.input}
                   value={editPhone}
@@ -407,7 +408,7 @@ export default function Profile() {
                 {isSaving ? (
                   <ActivityIndicator color="#000" />
                 ) : (
-                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                  <AppText style={styles.saveButtonText}>Save Changes</AppText>
                 )}
               </TouchableOpacity>
             </ScrollView>
@@ -425,7 +426,7 @@ export default function Profile() {
         <View style={styles.modalContainer}>
           <View style={styles.friendsModalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>My Friends</Text>
+              <AppText style={styles.modalTitle}>My Friends</AppText>
               <TouchableOpacity onPress={() => setFriendsModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
@@ -434,10 +435,10 @@ export default function Profile() {
             {!friends || friends.length === 0 ? (
               <View style={styles.emptyFriendsContainer}>
                 <Ionicons name="people-outline" size={60} color={GRAY} />
-                <Text style={styles.emptyFriendsText}>No friends yet</Text>
-                <Text style={styles.emptyFriendsSubtext}>
+                <AppText style={styles.emptyFriendsText}>No friends yet</AppText>
+                <AppText style={styles.emptyFriendsSubtext}>
                   Explore and add friends to wake up together!
-                </Text>
+                </AppText>
                 <TouchableOpacity
                   style={styles.exploreFriendsButton}
                   onPress={() => {
@@ -446,7 +447,7 @@ export default function Profile() {
                   }}
                 >
                   <Ionicons name="search" size={18} color="#000" style={{ marginRight: 6 }} />
-                  <Text style={styles.exploreFriendsText}>Find Friends</Text>
+                  <AppText style={styles.exploreFriendsText}>Find Friends</AppText>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -473,10 +474,10 @@ export default function Profile() {
                   >
                     <ProfilePic user={item.friend} size={50} />
                     <View style={styles.friendInfo}>
-                      <Text style={styles.friendName}>{item.friend.name}</Text>
-                      <Text style={styles.friendBio} numberOfLines={1}>
+                      <AppText style={styles.friendName}>{item.friend.name}</AppText>
+                      <AppText style={styles.friendBio} numberOfLines={1}>
                         {item.friend.bio || 'No bio yet'}
-                      </Text>
+                      </AppText>
                     </View>
                     <Ionicons name="chevron-forward" size={20} color={GRAY} />
                   </TouchableOpacity>
@@ -497,15 +498,15 @@ export default function Profile() {
         <View style={styles.modalContainer}>
           <View style={styles.avatarPickerContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Choose Avatar</Text>
+              <AppText style={styles.modalTitle}>Choose Avatar</AppText>
               <TouchableOpacity onPress={() => setAvatarPickerVisible(false)}>
                 <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.avatarPickerSubtitle}>
+            <AppText style={styles.avatarPickerSubtitle}>
               Select a new profile picture
-            </Text>
+            </AppText>
 
             <View style={styles.avatarOptionsContainer}>
               {avatarOptions.map((code, index) => (
@@ -530,13 +531,13 @@ export default function Profile() {
               disabled={isSavingAvatar}
             >
               <Ionicons name="refresh" size={20} color="#000" style={{ marginRight: 8 }} />
-              <Text style={styles.refreshAvatarsText}>Show More Options</Text>
+              <AppText style={styles.refreshAvatarsText}>Show More Options</AppText>
             </TouchableOpacity>
 
             {isSavingAvatar && (
               <View style={styles.savingOverlay}>
                 <ActivityIndicator size="large" color={NEON} />
-                <Text style={styles.savingText}>Updating avatar...</Text>
+                <AppText style={styles.savingText}>Updating avatar...</AppText>
               </View>
             )}
           </View>

@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
     listContent: {
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     },
     timeText: {
         fontSize: 32,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
     ampmText: {
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     emptyTitle: {
         color: '#fff',
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginTop: 20,
     },
     emptySubtitle: {
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     },
     modeText: {
         fontSize: 12,
-        fontWeight: '600',
+        fontFamily: 'Montserrat_600SemiBold',
         marginLeft: 6,
     },
     soloBadge: {

@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     title: {
         color: '#C9E265',
         fontSize: 48,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
         marginBottom: 10,
         textAlign: 'center',
     },
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#000',
         fontSize: 22,
-        fontWeight: 'bold',
+        fontFamily: 'Montserrat_700Bold',
     },
 });
 

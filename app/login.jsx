@@ -1,8 +1,9 @@
+import AppText from '@/components/AppText';
 import { Ionicons } from '@expo/vector-icons';
 import { useConvex } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePopup } from "../contexts/PopupContext";
 import { useUser } from "../contexts/UserContext";
@@ -70,13 +71,13 @@ export default function Login() {
                 </View>
 
                 {/* Title */}
-                <Text style={styles.title}>Welcome Back</Text>
-                <Text style={styles.subtitle}>Sign in to sync your challenges.</Text>
+                <AppText style={styles.title}>Welcome Back</AppText>
+                <AppText style={styles.subtitle}>Sign in to sync your challenges.</AppText>
 
                 {/* Form */}
                 <View style={styles.form}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Email Address</Text>
+                        <AppText style={styles.label}>Email Address</AppText>
                         <TextInput
                             style={styles.input}
                             placeholder="Enter your email"
@@ -89,7 +90,7 @@ export default function Login() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Password</Text>
+                        <AppText style={styles.label}>Password</AppText>
                         <View style={styles.passwordContainer}>
                             <TextInput
                                 style={styles.passwordInput}
@@ -106,21 +107,21 @@ export default function Login() {
                     </View>
 
                     <TouchableOpacity style={styles.forgotPassword}>
-                        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                        <AppText style={styles.forgotPasswordText}>Forgot Password?</AppText>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
                         {isLoading ? (
                             <ActivityIndicator color="#000" />
                         ) : (
-                            <Text style={styles.loginButtonText}>Log In</Text>
+                            <AppText style={styles.loginButtonText}>Log In</AppText>
                         )}
                     </TouchableOpacity>
                 </View>
 
                 {/* Social Login */}
                 <View style={styles.socialSection}>
-                    <Text style={styles.orText}>Or continue with</Text>
+                    <AppText style={styles.orText}>Or continue with</AppText>
                     <View style={styles.socialIcons}>
                         <TouchableOpacity style={styles.iconButton}>
                             <Ionicons name="logo-apple" size={24} color="white" />
@@ -136,10 +137,10 @@ export default function Login() {
 
                 {/* Footer */}
                 <View style={styles.footer}>
-                    <Text style={styles.footerText}>Don't have an account? </Text>
+                    <AppText style={styles.footerText}>Don't have an account? </AppText>
                     <Link href="/signup" asChild>
                         <TouchableOpacity>
-                            <Text style={styles.footerLink}>Sign Up</Text>
+                            <AppText style={styles.footerLink}>Sign Up</AppText>
                         </TouchableOpacity>
                     </Link>
                 </View>

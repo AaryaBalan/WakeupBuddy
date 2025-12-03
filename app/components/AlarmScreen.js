@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import { useEffect, useRef } from 'react';
-import { BackHandler, Linking, Text, TouchableOpacity, View } from 'react-native';
+import { BackHandler, Linking, TouchableOpacity, View } from 'react-native';
+import AppText from '../../components/AppText';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from '../../styles/alarmScreen.styles';
@@ -121,15 +122,15 @@ export default function AlarmScreen() {
         <View style={styles.container}>
             <View style={styles.content}>
                 <Ionicons name="alarm-outline" size={100} color="#C9E265" />
-                <Text style={styles.title}>WAKE UP!</Text>
-                <Text style={styles.subtitle}>Time to start your day</Text>
+                <AppText style={styles.title}>WAKE UP!</AppText>
+                <AppText style={styles.subtitle}>Time to start your day</AppText>
 
                 <TouchableOpacity
                     style={styles.button}
                     onPress={handleImAwake}
                     activeOpacity={0.8}
                 >
-                    <Text style={styles.buttonText}>I'm Awake</Text>
+                    <AppText style={styles.buttonText}>I'm Awake</AppText>
                 </TouchableOpacity>
             </View>
         </View>
