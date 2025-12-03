@@ -90,13 +90,13 @@ export default function BuddyStats() {
                 <View style={styles.buddyCard}>
                     <View style={styles.buddyAvatarRow}>
                         <View style={styles.avatarRing}>
-                            <ProfilePic user={currentUser} size={50} />
+                            <ProfilePic user={currentUser} size={100} />
                         </View>
                         <View style={styles.heartContainer}>
                             <Ionicons name="heart" size={24} color={NEON} />
                         </View>
                         <View style={styles.avatarRing}>
-                            <ProfilePic user={buddy} size={50} />
+                            <ProfilePic user={buddy} size={100} />
                         </View>
                     </View>
                     <AppText style={styles.buddyNames}>

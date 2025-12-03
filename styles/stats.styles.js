@@ -54,9 +54,9 @@ const statsStyles = StyleSheet.create({
         marginBottom: 10,
     },
     avatarRing: {
-        width: 52,
-        height: 52,
-        borderRadius: 26,
+        width: 96,
+        height: 96,
+        borderRadius: 48,
         borderWidth: 2,
         borderColor: NEON,
         justifyContent: 'center',
