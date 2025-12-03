@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
@@ -39,7 +39,7 @@ export default function BuddyStats() {
         const hrs = Math.floor(seconds / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
-        
+
         if (hrs > 0) {
             return `${hrs}h ${mins}m`;
         } else if (mins > 0) {
@@ -53,7 +53,7 @@ export default function BuddyStats() {
         if (!seconds || seconds === 0) return { value: '0', unit: 'minutes' };
         const hrs = Math.floor(seconds / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
-        
+
         if (hrs > 0) {
             return { value: hrs.toString(), unit: hrs === 1 ? 'hour' : 'hours' };
         }

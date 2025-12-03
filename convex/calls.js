@@ -193,13 +193,13 @@ export const getBuddyStats = query({
             const date = new Date(call.call_time);
             const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             const monthLabel = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            
+
             if (!monthlyMap.has(monthKey)) {
-                monthlyMap.set(monthKey, { 
+                monthlyMap.set(monthKey, {
                     month: monthKey,
                     label: monthLabel,
-                    wakeups: 0, 
-                    callTime: 0 
+                    wakeups: 0,
+                    callTime: 0
                 });
             }
             const entry = monthlyMap.get(monthKey);
@@ -212,20 +212,20 @@ export const getBuddyStats = query({
         const dailyMap = new Map();
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
+
         callsBetween
             .filter(call => new Date(call.call_time) >= thirtyDaysAgo)
             .forEach(call => {
                 const date = new Date(call.call_time);
                 const dayKey = date.toISOString().split('T')[0];
                 const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                
+
                 if (!dailyMap.has(dayKey)) {
-                    dailyMap.set(dayKey, { 
+                    dailyMap.set(dayKey, {
                         date: dayKey,
                         label: dayLabel,
-                        wakeups: 0, 
-                        callTime: 0 
+                        wakeups: 0,
+                        callTime: 0
                     });
                 }
                 const entry = dailyMap.get(dayKey);
@@ -235,20 +235,20 @@ export const getBuddyStats = query({
         const dailyStats = Array.from(dailyMap.values()).sort((a, b) => b.date.localeCompare(a.date));
 
         // Calculate streak (consecutive days waking up together)
-        const uniqueDates = [...new Set(callsBetween.map(c => 
+        const uniqueDates = [...new Set(callsBetween.map(c =>
             new Date(c.call_time).toISOString().split('T')[0]
         ))].sort((a, b) => b.localeCompare(a)); // Most recent first
 
         let currentStreak = 0;
         let bestStreak = 0;
         let tempStreak = 0;
-        
+
         const today = new Date().toISOString().split('T')[0];
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-        
+
         // Check if streak is current (includes today or yesterday)
         const isStreakCurrent = uniqueDates.includes(today) || uniqueDates.includes(yesterday);
-        
+
         for (let i = 0; i < uniqueDates.length; i++) {
             if (i === 0) {
                 tempStreak = 1;
@@ -256,7 +256,7 @@ export const getBuddyStats = query({
                 const prevDate = new Date(uniqueDates[i - 1]);
                 const currDate = new Date(uniqueDates[i]);
                 const diffDays = (prevDate - currDate) / (1000 * 60 * 60 * 24);
-                
+
                 if (diffDays === 1) {
                     tempStreak++;
                 } else {
@@ -273,9 +273,9 @@ export const getBuddyStats = query({
             _id: call._id,
             call_time: call.call_time,
             call_duration: call.call_duration,
-            formattedDate: new Date(call.call_time).toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
+            formattedDate: new Date(call.call_time).toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
                 day: 'numeric',
                 hour: 'numeric',
                 minute: '2-digit'
