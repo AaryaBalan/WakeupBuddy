@@ -3,8 +3,8 @@ import { ConvexHttpClient } from "convex/browser";
 import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, Switch, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -22,8 +22,6 @@ export default function HomeScreen() {
     const router = useRouter();
     const { user, updateUser } = useUser();
     const { showPopup } = usePopup();
-    const [isEnabled, setIsEnabled] = useState(true);
-    const toggleSwitch = () => setIsEnabled(previousState => !previousState);
     const callIdRef = useRef(null);
     const lastCalledNumberRef = useRef(null);
     const callInProgressRef = useRef(false);
@@ -632,41 +630,177 @@ export default function HomeScreen() {
                 {/* Up Next */}
                 <View style={styles.sectionHeader}>
                     <AppText style={styles.sectionTitle}>Up Next</AppText>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/(tabs)/alarms')}>
                         <AppText style={styles.seeAllText}>See All</AppText>
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.alarmCard}>
-                    <View style={styles.alarmHeader}>
-                        <AppText style={styles.alarmDate}>Tomorrow, Wed</AppText>
-                        <View style={styles.alarmActions}>
-                            <TouchableOpacity style={styles.actionButton}>
-                                <Ionicons name="pencil" size={16} color="#888" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.actionButton}>
-                                <Ionicons name="trash-outline" size={16} color="#888" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                    <View style={styles.timeContainer}>
-                        <AppText style={styles.timeText}>07:00</AppText>
-                        <AppText style={styles.ampmText}>AM</AppText>
-                    </View>
-                    <View style={styles.alarmFooter}>
-                        <View style={styles.modeContainer}>
-                            <Ionicons name="people-outline" size={20} color="#C9E265" />
-                            <AppText style={styles.modeText}>Wake Buddy Mode</AppText>
-                        </View>
-                        <Switch
-                            trackColor={{ false: "#333", true: "#C9E265" }}
-                            thumbColor={isEnabled ? "#000" : "#f4f3f4"}
-                            ios_backgroundColor="#3e3e3e"
-                            onValueChange={toggleSwitch}
-                            value={isEnabled}
-                        />
-                    </View>
-                </View>
+                {/* Upcoming Alarms */}
+                {(() => {
+                    // Get current time info
+                    const now = new Date();
+                    const jsDay = now.getDay(); // JavaScript: 0 = Sunday, 6 = Saturday
+                    const currentHours = now.getHours();
+                    const currentMinutes = now.getMinutes();
+                    const currentTimeInMinutes = currentHours * 60 + currentMinutes;
+
+                    // Day names indexed by JavaScript's getDay() (0 = Sunday)
+                    const fullDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+                    // Convert JavaScript day (0=Sun) to alarm day index (0=Mon)
+                    // Alarm format: [Mon, Tue, Wed, Thu, Fri, Sat, Sun] = indices 0-6
+                    // JS getDay(): Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
+                    const jsDayToAlarmIndex = (jsDay) => {
+                        // Sun(0)->6, Mon(1)->0, Tue(2)->1, Wed(3)->2, Thu(4)->3, Fri(5)->4, Sat(6)->5
+                        return jsDay === 0 ? 6 : jsDay - 1;
+                    };
+
+                    // Helper function to convert alarm time to minutes since midnight (24hr)
+                    const getAlarmTimeInMinutes = (alarm) => {
+                        let [hours, minutes] = alarm.time.split(':').map(Number);
+                        if (alarm.ampm === 'PM' && hours !== 12) hours += 12;
+                        if (alarm.ampm === 'AM' && hours === 12) hours = 0;
+                        return hours * 60 + minutes;
+                    };
+
+                    // Helper function to get next occurrence of alarm
+                    const getNextOccurrence = (alarm) => {
+                        const alarmTimeInMinutes = getAlarmTimeInMinutes(alarm);
+
+                        // Check if alarm has any days enabled
+                        // alarm.days is stored as [0,1,1,1,1,0,0] where index 0=Mon, value 1=enabled
+                        const hasAnyDayEnabled = alarm.days && alarm.days.some(d => d === 1);
+
+                        // If no days enabled, treat as one-time alarm
+                        if (!alarm.days || alarm.days.length === 0 || !hasAnyDayEnabled) {
+                            if (alarmTimeInMinutes > currentTimeInMinutes) {
+                                // Alarm is later today
+                                return {
+                                    daysFromNow: 0,
+                                    timeInMinutes: alarmTimeInMinutes,
+                                    dayName: 'Today'
+                                };
+                            }
+                            // Alarm time already passed today, next occurrence is tomorrow
+                            return {
+                                daysFromNow: 1,
+                                timeInMinutes: alarmTimeInMinutes,
+                                dayName: 'Tomorrow'
+                            };
+                        }
+
+                        // Find next scheduled day from the days array
+                        // Loop through next 7 days starting from today
+                        for (let i = 0; i <= 7; i++) {
+                            const checkJsDay = (jsDay + i) % 7; // JavaScript day (0=Sun)
+                            const alarmDayIndex = jsDayToAlarmIndex(checkJsDay); // Convert to alarm index (0=Mon)
+
+                            // Check if this day is enabled in the alarm (value is 1)
+                            if (alarm.days[alarmDayIndex] === 1) {
+                                // If checking today (i === 0), verify time hasn't passed
+                                if (i === 0 && alarmTimeInMinutes <= currentTimeInMinutes) {
+                                    continue; // Already passed today, check next day
+                                }
+
+                                // Determine day name
+                                let dayName;
+                                if (i === 0) dayName = 'Today';
+                                else if (i === 1) dayName = 'Tomorrow';
+                                else dayName = fullDayNames[checkJsDay];
+
+                                return {
+                                    daysFromNow: i,
+                                    timeInMinutes: alarmTimeInMinutes,
+                                    dayName: dayName
+                                };
+                            }
+                        }
+
+                        return null; // No valid occurrence found
+                    };
+
+                    // Filter enabled alarms and calculate next occurrence
+                    const upcomingAlarms = alarms
+                        ?.filter(a => a.enabled)
+                        .map(alarm => ({
+                            ...alarm,
+                            nextOccurrence: getNextOccurrence(alarm)
+                        }))
+                        .filter(a => a.nextOccurrence !== null)
+                        .sort((a, b) => {
+                            // Sort by days from now first, then by time
+                            if (a.nextOccurrence.daysFromNow !== b.nextOccurrence.daysFromNow) {
+                                return a.nextOccurrence.daysFromNow - b.nextOccurrence.daysFromNow;
+                            }
+                            return a.nextOccurrence.timeInMinutes - b.nextOccurrence.timeInMinutes;
+                        })
+                        .slice(0, 2); // Show only first 2 upcoming alarms
+
+                    if (!upcomingAlarms || upcomingAlarms.length === 0) {
+                        return (
+                            <View style={styles.alarmCard}>
+                                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                                    <Ionicons name="alarm-outline" size={40} color="#333" />
+                                    <AppText style={{ color: '#666', marginTop: 10 }}>No upcoming alarms</AppText>
+                                    <TouchableOpacity
+                                        style={[styles.shareBadge, { marginTop: 12 }]}
+                                        onPress={() => router.push('/screens/alarm-editor')}
+                                    >
+                                        <Ionicons name="add" size={16} color="#C9E265" />
+                                        <AppText style={styles.shareBadgeText}>Add Alarm</AppText>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        );
+                    }
+
+                    return upcomingAlarms.map((alarm, index) => {
+                        const [hours, minutes] = alarm.time.split(':');
+
+                        return (
+                            <View key={alarm._id} style={[styles.alarmCard, index > 0 && { marginTop: 10 }]}>
+                                <View style={styles.alarmHeader}>
+                                    <AppText style={styles.alarmDate}>{alarm.nextOccurrence.dayName}</AppText>
+                                    <View style={styles.alarmActions}>
+                                        <TouchableOpacity
+                                            style={styles.actionButton}
+                                            onPress={() => router.push({
+                                                pathname: '/screens/alarm-editor',
+                                                params: { alarmId: alarm._id }
+                                            })}
+                                        >
+                                            <Ionicons name="pencil" size={16} color="#888" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                                <View style={styles.timeContainer}>
+                                    <AppText style={styles.timeText}>{hours}:{minutes}</AppText>
+                                    <AppText style={styles.ampmText}>{alarm.ampm}</AppText>
+                                </View>
+                                <View style={styles.alarmFooter}>
+                                    <View style={styles.modeContainer}>
+                                        {alarm.solo_mode ? (
+                                            <>
+                                                <Ionicons name="person-outline" size={20} color="#888" />
+                                                <AppText style={[styles.modeText, { color: '#888' }]}>Solo Mode</AppText>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Ionicons name="people-outline" size={20} color="#C9E265" />
+                                                <AppText style={styles.modeText}>
+                                                    {alarm.buddy ? `With ${alarm.buddy.split('@')[0]}` : 'Wake Buddy Mode'}
+                                                </AppText>
+                                            </>
+                                        )}
+                                    </View>
+                                    {alarm.label && (
+                                        <AppText style={{ color: '#666', fontSize: 12 }}>{alarm.label}</AppText>
+                                    )}
+                                </View>
+                            </View>
+                        );
+                    });
+                })()}
 
                 {/* Quick Actions */}
                 <AppText style={styles.sectionTitle}>Quick Actions</AppText>
