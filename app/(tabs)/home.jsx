@@ -849,7 +849,7 @@ export default function HomeScreen() {
                             let achievementText = '';
                             let achievementIcon = 'flame';
                             let iconColor = '#FF6B35';
-                            
+
                             if (friend.streak >= 30) {
                                 achievementText = `🔥 ${friend.streak} day streak! Amazing!`;
                             } else if (friend.streak >= 14) {
@@ -871,7 +871,7 @@ export default function HomeScreen() {
                             }
 
                             return (
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     key={item.friendshipId || index}
                                     style={styles.socialCard}
                                     onPress={() => router.push(`/user/${friend._id}`)}
@@ -899,7 +899,7 @@ export default function HomeScreen() {
                                 <AppText style={styles.socialTitle}>No buddies yet</AppText>
                                 <AppText style={styles.socialSubtitle}>Add friends to see their achievements!</AppText>
                             </View>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={styles.thumbsUpButton}
                                 onPress={() => router.push('/(tabs)/rank')}
                             >

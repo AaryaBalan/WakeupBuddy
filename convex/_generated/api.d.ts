@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as achievements from "../achievements.js";
 import type * as alarms from "../alarms.js";
 import type * as calls from "../calls.js";
 import type * as crons from "../crons.js";
@@ -25,6 +26,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  achievements: typeof achievements;
   alarms: typeof alarms;
   calls: typeof calls;
   crons: typeof crons;
