@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
@@ -17,7 +17,6 @@ const DARK_GRAY = '#1A1A1A';
 export default function RankScreen() {
     const router = useRouter();
     const { user } = useUser();
-    const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState('global'); // 'global', 'friends', 'weekly'
 
     // Fetch leaderboard data from Convex
@@ -52,11 +51,6 @@ export default function RankScreen() {
         const rate = Math.min(100, Math.round((item.total_days_active / daysSinceStart) * 100));
         return ` • ${rate}% Success`;
     };
-
-    // Filter data based on search
-    const filteredData = leaderboardData?.filter(item =>
-        item.user?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
 
     const renderItem = ({ item, index }) => {
         const rank = index + 1;
@@ -130,18 +124,6 @@ export default function RankScreen() {
                 <Ionicons name="information-circle-outline" size={24} color={GRAY} />
             </View>
 
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color={GRAY} style={styles.searchIcon} />
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="Search username..."
-                    placeholderTextColor="#666"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                />
-            </View>
-
             {/* Tabs */}
             <View style={styles.tabsContainer}>
                 <TouchableOpacity
@@ -196,11 +178,11 @@ export default function RankScreen() {
         <View style={{ paddingBottom: 100, alignItems: 'center', marginTop: 20 }}>
             {leaderboardData === undefined ? (
                 <ActivityIndicator size="large" color={NEON} style={{ marginVertical: 40 }} />
-            ) : filteredData.length === 0 ? (
+            ) : leaderboardData.length === 0 ? (
                 <View style={{ alignItems: 'center', marginVertical: 40 }}>
                     <Ionicons name="trophy-outline" size={48} color="#333" />
                     <AppText style={{ color: '#666', marginTop: 12 }}>
-                        {searchQuery ? 'No users found' : 'No leaderboard data yet'}
+                        No leaderboard data yet
                     </AppText>
                 </View>
             ) : (
@@ -236,7 +218,7 @@ export default function RankScreen() {
     return (
         <View style={styles.container}>
             <FlatList
-                data={filteredData}
+                data={leaderboardData || []}
                 renderItem={renderItem}
                 keyExtractor={(item) => item._id || item.user_id}
                 ListHeaderComponent={ListHeader}
