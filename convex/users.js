@@ -85,7 +85,21 @@ export const getAllUsers = query({
             bio: user.bio || "",
             streak: user.streak || 0,
             maxStreak: user.maxStreak || 0,
-            profileImageSeed: user.profileImageSeed || user.username,
+            profile_code: user.profile_code || user.email, // Use profile_code or default to email
         }));
+    },
+});
+
+/**
+ * Update user's profile_code (avatar seed)
+ */
+export const updateProfileCode = mutation({
+    args: {
+        id: v.id("users"),
+        profile_code: v.string(),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, { profile_code: args.profile_code });
+        return await ctx.db.get(args.id);
     },
 });

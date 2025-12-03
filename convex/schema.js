@@ -10,7 +10,8 @@ export default defineSchema({
         bio: v.optional(v.string()),
         username: v.string(),
         streak: v.optional(v.number()),
-        maxStreak: v.optional(v.number())
+        maxStreak: v.optional(v.number()),
+        profile_code: v.optional(v.string()), // Used for avatar generation, defaults to email
     }).index('by_email', ['email']),
 
     alarms: defineTable({

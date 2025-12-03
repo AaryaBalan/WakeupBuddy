@@ -219,6 +219,7 @@ export const getFriends = query({
                         bio: friend.bio || "",
                         streak: friend.streak || 0,
                         maxStreak: friend.maxStreak || 0,
+                        profile_code: friend.profile_code || friend.email,
                     } : null,
                 };
             })

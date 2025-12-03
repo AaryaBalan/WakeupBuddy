@@ -19,18 +19,35 @@ export default function Profile() {
   const router = useRouter();
   const { user, logout, updateUser: updateContextUser } = useUser();
   const updateUserMutation = useMutation(api.users.updateUser);
+  const updateProfileCodeMutation = useMutation(api.users.updateProfileCode);
   const { showPopup } = usePopup();
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [friendsModalVisible, setFriendsModalVisible] = useState(false);
+  const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
+  const [avatarOptions, setAvatarOptions] = useState([]);
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false);
 
   // Get 90-day streak data for heatmap (3 months)
   const recentStreaks = useQuery(
     api.streaks.getRecentStreaks,
     user?.email ? { userEmail: user.email, days: 90 } : "skip"
+  );
+
+  // Get friends list
+  const friends = useQuery(
+    api.friends.getFriends,
+    user?.email ? { userEmail: user.email } : "skip"
+  );
+
+  // Get friend count
+  const friendCount = useQuery(
+    api.friends.getFriendCount,
+    user?.email ? { userEmail: user.email } : "skip"
   );
 
   useEffect(() => {
@@ -47,6 +64,47 @@ export default function Profile() {
     { key: 'help5', label: 'Help 5 Buddies', icon: 'people' },
     { key: 'locked', label: 'Locked', icon: 'lock-closed' },
   ];
+
+  // Generate random avatar codes
+  const generateRandomAvatarCodes = () => {
+    const codes = [];
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 8; i++) {
+      let code = '';
+      for (let j = 0; j < 10; j++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      codes.push(code);
+    }
+    return codes;
+  };
+
+  // Open avatar picker with random options
+  const openAvatarPicker = () => {
+    const randomCodes = generateRandomAvatarCodes();
+    setAvatarOptions(randomCodes);
+    setAvatarPickerVisible(true);
+  };
+
+  // Handle avatar selection
+  const handleAvatarSelect = async (code) => {
+    if (!user) return;
+    setIsSavingAvatar(true);
+    try {
+      const updatedUser = await updateProfileCodeMutation({
+        id: user._id,
+        profile_code: code,
+      });
+      await updateContextUser(updatedUser);
+      setAvatarPickerVisible(false);
+      showPopup('Profile picture updated!', '#4CAF50');
+    } catch (error) {
+      console.error('Failed to update avatar:', error);
+      showPopup('Failed to update avatar', '#FF6B6B');
+    } finally {
+      setIsSavingAvatar(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -116,9 +174,13 @@ export default function Profile() {
               <View style={styles.avatarRing}>
                 <ProfilePic user={user} size={100} />
               </View>
-              <View style={styles.badge}>
+              <TouchableOpacity
+                style={styles.badge}
+                activeOpacity={0.7}
+                onPress={openAvatarPicker}
+              >
                 <Ionicons name="camera" size={14} color="#000" />
-              </View>
+              </TouchableOpacity>
             </View>
             <Text style={styles.name}>{user?.name || 'User'}</Text>
             <Text style={styles.username}>{generateUsername()}</Text>
@@ -145,6 +207,19 @@ export default function Profile() {
               <Text style={styles.statLabel}>Best</Text>
             </View>
           </View>
+
+          {/* My Friends Button */}
+          <TouchableOpacity
+            style={styles.friendsButton}
+            activeOpacity={0.8}
+            onPress={() => setFriendsModalVisible(true)}
+          >
+            <Ionicons name="people" size={20} color="#000" style={{ marginRight: 8 }} />
+            <Text style={styles.friendsButtonText}>My Buddies</Text>
+            <View style={styles.friendsCountBadge}>
+              <Text style={styles.friendsCountText}>{friendCount || 0}</Text>
+            </View>
+          </TouchableOpacity>
 
           {/* Wake History */}
           <View style={styles.sectionHeaderRow}>
@@ -338,6 +413,133 @@ export default function Profile() {
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Friends Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={friendsModalVisible}
+        onRequestClose={() => setFriendsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.friendsModalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>My Friends</Text>
+              <TouchableOpacity onPress={() => setFriendsModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {!friends || friends.length === 0 ? (
+              <View style={styles.emptyFriendsContainer}>
+                <Ionicons name="people-outline" size={60} color={GRAY} />
+                <Text style={styles.emptyFriendsText}>No friends yet</Text>
+                <Text style={styles.emptyFriendsSubtext}>
+                  Explore and add friends to wake up together!
+                </Text>
+                <TouchableOpacity
+                  style={styles.exploreFriendsButton}
+                  onPress={() => {
+                    setFriendsModalVisible(false);
+                    router.push('/(tabs)/rank');
+                  }}
+                >
+                  <Ionicons name="search" size={18} color="#000" style={{ marginRight: 6 }} />
+                  <Text style={styles.exploreFriendsText}>Find Friends</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <ScrollView style={styles.friendsList} showsVerticalScrollIndicator={false}>
+                {friends.map((item) => (
+                  <TouchableOpacity
+                    key={item.friendshipId}
+                    style={styles.friendCard}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setFriendsModalVisible(false);
+                      router.push({
+                        pathname: '/user/[id]',
+                        params: {
+                          id: item.friend._id,
+                          name: item.friend.name,
+                          email: item.friend.email,
+                          bio: item.friend.bio || '',
+                          profileImageSeed: item.friend.profileImageSeed || ''
+                        }
+                      });
+                    }}
+                  >
+                    <ProfilePic user={item.friend} size={50} />
+                    <View style={styles.friendInfo}>
+                      <Text style={styles.friendName}>{item.friend.name}</Text>
+                      <Text style={styles.friendBio} numberOfLines={1}>
+                        {item.friend.bio || 'No bio yet'}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={GRAY} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Avatar Picker Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={avatarPickerVisible}
+        onRequestClose={() => setAvatarPickerVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.avatarPickerContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Choose Avatar</Text>
+              <TouchableOpacity onPress={() => setAvatarPickerVisible(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.avatarPickerSubtitle}>
+              Select a new profile picture
+            </Text>
+
+            <View style={styles.avatarOptionsContainer}>
+              {avatarOptions.map((code, index) => (
+                <TouchableOpacity
+                  key={code}
+                  style={styles.avatarOption}
+                  activeOpacity={0.7}
+                  onPress={() => handleAvatarSelect(code)}
+                  disabled={isSavingAvatar}
+                >
+                  <View style={styles.avatarOptionRing}>
+                    <ProfilePic seed={code} size={70} />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={styles.refreshAvatarsButton}
+              activeOpacity={0.7}
+              onPress={() => setAvatarOptions(generateRandomAvatarCodes())}
+              disabled={isSavingAvatar}
+            >
+              <Ionicons name="refresh" size={20} color="#000" style={{ marginRight: 8 }} />
+              <Text style={styles.refreshAvatarsText}>Show More Options</Text>
+            </TouchableOpacity>
+
+            {isSavingAvatar && (
+              <View style={styles.savingOverlay}>
+                <ActivityIndicator size="large" color={NEON} />
+                <Text style={styles.savingText}>Updating avatar...</Text>
+              </View>
+            )}
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
