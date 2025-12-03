@@ -12,6 +12,7 @@ import type * as alarms from "../alarms.js";
 import type * as calls from "../calls.js";
 import type * as crons from "../crons.js";
 import type * as friends from "../friends.js";
+import type * as leaderboard from "../leaderboard.js";
 import type * as matching from "../matching.js";
 import type * as notifications from "../notifications.js";
 import type * as streaks from "../streaks.js";
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   calls: typeof calls;
   crons: typeof crons;
   friends: typeof friends;
+  leaderboard: typeof leaderboard;
   matching: typeof matching;
   notifications: typeof notifications;
   streaks: typeof streaks;

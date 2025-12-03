@@ -45,6 +45,30 @@ export const getUserByEmail = query({
     },
 });
 
+/**
+ * Get user by ID
+ */
+export const getUserById = query({
+    args: { userId: v.id("users") },
+    handler: async (ctx, args) => {
+        const user = await ctx.db.get(args.userId);
+        if (!user) return null;
+
+        // Return user without password
+        return {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            bio: user.bio || "",
+            streak: user.streak || 0,
+            maxStreak: user.maxStreak || 0,
+            profile_code: user.profile_code || user.email,
+            phone: user.phone,
+        };
+    },
+});
+
 export const updateUser = mutation({
     args: {
         id: v.id("users"),

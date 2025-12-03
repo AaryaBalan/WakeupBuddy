@@ -84,11 +84,41 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(200, 255, 0, 0.1)",
         padding: 8,
         borderRadius: 7,
-        marginBottom: 20,
+        marginBottom: 12,
     },
     bannerText: {
         color: "#999",
         fontSize: 11,
+    },
+
+    /* ---------- Stats Banner ---------- */
+    statsBanner: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+        backgroundColor: "#111",
+        padding: 12,
+        borderRadius: 10,
+        marginBottom: 20,
+    },
+    statItem: {
+        alignItems: "center",
+        flex: 1,
+    },
+    statValue: {
+        color: NEON,
+        fontSize: 16,
+        fontFamily: 'Montserrat_700Bold',
+    },
+    statLabel: {
+        color: "#666",
+        fontSize: 10,
+        marginTop: 2,
+    },
+    statDivider: {
+        width: 1,
+        height: 24,
+        backgroundColor: "#333",
     },
 
     /* ---------- Leaderboard Item Row ---------- */

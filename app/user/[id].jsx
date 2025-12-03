@@ -21,17 +21,23 @@ export default function PublicProfile() {
     const { user: currentUser } = useUser();
     const [isLoading, setIsLoading] = useState(false);
 
-    // Use params from navigation, fallback to defaults if missing
+    // Fetch user data from Convex by ID
+    const fetchedUser = useQuery(
+        api.users.getUserById,
+        params.id ? { userId: params.id } : 'skip'
+    );
+
+    // Use fetched data, with params as fallback
     const user = {
         _id: params.id,
-        name: params.name || 'User',
-        username: params.username || (params.email ? params.email.split('@')[0] : params.name?.toLowerCase().replace(/\s+/g, '_') || 'user'),
-        bio: params.bio || 'Morning person in training.',
-        profile_code: params.profile_code || params.email,
+        name: fetchedUser?.name || params.name || 'User',
+        username: fetchedUser?.username || params.username || 'user',
+        bio: fetchedUser?.bio || params.bio || 'Morning person in training.',
+        profile_code: fetchedUser?.profile_code || params.profile_code,
+        email: fetchedUser?.email || params.email || '',
+        streak: fetchedUser?.streak || parseInt(params.streak) || 0,
+        maxStreak: fetchedUser?.maxStreak || parseInt(params.maxStreak) || 0,
         badge: params.badge || '',
-        streak: parseInt(params.streak) || 0,
-        maxStreak: parseInt(params.maxStreak) || 0,
-        email: params.email || '',
     };
 
     // Mutations
@@ -48,10 +54,10 @@ export default function PublicProfile() {
             : 'skip'
     );
 
-    // Fetch real wake history for the last 90 days (3 months)
+    // Fetch real wake history for the last 90 days (3 months) by user ID
     const recentStreaks = useQuery(
-        api.streaks.getRecentStreaks,
-        user.email ? { userEmail: user.email, days: 90 } : 'skip'
+        api.streaks.getRecentStreaksById,
+        params.id ? { userId: params.id, days: 90 } : 'skip'
     );
 
     // Generate grid squares from real data
@@ -244,6 +250,18 @@ export default function PublicProfile() {
 
         return null;
     };
+
+    // Show loading state while fetching user data
+    if (fetchedUser === undefined) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <ActivityIndicator size="large" color={NEON} />
+                    <AppText style={{ color: '#666', marginTop: 12 }}>Loading profile...</AppText>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>

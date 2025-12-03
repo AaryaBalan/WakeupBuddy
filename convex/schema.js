@@ -64,6 +64,29 @@ export default defineSchema({
         friends_since: v.optional(v.number()), // timestamp when friendship was approved
     })
         .index('by_users', ['users'])
-        .index('by_status', ['status'])
+        .index('by_status', ['status']),
+
+    leaderboard: defineTable({
+        user_id: v.id('users'),
+        // Core stats
+        total_points: v.number(),           // Calculated total points
+        current_streak: v.number(),         // Current streak count
+        max_streak: v.number(),             // Best streak ever
+        total_wakeups: v.number(),          // Total times woke up
+        total_days_active: v.number(),      // Number of unique days with activity
+        // Point breakdown (for transparency)
+        streak_points: v.number(),          // Points from current streak
+        max_streak_points: v.number(),      // Points from max streak (achievement)
+        consistency_points: v.number(),     // Points from daily consistency
+        wakeup_points: v.number(),          // Points from total wakeups
+        // Metadata
+        rank: v.optional(v.number()),       // Computed rank (1 = highest)
+        last_updated: v.number(),           // Timestamp of last calculation
+        weekly_points: v.optional(v.number()),  // Points earned this week
+        monthly_points: v.optional(v.number()), // Points earned this month
+    })
+        .index('by_user', ['user_id'])
+        .index('by_points', ['total_points'])
+        .index('by_rank', ['rank'])
 
 })
