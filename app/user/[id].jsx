@@ -211,17 +211,25 @@ export default function PublicProfile() {
         }
 
         if (friendshipStatus.status === 'friends') {
-            const friendsSince = friendshipStatus.friendsSince
-                ? new Date(friendshipStatus.friendsSince).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-                : '';
             return (
                 <View style={styles.actionButtons}>
-                    <View style={[styles.primaryBtn, { backgroundColor: '#2d4a2d', flexDirection: 'row', gap: 8 }]}>
-                        <Ionicons name="checkmark-circle" size={18} color="#C9E265" />
-                        <Text style={[styles.primaryBtnText, { color: '#C9E265' }]}>
-                            Friends {friendsSince ? `since ${friendsSince}` : ''}
-                        </Text>
-                    </View>
+                    <TouchableOpacity
+                        style={[styles.primaryBtn, { flexDirection: 'row', gap: 8 }]}
+                        onPress={() => router.push({
+                            pathname: '/screens/stats',
+                            params: {
+                                id: user._id,
+                                name: user.name,
+                                email: user.email,
+                                profile_code: user.profile_code,
+                                username: user.username,
+                            }
+                        })}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="stats-chart" size={18} color="#000" />
+                        <Text style={styles.primaryBtnText}>View Stats</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.secondaryBtn}
                         onPress={handleRemoveFriend}
