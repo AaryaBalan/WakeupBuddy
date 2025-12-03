@@ -390,3 +390,48 @@ export const getFriendCount = query({
         ).length;
     },
 });
+
+/**
+ * Get all friend requests received by the user (including accepted/rejected for history)
+ */
+export const getAllReceivedRequests = query({
+    args: {
+        userEmail: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .first();
+
+        if (!user) return [];
+
+        const allFriends = await ctx.db.query("friends").collect();
+
+        // Find ALL requests where user is the receiver (pending, accepted, or rejected)
+        const receivedRequests = allFriends.filter(f => f.users[1] === user._id);
+
+        // Get sender details
+        const requestsWithDetails = await Promise.all(
+            receivedRequests.map(async (f) => {
+                const sender = await ctx.db.get(f.users[0]);
+                return {
+                    friendshipId: f._id,
+                    createdAt: f.created_at,
+                    status: f.status, // 0 = pending, 1 = accepted, -1 = rejected
+                    friendsSince: f.friends_since,
+                    sender: sender ? {
+                        _id: sender._id,
+                        name: sender.name,
+                        email: sender.email,
+                        username: sender.username,
+                        bio: sender.bio || "",
+                        streak: sender.streak || 0,
+                    } : null,
+                };
+            })
+        );
+
+        return requestsWithDetails.filter(r => r.sender !== null);
+    },
+});

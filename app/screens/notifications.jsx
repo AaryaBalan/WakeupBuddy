@@ -21,8 +21,8 @@ export default function NotificationsScreen() {
     // Fetch alarm notifications using Convex query
     const notifications = useQuery(api.notifications.getNotificationsByEmail, userEmail ? { email: userEmail } : "skip");
 
-    // Fetch friend requests
-    const friendRequests = useQuery(api.friends.getPendingRequests, userEmail ? { userEmail } : "skip");
+    // Fetch ALL friend requests (including accepted/rejected for history)
+    const friendRequests = useQuery(api.friends.getAllReceivedRequests, userEmail ? { userEmail } : "skip");
 
     const [processingId, setProcessingId] = useState(null);
 
@@ -241,62 +241,97 @@ export default function NotificationsScreen() {
         </View>
     );
 
-    const renderFriendRequestItem = ({ item }) => (
-        <View style={styles.friendRequestCard}>
-            <View style={styles.inviteHeader}>
-                <View style={styles.userInfo}>
-                    <View style={{ marginRight: 12 }}>
-                        <ProfilePic user={item.sender} size={40} />
+    const renderFriendRequestItem = ({ item }) => {
+        // If it's accepted or rejected, show history view
+        if (item.status === 1 || item.status === -1) {
+            return (
+                <View style={[styles.historyCard, { borderLeftWidth: 4, borderLeftColor: '#6B8BE3' }]}>
+                    <View style={styles.historyHeader}>
+                        <View style={styles.userInfo}>
+                            <View style={{ marginRight: 10 }}>
+                                <ProfilePic user={item.sender} size={32} />
+                            </View>
+                            <View>
+                                <Text style={styles.userNameSmall}>{item.sender.name}</Text>
+                                <Text style={styles.historyText}>
+                                    {item.status === 1 ? 'You are now friends!' : 'You declined the request.'}
+                                </Text>
+                            </View>
+                        </View>
+                        <Text style={styles.timeAgo}>{formatRelativeTime(item.status === 1 ? item.friendsSince : item.createdAt)}</Text>
                     </View>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.userName}>{item.sender.name}</Text>
-                        <Text style={styles.inviteText}>
-                            Wants to be your <Text style={[styles.boldText, { color: '#6B8BE3' }]}>Friend</Text>
+                    <View style={styles.historyBadge}>
+                        <Ionicons
+                            name={item.status === 1 ? "people" : "close-circle"}
+                            size={16}
+                            color={item.status === 1 ? "#6B8BE3" : "#ff4444"}
+                        />
+                        <Text style={[styles.historyStatus, { color: item.status === 1 ? "#6B8BE3" : "#ff4444" }]}>
+                            {item.status === 1 ? 'Friends' : 'Declined'}
                         </Text>
                     </View>
                 </View>
-                <Text style={styles.timeAgo}>{formatRelativeTime(item.createdAt)}</Text>
-            </View>
+            );
+        }
 
-            <View style={styles.friendBadge}>
-                <Ionicons name="people" size={16} color="#6B8BE3" />
-                <Text style={styles.friendBadgeText}>Friend Request</Text>
-                {item.sender.streak > 0 && (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
-                        <Ionicons name="flame" size={12} color="#FF6B35" />
-                        <Text style={{ color: '#888', marginLeft: 4, fontSize: 12 }}>
-                            {item.sender.streak} day streak
-                        </Text>
+        // Pending request - show action buttons
+        return (
+            <View style={styles.friendRequestCard}>
+                <View style={styles.inviteHeader}>
+                    <View style={styles.userInfo}>
+                        <View style={{ marginRight: 12 }}>
+                            <ProfilePic user={item.sender} size={40} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.userName}>{item.sender.name}</Text>
+                            <Text style={styles.inviteText}>
+                                Wants to be your <Text style={[styles.boldText, { color: '#6B8BE3' }]}>Friend</Text>
+                            </Text>
+                        </View>
                     </View>
-                )}
-            </View>
+                    <Text style={styles.timeAgo}>{formatRelativeTime(item.createdAt)}</Text>
+                </View>
 
-            <View style={styles.actionButtons}>
-                <TouchableOpacity
-                    style={styles.declineButton}
-                    onPress={() => handleDeclineFriend(item.friendshipId)}
-                    disabled={processingId === item.friendshipId}
-                >
-                    {processingId === item.friendshipId ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <Text style={styles.declineText}>Decline</Text>
+                <View style={styles.friendBadge}>
+                    <Ionicons name="people" size={16} color="#6B8BE3" />
+                    <Text style={styles.friendBadgeText}>Friend Request</Text>
+                    {item.sender.streak > 0 && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
+                            <Ionicons name="flame" size={12} color="#FF6B35" />
+                            <Text style={{ color: '#888', marginLeft: 4, fontSize: 12 }}>
+                                {item.sender.streak} day streak
+                            </Text>
+                        </View>
                     )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.friendAcceptButton}
-                    onPress={() => handleAcceptFriend(item.friendshipId)}
-                    disabled={processingId === item.friendshipId}
-                >
-                    {processingId === item.friendshipId ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <Text style={styles.friendAcceptText}>Accept</Text>
-                    )}
-                </TouchableOpacity>
+                </View>
+
+                <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                        style={styles.declineButton}
+                        onPress={() => handleDeclineFriend(item.friendshipId)}
+                        disabled={processingId === item.friendshipId}
+                    >
+                        {processingId === item.friendshipId ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                            <Text style={styles.declineText}>Decline</Text>
+                        )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.friendAcceptButton}
+                        onPress={() => handleAcceptFriend(item.friendshipId)}
+                        disabled={processingId === item.friendshipId}
+                    >
+                        {processingId === item.friendshipId ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                            <Text style={styles.friendAcceptText}>Accept</Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     const renderItem = ({ item }) => {
         // Check if it's a friend request
@@ -334,7 +369,7 @@ export default function NotificationsScreen() {
     };
 
     const pendingAlarms = (notifications || []).filter(n => n.status === 0).length;
-    const pendingFriends = (friendRequests || []).length;
+    const pendingFriends = (friendRequests || []).filter(f => f.status === 0).length;
     const isLoading = notifications === undefined || friendRequests === undefined;
 
     return (
