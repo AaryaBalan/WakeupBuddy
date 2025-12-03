@@ -472,6 +472,26 @@ export async function clearPendingCall() {
     }
 }
 
+/**
+ * Generate a unique request code from an alarm ID string
+ * This converts the Convex ID to a positive integer for Android PendingIntent
+ * @param {string} alarmId - The Convex alarm ID
+ * @returns {number} A unique positive integer request code
+ */
+export function generateRequestCode(alarmId) {
+    if (!alarmId) return 1001; // fallback default
+
+    // Simple hash function to convert string to number
+    let hash = 0;
+    for (let i = 0; i < alarmId.length; i++) {
+        const char = alarmId.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    // Ensure positive number and within Android's int range
+    return Math.abs(hash) % 2147483647 || 1;
+}
+
 export default {
     canScheduleExactAlarms,
     requestExactAlarmPermission,
@@ -494,5 +514,6 @@ export default {
     scheduleAlarm,
     cancelAlarm,
     makePhoneCall,
-    subscribeToCallState
+    subscribeToCallState,
+    generateRequestCode
 };

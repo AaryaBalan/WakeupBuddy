@@ -21,8 +21,12 @@ export default defineSchema({
         days: v.array(v.number()),
         user_id: v.id('users'),
         solo_mode: v.boolean(),
-        buddy: v.union(v.string(), v.null())
-    }).index('by_user', ['user_id']),
+        buddy: v.union(v.string(), v.null()),
+        matched_at: v.optional(v.number()), // Timestamp when stranger match was made
+    })
+        .index('by_user', ['user_id'])
+        .index('by_time_ampm', ['time', 'ampm']) // For efficient matching queries
+        .index('by_stranger_mode', ['solo_mode', 'enabled']), // For finding unmatched stranger alarms
 
     notifications: defineTable({
         alarm_time: v.string(),

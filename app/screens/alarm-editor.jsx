@@ -10,7 +10,7 @@ import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/alarmEditor.styles';
-import { requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
+import { generateRequestCode, requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
 
 export default function AlarmEditorScreen() {
     const router = useRouter();
@@ -147,9 +147,10 @@ export default function AlarmEditorScreen() {
             }
 
             try {
-                // Pass the alarm ID (as string) to native scheduler
-                await scheduleAlarm(alarmDate, buddyValue, savedAlarmId.toString());
-                console.log('Native alarm scheduled successfully for:', alarmDate.toLocaleString(), 'with alarmId:', savedAlarmId);
+                // Pass the alarm ID (as string) to native scheduler with unique request code
+                const requestCode = generateRequestCode(savedAlarmId.toString());
+                await scheduleAlarm(alarmDate, buddyValue, savedAlarmId.toString(), requestCode);
+                console.log('Native alarm scheduled successfully for:', alarmDate.toLocaleString(), 'with alarmId:', savedAlarmId, 'requestCode:', requestCode);
             } catch (alarmError) {
                 console.error('Failed to schedule native alarm:', alarmError);
 

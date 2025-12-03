@@ -81,7 +81,7 @@ export const acceptBuddyRequest = mutation({
         }
 
         // 4. Create alarm for RECEIVER (User B)
-        await ctx.db.insert("alarms", {
+        const receiverAlarmId = await ctx.db.insert("alarms", {
             time: notification.alarm_time,
             ampm: notification.ampm,
             label: 'Wake Buddy',
@@ -125,7 +125,12 @@ export const acceptBuddyRequest = mutation({
             });
         }
 
-        return { success: true, alarm_time: notification.alarm_time, ampm: notification.ampm };
+        return {
+            success: true,
+            alarm_time: notification.alarm_time,
+            ampm: notification.ampm,
+            receiverAlarmId: receiverAlarmId  // Return the alarm ID for scheduling
+        };
     }
 });
 

@@ -8,7 +8,7 @@ import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/notifications.styles';
-import { requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
+import { generateRequestCode, requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
 
 export default function NotificationsScreen() {
     const router = useRouter();
@@ -62,9 +62,11 @@ export default function NotificationsScreen() {
                     alarmDate.setDate(alarmDate.getDate() + 1);
                 }
 
-                // Schedule the native alarm with buddy EMAIL instead of name
-                await scheduleAlarm(alarmDate, item.created_by.email);
-                console.log('Native alarm scheduled successfully for buddy at:', alarmDate.toLocaleString());
+                // Schedule the native alarm with buddy EMAIL and unique request code
+                const alarmId = result.receiverAlarmId;
+                const requestCode = generateRequestCode(alarmId);
+                await scheduleAlarm(alarmDate, item.created_by.email, alarmId, requestCode);
+                console.log('Native alarm scheduled successfully for buddy at:', alarmDate.toLocaleString(), 'alarmId:', alarmId, 'requestCode:', requestCode);
 
                 showPopup(`Alarm set for ${result.alarm_time} ${result.ampm} - You and ${item.created_by.name} will wake up together!`, '#4CAF50');
             } catch (alarmError) {

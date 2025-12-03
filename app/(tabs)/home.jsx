@@ -301,6 +301,132 @@ export default function HomeScreen() {
         }
     };
 
+    /**
+     * Helper function to handle calling a buddy (either known buddy or stranger match)
+     * This fetches the latest alarm data from Convex to handle stranger matching
+     */
+    const handleBuddyCall = async (alarmTime, alarmAmpm, alarmIdFromUrl, buddyEmailFromUrl) => {
+        if (!user || !user.email) {
+            console.log('❌ No user logged in, cannot handle buddy call');
+            return;
+        }
+
+        try {
+            let buddyEmail = buddyEmailFromUrl;
+            let alarmId = alarmIdFromUrl;
+            let buddyUser = null;
+            let isStrangerMatch = false;
+
+            // If no buddy in URL, check if this is a stranger match by fetching latest alarm data
+            if (!buddyEmail && alarmTime && alarmAmpm) {
+                console.log('🔍 No buddy in URL, checking for stranger match...');
+
+                // Fetch the alarm with buddy details from Convex
+                const alarmData = await convexClient.query(api.alarms.findAlarmByTimeForUser, {
+                    userEmail: user.email,
+                    time: alarmTime,
+                    ampm: alarmAmpm
+                });
+
+                console.log('📋 Alarm data from Convex:', alarmData);
+
+                if (alarmData && alarmData.alarm) {
+                    alarmId = alarmData.alarm._id;
+
+                    // Check if a stranger was matched
+                    if (alarmData.alarm.solo_mode === false && alarmData.alarm.buddy) {
+                        buddyEmail = alarmData.alarm.buddy;
+                        buddyUser = alarmData.buddyUser;
+                        isStrangerMatch = alarmData.alarm.matched_at != null;
+                        console.log(`🎉 Found ${isStrangerMatch ? 'STRANGER' : 'BUDDY'} match: ${buddyEmail}`);
+                    } else if (alarmData.alarm.solo_mode === false && !alarmData.alarm.buddy) {
+                        console.log('😔 Stranger mode but no match found - alarm will ring solo');
+                        return;
+                    } else {
+                        console.log('ℹ️ Solo mode alarm, no buddy to call');
+                        return;
+                    }
+                } else {
+                    console.log('❌ Could not find alarm in database');
+                    return;
+                }
+            }
+
+            // If we have a buddy email, proceed with the call
+            if (buddyEmail && buddyEmail.includes('@')) {
+                console.log(`📞 Processing call to buddy: ${buddyEmail}`);
+
+                // For known buddy (not stranger), check if relationship is accepted
+                if (!isStrangerMatch) {
+                    const isAccepted = await convexClient.query(api.notifications.isBuddyAccepted, {
+                        userEmail: user.email,
+                        buddyEmail: buddyEmail,
+                        alarmTime: alarmTime,
+                        alarmAmpm: alarmAmpm
+                    });
+
+                    console.log('🔍 Buddy acceptance status:', isAccepted);
+
+                    if (!isAccepted) {
+                        console.log('⏸️ Buddy request not accepted yet. Skipping call.');
+                        return;
+                    }
+                }
+
+                // Get buddy user details if not already fetched
+                if (!buddyUser) {
+                    buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
+                }
+
+                if (buddyUser && buddyUser.phone) {
+                    console.log(`✅ CALLING ${isStrangerMatch ? 'STRANGER' : 'BUDDY'}: ${buddyUser.name} at ${buddyUser.phone}`);
+
+                    // Resolve alarmId if not yet resolved
+                    if (!alarmId && alarmTime && alarmAmpm) {
+                        console.log('🔍 alarmId not available, looking up from database...');
+                        const foundAlarm = await convexClient.query(api.alarms.findAlarmByDetails, {
+                            userEmail: user.email,
+                            buddyEmail: buddyEmail,
+                            time: alarmTime,
+                            ampm: alarmAmpm
+                        });
+                        if (foundAlarm) {
+                            alarmId = foundAlarm._id;
+                            console.log('✅ Found alarm in database:', alarmId);
+                        }
+                    }
+
+                    // Record the call in database
+                    if (alarmId) {
+                        try {
+                            const callRecord = await createCall({
+                                user1Email: user.email,
+                                user2Email: buddyEmail,
+                                alarmId: alarmId,
+                            });
+                            console.log('Call record created:', callRecord);
+                            callIdRef.current = callRecord.callId;
+                            lastCalledNumberRef.current = buddyUser.phone;
+
+                            // Save to SharedPreferences for persistent tracking
+                            await savePendingCall(callRecord.callId, buddyUser.phone);
+                        } catch (callError) {
+                            console.error('Failed to create call record:', callError);
+                        }
+                    } else {
+                        console.error('❌ Cannot create call record: alarmId is required');
+                    }
+
+                    // Make the phone call
+                    await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
+                } else {
+                    console.log('❌ Buddy found but no phone number:', buddyEmail);
+                }
+            }
+        } catch (error) {
+            console.error('Error in handleBuddyCall:', error);
+        }
+    };
 
     useEffect(() => {
         const handleDeepLink = async (event) => {
@@ -309,92 +435,24 @@ export default function HomeScreen() {
                 console.log('Alarm dismissed via deep link, marking awake...');
                 console.log('Full URL:', url);
 
-                // Extract buddy email from URL if present
+                // Extract parameters from URL
                 const buddyMatch = url.match(/[?&]buddy=([^&]+)/);
                 const alarmIdMatch = url.match(/[?&]alarmId=([^&]+)/);
-                if (buddyMatch) {
-                    const buddyEmail = decodeURIComponent(buddyMatch[1]);
-                    const alarmId = alarmIdMatch ? decodeURIComponent(alarmIdMatch[1]) : null;
-                    console.log('📧 Buddy email from deep link:', buddyEmail);
-                    console.log('🆔 Alarm ID from deep link:', alarmId);
-                    console.log('🔍 alarmIdMatch result:', alarmIdMatch);
+                const timeMatch = url.match(/[?&]time=([^&]+)/);
+                const ampmMatch = url.match(/[?&]ampm=([^&]+)/);
 
-                    // Fetch buddy's phone number and call them IF relationship is accepted
-                    if (buddyEmail && buddyEmail.includes('@') && user && user.email) {
-                        try {
-                            // Extract alarm time from URL
-                            const timeMatch = url.match(/[?&]time=([^&]+)/);
-                            const ampmMatch = url.match(/[?&]ampm=([^&]+)/);
-                            const alarmTime = timeMatch ? decodeURIComponent(timeMatch[1]) : null;
-                            const alarmAmpm = ampmMatch ? decodeURIComponent(ampmMatch[1]) : null;
+                const buddyEmail = buddyMatch ? decodeURIComponent(buddyMatch[1]) : null;
+                const alarmId = alarmIdMatch ? decodeURIComponent(alarmIdMatch[1]) : null;
+                const alarmTime = timeMatch ? decodeURIComponent(timeMatch[1]) : null;
+                const alarmAmpm = ampmMatch ? decodeURIComponent(ampmMatch[1]) : null;
 
-                            console.log(`Checking acceptance for: ${buddyEmail}, time=${alarmTime}, ampm=${alarmAmpm}`);
+                console.log('📧 Buddy from URL:', buddyEmail);
+                console.log('🆔 Alarm ID from URL:', alarmId);
+                console.log('⏰ Time from URL:', alarmTime, alarmAmpm);
 
-                            // Check if buddy relationship is accepted
-                            const isAccepted = await convexClient.query(api.notifications.isBuddyAccepted, {
-                                userEmail: user.email,
-                                buddyEmail: buddyEmail,
-                                alarmTime: alarmTime,
-                                alarmAmpm: alarmAmpm
-                            });
-
-                            console.log('🔍 Deep link (listener): isAccepted =', isAccepted);
-
-                            if (isAccepted) {
-                                const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
-                                if (buddyUser && buddyUser.phone) {
-                                    console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
-
-                                    // Get alarmId - either from URL or look it up from database
-                                    let resolvedAlarmId = alarmId;
-                                    if (!resolvedAlarmId && alarmTime && alarmAmpm) {
-                                        console.log('🔍 alarmId not in URL, looking up from database...');
-                                        const foundAlarm = await convexClient.query(api.alarms.findAlarmByDetails, {
-                                            userEmail: user.email,
-                                            buddyEmail: buddyEmail,
-                                            time: alarmTime,
-                                            ampm: alarmAmpm
-                                        });
-                                        if (foundAlarm) {
-                                            resolvedAlarmId = foundAlarm._id;
-                                            console.log('✅ Found alarm in database:', resolvedAlarmId);
-                                        } else {
-                                            console.log('❌ Could not find alarm in database');
-                                        }
-                                    }
-
-                                    // Record the call in database (alarmId is required)
-                                    if (!resolvedAlarmId) {
-                                        console.error('❌ Cannot create call record: alarmId is required and could not be resolved');
-                                    } else {
-                                        try {
-                                            const callRecord = await createCall({
-                                                user1Email: user.email,
-                                                user2Email: buddyEmail,
-                                                alarmId: resolvedAlarmId, // Required foreign key to alarms table
-                                            });
-                                            console.log('Call record created:', callRecord);
-                                            callIdRef.current = callRecord.callId;
-                                            lastCalledNumberRef.current = buddyUser.phone;
-
-                                            // Save to SharedPreferences for persistent tracking
-                                            await savePendingCall(callRecord.callId, buddyUser.phone);
-                                        } catch (callError) {
-                                            console.error('Failed to create call record:', callError);
-                                        }
-                                    }
-
-                                    await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
-                                } else {
-                                    console.log('❌ Buddy found but no phone number:', buddyEmail);
-                                }
-                            } else {
-                                console.log('⏸️ Buddy request not accepted yet. Skipping call.');
-                            }
-                        } catch (error) {
-                            console.error('Error fetching buddy for call:', error);
-                        }
-                    }
+                // Handle buddy/stranger call (this will fetch latest data from Convex)
+                if (user && user.email && (alarmTime || alarmId)) {
+                    await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail);
                 }
 
                 // Mark awake
@@ -408,92 +466,24 @@ export default function HomeScreen() {
                 console.log('App opened with alarm deep link, marking awake...');
                 console.log('Full URL:', url);
 
-                // Extract buddy email from URL if present
+                // Extract parameters from URL
                 const buddyMatch = url.match(/[?&]buddy=([^&]+)/);
                 const alarmIdMatch = url.match(/[?&]alarmId=([^&]+)/);
-                if (buddyMatch) {
-                    const buddyEmail = decodeURIComponent(buddyMatch[1]);
-                    const alarmId = alarmIdMatch ? decodeURIComponent(alarmIdMatch[1]) : null;
-                    console.log('📧 Buddy email from deep link:', buddyEmail);
-                    console.log('🆔 Alarm ID from deep link:', alarmId);
-                    console.log('🔍 alarmIdMatch result:', alarmIdMatch);
+                const timeMatch = url.match(/[?&]time=([^&]+)/);
+                const ampmMatch = url.match(/[?&]ampm=([^&]+)/);
 
-                    // Fetch buddy's phone number and call them IF relationship is accepted
-                    if (buddyEmail && buddyEmail.includes('@') && user && user.email) {
-                        try {
-                            // Extract alarm time from URL
-                            const timeMatch = url.match(/[?&]time=([^&]+)/);
-                            const ampmMatch = url.match(/[?&]ampm=([^&]+)/);
-                            const alarmTime = timeMatch ? decodeURIComponent(timeMatch[1]) : null;
-                            const alarmAmpm = ampmMatch ? decodeURIComponent(ampmMatch[1]) : null;
+                const buddyEmail = buddyMatch ? decodeURIComponent(buddyMatch[1]) : null;
+                const alarmId = alarmIdMatch ? decodeURIComponent(alarmIdMatch[1]) : null;
+                const alarmTime = timeMatch ? decodeURIComponent(timeMatch[1]) : null;
+                const alarmAmpm = ampmMatch ? decodeURIComponent(ampmMatch[1]) : null;
 
-                            console.log(`Checking acceptance for: ${buddyEmail}, time=${alarmTime}, ampm=${alarmAmpm}`);
+                console.log('📧 Buddy from URL:', buddyEmail);
+                console.log('🆔 Alarm ID from URL:', alarmId);
+                console.log('⏰ Time from URL:', alarmTime, alarmAmpm);
 
-                            // Check if buddy relationship is accepted
-                            const isAccepted = await convexClient.query(api.notifications.isBuddyAccepted, {
-                                userEmail: user.email,
-                                buddyEmail: buddyEmail,
-                                alarmTime: alarmTime,
-                                alarmAmpm: alarmAmpm
-                            });
-
-                            console.log('🔍 Deep link (getInitialURL): isAccepted =', isAccepted);
-
-                            if (isAccepted) {
-                                const buddyUser = await convexClient.query(api.users.getUserByEmail, { email: buddyEmail });
-                                if (buddyUser && buddyUser.phone) {
-                                    console.log(`✅ CALLING BUDDY: ${buddyUser.name} at ${buddyUser.phone}`);
-
-                                    // Get alarmId - either from URL or look it up from database
-                                    let resolvedAlarmId = alarmId;
-                                    if (!resolvedAlarmId && alarmTime && alarmAmpm) {
-                                        console.log('🔍 alarmId not in URL, looking up from database...');
-                                        const foundAlarm = await convexClient.query(api.alarms.findAlarmByDetails, {
-                                            userEmail: user.email,
-                                            buddyEmail: buddyEmail,
-                                            time: alarmTime,
-                                            ampm: alarmAmpm
-                                        });
-                                        if (foundAlarm) {
-                                            resolvedAlarmId = foundAlarm._id;
-                                            console.log('✅ Found alarm in database:', resolvedAlarmId);
-                                        } else {
-                                            console.log('❌ Could not find alarm in database');
-                                        }
-                                    }
-
-                                    // Record the call in database (alarmId is required)
-                                    if (!resolvedAlarmId) {
-                                        console.error('❌ Cannot create call record: alarmId is required and could not be resolved');
-                                    } else {
-                                        try {
-                                            const callRecord = await createCall({
-                                                user1Email: user.email,
-                                                user2Email: buddyEmail,
-                                                alarmId: resolvedAlarmId, // Required foreign key to alarms table
-                                            });
-                                            console.log('Call record created:', callRecord);
-                                            callIdRef.current = callRecord.callId;
-                                            lastCalledNumberRef.current = buddyUser.phone;
-
-                                            // Save to SharedPreferences for persistent tracking
-                                            await savePendingCall(callRecord.callId, buddyUser.phone);
-                                        } catch (callError) {
-                                            console.error('Failed to create call record:', callError);
-                                        }
-                                    }
-
-                                    await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
-                                } else {
-                                    console.log('❌ Buddy found but no phone number:', buddyEmail);
-                                }
-                            } else {
-                                console.log('⏸️ Buddy request not accepted yet. Skipping call.');
-                            }
-                        } catch (error) {
-                            console.error('Error fetching buddy for call:', error);
-                        }
-                    }
+                // Handle buddy/stranger call (this will fetch latest data from Convex)
+                if (user && user.email && (alarmTime || alarmId)) {
+                    await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail);
                 }
 
                 // Mark awake

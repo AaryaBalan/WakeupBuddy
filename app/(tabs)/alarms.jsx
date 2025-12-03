@@ -8,7 +8,7 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/alarms.styles';
 
-import { cancelAlarm, scheduleAlarm } from '../native/AlarmNative';
+import { cancelAlarm, generateRequestCode, scheduleAlarm } from '../native/AlarmNative';
 
 export default function AlarmsScreen() {
     const router = useRouter();
@@ -23,6 +23,9 @@ export default function AlarmsScreen() {
         const newStatus = !alarm.enabled;
         try {
             await toggleAlarmMutation({ id: alarm._id, enabled: newStatus });
+
+            // Generate unique request code from alarm ID
+            const requestCode = generateRequestCode(alarm._id.toString());
 
             if (newStatus) {
                 // Enable: Schedule the alarm
@@ -44,11 +47,11 @@ export default function AlarmsScreen() {
                     alarmDate.setDate(alarmDate.getDate() + 1);
                 }
 
-                await scheduleAlarm(alarmDate, alarm.buddy, alarm._id.toString());
+                await scheduleAlarm(alarmDate, alarm.buddy, alarm._id.toString(), requestCode);
                 showPopup('Alarm enabled', '#4CAF50');
             } else {
-                // Disable: Cancel the alarm
-                await cancelAlarm();
+                // Disable: Cancel the alarm with the same request code
+                await cancelAlarm(requestCode);
                 showPopup('Alarm disabled', '#4CAF50');
             }
         } catch (error) {
@@ -59,9 +62,11 @@ export default function AlarmsScreen() {
 
     const deleteAlarm = async (id) => {
         try {
+            // Generate unique request code from alarm ID for proper cancellation
+            const requestCode = generateRequestCode(id.toString());
             await deleteAlarmMutation({ id });
-            // Cancel the native alarm as well
-            await cancelAlarm();
+            // Cancel the native alarm with the correct request code
+            await cancelAlarm(requestCode);
             showPopup('Alarm deleted', '#4CAF50');
         } catch (error) {
             console.error('Error deleting alarm:', error);
