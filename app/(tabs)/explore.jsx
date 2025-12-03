@@ -43,7 +43,7 @@ export default function ExploreScreen() {
                     styles.featuredCard,
                     isMe && styles.featuredCardMe
                 ]}
-                onPress={() => isMe ? router.push('/(tabs)/profile') : router.push(`/user/${item._id}`)}
+                onPress={() => isMe ? router.push('/(tabs)/profile') : navigateToProfile(item)}
                 activeOpacity={0.7}
             >
                 {isMe && (
@@ -72,10 +72,25 @@ export default function ExploreScreen() {
         );
     };
 
+    const navigateToProfile = (item) => {
+        router.push({
+            pathname: `/user/${item._id}`,
+            params: {
+                name: item.name,
+                username: item.username,
+                bio: item.bio || '',
+                email: item.email,
+                streak: item.streak || 0,
+                maxStreak: item.maxStreak || 0,
+                profileImageSeed: item.profileImageSeed || item.username,
+            }
+        });
+    };
+
     const renderUserCard = ({ item }) => (
         <TouchableOpacity
             style={styles.userCard}
-            onPress={() => router.push(`/user/${item._id}`)}
+            onPress={() => navigateToProfile(item)}
             activeOpacity={0.8}
         >
             <View style={styles.userCardTop}>
@@ -119,7 +134,7 @@ export default function ExploreScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.profileButton}
-                        onPress={() => router.push(`/user/${item._id}`)}
+                        onPress={() => navigateToProfile(item)}
                     >
                         <Ionicons name="person-outline" size={18} color="#fff" />
                     </TouchableOpacity>

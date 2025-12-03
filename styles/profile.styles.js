@@ -195,15 +195,26 @@ const profileStyles = StyleSheet.create({
         width: '100%',
         flexDirection: 'column',
         flexWrap: 'wrap',
-        alignItems: 'center',
-        gap: 6,
-        height: 170, // Height to accommodate vertical layout
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
+        gap: 3,
+        paddingHorizontal: 4,
+        height: (7 * 24) + (6 * 3), // 7 rows * height + gaps
     },
     gridSquare: {
-        width: 15,
-        height: 15,
+        width: (width - 32) / 13 - 3, // 13 columns to fit 90 days (90/7 ≈ 13 weeks)
+        height: 24,
         borderRadius: 3,
-        backgroundColor: '#111',
+        backgroundColor: '#1a1a1a',
+    },
+    gridSquareLight: {
+        backgroundColor: '#1a2a1a',
+    },
+    gridSquareMedium: {
+        backgroundColor: '#2d4a2d',
+    },
+    gridSquareHigh: {
+        backgroundColor: '#6a9a3d',
     },
     gridSquareFilled: {
         backgroundColor: NEON,

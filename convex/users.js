@@ -85,6 +85,7 @@ export const getAllUsers = query({
             bio: user.bio || "",
             streak: user.streak || 0,
             maxStreak: user.maxStreak || 0,
+            profileImageSeed: user.profileImageSeed || user.username,
         }));
     },
 });

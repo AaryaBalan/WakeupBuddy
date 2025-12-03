@@ -27,10 +27,10 @@ export default function Profile() {
   const [editPhone, setEditPhone] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Get 60-day streak data for heatmap
+  // Get 90-day streak data for heatmap (3 months)
   const recentStreaks = useQuery(
     api.streaks.getRecentStreaks,
-    user?.email ? { userEmail: user.email, days: 60 } : "skip"
+    user?.email ? { userEmail: user.email, days: 90 } : "skip"
   );
 
   useEffect(() => {
@@ -133,16 +133,16 @@ export default function Profile() {
           {/* Stats Section */}
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>128</Text>
+              <Text style={styles.statNumber}>{recentStreaks?.length || 0}</Text>
               <Text style={styles.statLabel}>Wakeups</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>12</Text>
+              <Text style={styles.statNumber}>{user?.streak || 0}</Text>
               <Text style={styles.statLabel}>Streak</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>45</Text>
-              <Text style={styles.statLabel}>Buddies</Text>
+              <Text style={styles.statNumber}>{user?.maxStreak || 0}</Text>
+              <Text style={styles.statLabel}>Best</Text>
             </View>
           </View>
 
@@ -150,12 +150,14 @@ export default function Profile() {
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Wake History</Text>
             <TouchableOpacity activeOpacity={0.8}>
-              <Text style={styles.viewAllText}>View All</Text>
+              <Text style={styles.viewAllText}>Last 90 days</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.historySubHeader}>
-            <Text style={styles.monthText}>October 2023</Text>
+            <Text style={styles.monthText}>
+              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </Text>
             <View style={styles.legend}>
               <Text style={styles.legendText}>Less</Text>
               <View style={styles.legendSquare1} />
@@ -168,29 +170,36 @@ export default function Profile() {
 
           <View style={styles.gridContainer}>
             {(() => {
-              // Generate last 60 days
+              // Generate last 90 days (3 months)
               const days = [];
-              for (let i = 149; i >= 0; i--) {
+              for (let i = 89; i >= 0; i--) {
                 const date = new Date();
                 date.setDate(date.getDate() - i);
                 const dateStr = date.toISOString().split('T')[0];
                 days.push(dateStr);
               }
 
+              // Create a map for quick lookup
+              const streakMap = new Map();
+              recentStreaks?.forEach(s => streakMap.set(s.date, s.count));
+
               // Map to grid boxes with colors
               return days.map((dateStr, index) => {
-                const streakData = recentStreaks?.find(s => s.date === dateStr);
-                const count = streakData?.count || 0;
+                const count = streakMap.get(dateStr) || 0;
 
-                // Color based on count (GitHub-style)
-                let boxColor = '#1a1a1a'; // Grey/ash for 0
-                if (count >= 7) boxColor = NEON; // Bright neon for 7+
-                else if (count >= 5) boxColor = '#6a9a3d'; // Bright green for 5-6
-                else if (count >= 3) boxColor = '#2d4a2d'; // Medium green for 3-4
-                else if (count >= 1) boxColor = '#1a2a1a'; // Light green for 1-2
+                // Intensity based on count
+                const intensity = count >= 3 ? 4 : count >= 2 ? 3 : count >= 1 ? 2 : 0;
 
                 return (
-                  <View key={index} style={[styles.gridSquare, { backgroundColor: boxColor }]} />
+                  <View 
+                    key={index} 
+                    style={[
+                      styles.gridSquare,
+                      intensity === 2 && styles.gridSquareLight,
+                      intensity === 3 && styles.gridSquareMedium,
+                      intensity === 4 && styles.gridSquareFilled,
+                    ]} 
+                  />
                 );
               });
             })()}

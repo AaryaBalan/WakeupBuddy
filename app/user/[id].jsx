@@ -1,7 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo } from 'react';
+import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ProfilePic from '../../components/ProfilePic';
+import { api } from '../../convex/_generated/api';
 import styles from "../../styles/profile.styles"
 
 const { width } = Dimensions.get('window');
@@ -16,16 +20,52 @@ export default function PublicProfile() {
     // Use params from navigation, fallback to defaults if missing
     const user = {
         name: params.name || 'User',
-        username: params.username || `@user_${params.id}`,
+        username: params.username || `user_${params.id}`,
         bio: params.bio || 'Morning person in training. 🌅',
-        avatar: params.avatar || null,
+        profileImageSeed: params.profileImageSeed || params.username,
         badge: params.badge || '',
+        streak: parseInt(params.streak) || 0,
+        maxStreak: parseInt(params.maxStreak) || 0,
+        email: params.email || '',
     };
 
-    const gridSquares = Array.from({ length: 81 }).map((_, i) => ({
-        filled: Math.random() > 0.6,
-        id: i,
-    }));
+    // Fetch real wake history for the last 90 days (3 months)
+    const recentStreaks = useQuery(
+        api.streaks.getRecentStreaks,
+        user.email ? { userEmail: user.email, days: 90 } : 'skip'
+    );
+
+    // Generate grid squares from real data
+    const gridSquares = useMemo(() => {
+        const today = new Date();
+        const squares = [];
+        
+        // Create a map of dates with wakeups
+        const streakMap = new Map();
+        if (recentStreaks) {
+            recentStreaks.forEach(s => {
+                streakMap.set(s.date, s.count);
+            });
+        }
+        
+        // Generate 90 days (3 months) going backwards from today
+        for (let i = 89; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            const count = streakMap.get(dateStr) || 0;
+            
+            squares.push({
+                id: 89 - i,
+                date: dateStr,
+                count: count,
+                filled: count > 0,
+                intensity: count >= 3 ? 4 : count >= 2 ? 3 : count >= 1 ? 2 : 0,
+            });
+        }
+        
+        return squares;
+    }, [recentStreaks]);
 
     const achievements = [
         { key: '7day', label: '7 Day Streak', icon: 'flame' },
@@ -63,20 +103,14 @@ export default function PublicProfile() {
                     <View style={styles.card}>
                         <View style={styles.avatarContainer}>
                             <View style={styles.avatarRing}>
-                                {user.avatar ? (
-                                    <Image source={{ uri: user.avatar }} style={styles.avatar} />
-                                ) : (
-                                    <View style={[styles.avatar, { backgroundColor: '#333', justifyContent: 'center', alignItems: 'center' }]}>
-                                        <Ionicons name="person" size={40} color="#666" />
-                                    </View>
-                                )}
+                                <ProfilePic user={user} size={80} />
                             </View>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                             <Text style={styles.name}>{user.name}</Text>
                             {user.badge ? <Text style={{ fontSize: 18 }}>{user.badge}</Text> : null}
                         </View>
-                        <Text style={styles.username}>{user.username}</Text>
+                        <Text style={styles.username}>@{user.username}</Text>
                         <Text style={styles.bio}>{user.bio}</Text>
 
                         {/* Friend Actions */}
@@ -94,16 +128,16 @@ export default function PublicProfile() {
                     {/* Stats Section */}
                     <View style={styles.statsRow}>
                         <View style={styles.statBox}>
-                            <Text style={styles.statNumber}>142</Text>
+                            <Text style={styles.statNumber}>{gridSquares.filter(s => s.filled).length}</Text>
                             <Text style={styles.statLabel}>Wakeups</Text>
                         </View>
                         <View style={styles.statBox}>
-                            <Text style={styles.statNumber}>28</Text>
+                            <Text style={styles.statNumber}>{user.streak}</Text>
                             <Text style={styles.statLabel}>Streak</Text>
                         </View>
                         <View style={styles.statBox}>
-                            <Text style={styles.statNumber}>15</Text>
-                            <Text style={styles.statLabel}>Buddies</Text>
+                            <Text style={styles.statNumber}>{user.maxStreak}</Text>
+                            <Text style={styles.statLabel}>Best</Text>
                         </View>
                     </View>
 
@@ -111,12 +145,14 @@ export default function PublicProfile() {
                     <View style={styles.sectionHeaderRow}>
                         <Text style={styles.sectionTitle}>Wake History</Text>
                         <TouchableOpacity activeOpacity={0.8}>
-                            <Text style={styles.viewAllText}>View All</Text>
+                            <Text style={styles.viewAllText}>Last 90 days</Text>
                         </TouchableOpacity>
                     </View>
 
                     <View style={styles.historySubHeader}>
-                        <Text style={styles.monthText}>October 2023</Text>
+                        <Text style={styles.monthText}>
+                            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </Text>
                         <View style={styles.legend}>
                             <Text style={styles.legendText}>Less</Text>
                             <View style={styles.legendSquare1} />
@@ -129,7 +165,16 @@ export default function PublicProfile() {
 
                     <View style={styles.gridContainer}>
                         {gridSquares.map((sq) => (
-                            <View key={sq.id} style={[styles.gridSquare, sq.filled && styles.gridSquareFilled]} />
+                            <View 
+                                key={sq.id} 
+                                style={[
+                                    styles.gridSquare, 
+                                    sq.intensity === 1 && styles.gridSquareLight,
+                                    sq.intensity === 2 && styles.gridSquareMedium,
+                                    sq.intensity === 3 && styles.gridSquareHigh,
+                                    sq.intensity === 4 && styles.gridSquareFilled
+                                ]} 
+                            />
                         ))}
                     </View>
 

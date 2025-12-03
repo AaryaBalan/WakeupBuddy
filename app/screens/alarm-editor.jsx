@@ -19,13 +19,13 @@ export default function AlarmEditorScreen() {
     const createAlarm = useMutation(api.alarms.createAlarm);
     const updateAlarm = useMutation(api.alarms.updateAlarm);
     const createNotification = useMutation(api.notifications.createNotification);
-    const { alarm: alarmParam } = useLocalSearchParams();
+    const { alarm: alarmParam, buddyEmail: buddyEmailParam, buddyName: buddyNameParam } = useLocalSearchParams();
 
     const [date, setDate] = useState(new Date());
     const [showPicker, setShowPicker] = useState(false);
     const [mode, setMode] = useState('buddy'); // 'solo' | 'buddy'
-    const [buddyType, setBuddyType] = useState('stranger'); // 'stranger' | 'request'
-    const [buddyEmail, setBuddyEmail] = useState('');
+    const [buddyType, setBuddyType] = useState(buddyEmailParam ? 'request' : 'stranger'); // 'stranger' | 'request'
+    const [buddyEmail, setBuddyEmail] = useState(buddyEmailParam || '');
     const [repeatDays, setRepeatDays] = useState([false, true, true, true, true, false, false]); // M T W T F S S
     const [wakeMethod, setWakeMethod] = useState('call'); // 'call'
     const [preWake, setPreWake] = useState(true);
