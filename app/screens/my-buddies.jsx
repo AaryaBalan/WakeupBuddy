@@ -20,12 +20,12 @@ export default function MyBuddiesScreen() {
 
     const renderFriend = ({ item }) => {
         const friend = item.friend;
-        const friendsSince = item.friendsSince 
+        const friendsSince = item.friendsSince
             ? new Date(item.friendsSince).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
             : '';
 
         return (
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={styles.friendCard}
                 onPress={() => router.push(`/user/${friend._id}`)}
             >
@@ -89,7 +89,7 @@ export default function MyBuddiesScreen() {
                             <AppText style={styles.emptySubtitle}>
                                 Find people to connect with and become wake buddies!
                             </AppText>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={styles.exploreButton}
                                 onPress={() => router.push('/(tabs)/rank')}
                             >

@@ -87,6 +87,24 @@ export default defineSchema({
     })
         .index('by_user', ['user_id'])
         .index('by_points', ['total_points'])
-        .index('by_rank', ['rank'])
+        .index('by_rank', ['rank']),
+
+    achievements: defineTable({
+        user_id: v.id('users'),
+        achievement_type: v.string(),       // Type/key of achievement (e.g., 'streak_7', 'early_bird', 'first_wakeup')
+        achievement_name: v.string(),       // Display name
+        description: v.string(),            // Description of how it was earned
+        icon: v.string(),                   // Icon name for display
+        earned_at: v.number(),              // Timestamp when earned
+        metadata: v.optional(v.object({     // Optional additional data
+            streak_count: v.optional(v.number()),
+            wakeup_count: v.optional(v.number()),
+            buddy_count: v.optional(v.number()),
+            early_minutes: v.optional(v.number()),
+        })),
+    })
+        .index('by_user', ['user_id'])
+        .index('by_type', ['achievement_type'])
+        .index('by_user_type', ['user_id', 'achievement_type']),
 
 })

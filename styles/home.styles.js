@@ -294,6 +294,14 @@ const homeStyles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#333',
     },
+    achievementBadge: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#1a1a1a',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     heatmapContainer: {
         marginTop: 16,
     },

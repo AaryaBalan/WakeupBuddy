@@ -37,6 +37,12 @@ export default function HomeScreen() {
     // Fetch user's alarms to find the active one with a buddy
     const alarms = useQuery(api.alarms.getAlarmsByUser, user ? { user_id: user._id } : "skip");
 
+    // Fetch friends for achievements section
+    const friends = useQuery(
+        api.friends.getFriends,
+        user?.email ? { userEmail: user.email } : "skip"
+    );
+
     // Listen for call state changes to detect when call ends
     useEffect(() => {
         const unsubscribe = subscribeToCallState(async (event) => {
@@ -825,22 +831,83 @@ export default function HomeScreen() {
                     </TouchableOpacity>
                 </View>
 
-                {/* Social Notification */}
-                <View style={styles.socialCard}>
-                    <View style={styles.socialContent}>
-                        <View style={styles.socialAvatar}>
-                            {/* Placeholder */}
-                            <Ionicons name="person" size={20} color="#fff" />
-                        </View>
-                        <View style={styles.socialTextContainer}>
-                            <AppText style={styles.socialTitle}>Sarah just hit a 30 day streak!</AppText>
-                            <AppText style={styles.socialSubtitle}>Send her a congratulations.</AppText>
-                        </View>
-                        <TouchableOpacity style={styles.thumbsUpButton}>
-                            <Ionicons name="thumbs-up-outline" size={20} color="#C9E265" />
-                        </TouchableOpacity>
-                    </View>
+                {/* Friends Achievements */}
+                <View style={styles.sectionHeader}>
+                    <AppText style={styles.sectionTitle}>Buddy Achievements</AppText>
+                    <TouchableOpacity onPress={() => router.push('/screens/my-buddies')}>
+                        <AppText style={styles.seeAllText}>See All</AppText>
+                    </TouchableOpacity>
                 </View>
+
+                {friends && friends.length > 0 ? (
+                    friends
+                        .filter(f => f.friend && (f.friend.streak > 0 || f.friend.maxStreak > 0))
+                        .slice(0, 3)
+                        .map((item, index) => {
+                            const friend = item.friend;
+                            // Determine achievement message
+                            let achievementText = '';
+                            let achievementIcon = 'flame';
+                            let iconColor = '#FF6B35';
+                            
+                            if (friend.streak >= 30) {
+                                achievementText = `🔥 ${friend.streak} day streak! Amazing!`;
+                            } else if (friend.streak >= 14) {
+                                achievementText = `🔥 ${friend.streak} day streak! On fire!`;
+                            } else if (friend.streak >= 7) {
+                                achievementText = `🔥 ${friend.streak} day streak! Great job!`;
+                            } else if (friend.streak >= 3) {
+                                achievementText = `${friend.streak} day streak going strong`;
+                            } else if (friend.maxStreak >= 7) {
+                                achievementText = `Best streak: ${friend.maxStreak} days`;
+                                achievementIcon = 'trophy';
+                                iconColor = '#C9E265';
+                            } else if (friend.streak > 0) {
+                                achievementText = `${friend.streak} day streak`;
+                            } else {
+                                achievementText = 'Getting started!';
+                                achievementIcon = 'star';
+                                iconColor = '#888';
+                            }
+
+                            return (
+                                <TouchableOpacity 
+                                    key={item.friendshipId || index}
+                                    style={styles.socialCard}
+                                    onPress={() => router.push(`/user/${friend._id}`)}
+                                >
+                                    <View style={styles.socialContent}>
+                                        <ProfilePic user={friend} size={40} />
+                                        <View style={styles.socialTextContainer}>
+                                            <AppText style={styles.socialTitle}>{friend.name}</AppText>
+                                            <AppText style={styles.socialSubtitle}>{achievementText}</AppText>
+                                        </View>
+                                        <View style={styles.achievementBadge}>
+                                            <Ionicons name={achievementIcon} size={20} color={iconColor} />
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })
+                ) : (
+                    <View style={styles.socialCard}>
+                        <View style={styles.socialContent}>
+                            <View style={[styles.socialAvatar, { backgroundColor: '#1a1a1a' }]}>
+                                <Ionicons name="people-outline" size={20} color="#666" />
+                            </View>
+                            <View style={styles.socialTextContainer}>
+                                <AppText style={styles.socialTitle}>No buddies yet</AppText>
+                                <AppText style={styles.socialSubtitle}>Add friends to see their achievements!</AppText>
+                            </View>
+                            <TouchableOpacity 
+                                style={styles.thumbsUpButton}
+                                onPress={() => router.push('/(tabs)/rank')}
+                            >
+                                <Ionicons name="add" size={20} color="#C9E265" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
 
             </ScrollView>
         </SafeAreaView>
