@@ -12,8 +12,8 @@ const styles = StyleSheet.create({
         backgroundColor: BG,
     },
     listContent: {
-        paddingHorizontal: 16,
-        paddingTop: 60,
+        paddingHorizontal: 14,
+        paddingTop: 50,
     },
 
     /* ---------- Header ---------- */
@@ -21,11 +21,11 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 16,
+        marginBottom: 14,
     },
     headerTitle: {
         color: "#fff",
-        fontSize: 28,
+        fontSize: 24,
         fontFamily: 'Montserrat_700Bold',
     },
 
@@ -34,33 +34,33 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#111",
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        marginBottom: 16,
-        height: 46,
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        marginBottom: 14,
+        height: 42,
     },
     searchIcon: {
-        marginRight: 8,
+        marginRight: 6,
     },
     searchInput: {
         flex: 1,
         color: "#fff",
-        fontSize: 16,
+        fontSize: 15,
     },
 
     /* ---------- Tabs ---------- */
     tabsContainer: {
         flexDirection: "row",
         backgroundColor: "#111",
-        borderRadius: 12,
-        padding: 4,
-        marginBottom: 20,
+        borderRadius: 10,
+        padding: 3,
+        marginBottom: 16,
     },
     tab: {
         flex: 1,
-        paddingVertical: 8,
+        paddingVertical: 7,
         alignItems: "center",
-        borderRadius: 8,
+        borderRadius: 7,
     },
     activeTab: {
         backgroundColor: "#222",
@@ -82,41 +82,41 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "rgba(200, 255, 0, 0.1)",
-        padding: 10,
-        borderRadius: 8,
-        marginBottom: 24,
+        padding: 8,
+        borderRadius: 7,
+        marginBottom: 20,
     },
     bannerText: {
         color: "#999",
-        fontSize: 12,
+        fontSize: 11,
     },
 
     /* ---------- Leaderboard Item Row ---------- */
     itemRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 24,
+        marginBottom: 20,
     },
 
     /* Rank */
     rankCol: {
-        width: 40,
+        width: 36,
         alignItems: "center",
     },
     rankText: {
         color: "#666",
-        fontSize: 16,
+        fontSize: 15,
         fontFamily: 'Montserrat_700Bold',
     },
 
     /* Avatar */
     avatarCol: {
-        marginHorizontal: 12,
+        marginHorizontal: 10,
     },
     avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
     },
     avatarPlaceholder: {
         backgroundColor: "#333",
@@ -134,16 +134,16 @@ const styles = StyleSheet.create({
     },
     nameText: {
         color: "#fff",
-        fontSize: 16,
+        fontSize: 15,
         fontFamily: 'Montserrat_700Bold',
     },
     badgeText: {
-        fontSize: 14,
+        fontSize: 13,
     },
     locationText: {
         color: "#666",
-        fontSize: 12,
-        marginTop: 4,
+        fontSize: 11,
+        marginTop: 3,
     },
 
     /* Points */
@@ -152,12 +152,12 @@ const styles = StyleSheet.create({
     },
     pointsText: {
         color: NEON,
-        fontSize: 16,
+        fontSize: 15,
         fontFamily: 'Montserrat_700Bold',
     },
     ptsLabel: {
         color: "#666",
-        fontSize: 12,
+        fontSize: 11,
     },
 
     /* ---------- Invite Button ---------- */
@@ -166,15 +166,15 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        paddingVertical: 14,
-        borderRadius: 12,
-        marginTop: 30,
+        paddingVertical: 12,
+        borderRadius: 10,
+        marginTop: 24,
         width: "100%",
     },
     inviteText: {
         color: "#000",
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 16,
+        fontSize: 15,
     },
 
     /* ---------- Sticky Footer ---------- */
@@ -189,33 +189,33 @@ const styles = StyleSheet.create({
         backgroundColor: "#000",
         borderTopWidth: 1,
         borderTopColor: NEON,
-        paddingHorizontal: 20,
-        paddingVertical: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
     },
 
     footerLeft: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 12,
+        gap: 10,
     },
     footerRank: {
         color: NEON,
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 16,
+        fontSize: 15,
     },
     footerAvatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
     },
     footerName: {
         color: "#fff",
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 14,
+        fontSize: 13,
     },
     footerPoints: {
         color: "#666",
-        fontSize: 12,
+        fontSize: 11,
     },
 
     footerRight: {
@@ -224,11 +224,11 @@ const styles = StyleSheet.create({
     footerTotal: {
         color: NEON,
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 16,
+        fontSize: 15,
     },
     footerPercent: {
         color: "#666",
-        fontSize: 12,
+        fontSize: 11,
     },
 });
 

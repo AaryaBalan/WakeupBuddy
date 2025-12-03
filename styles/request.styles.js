@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: BG,
-        padding: 20,
+        padding: 16,
     },
 
     /* ---------- Header ---------- */
@@ -18,8 +18,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginTop: 20,
-        marginBottom: 40,
+        marginTop: 16,
+        marginBottom: 32,
     },
     headerTitle: {
         color: "#fff",
@@ -48,15 +48,15 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     avatar: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 70,
+        height: 70,
+        borderRadius: 35,
         borderWidth: 2,
         borderColor: "#333",
     },
     username: {
         color: "#fff",
-        marginTop: 8,
+        marginTop: 7,
         fontFamily: 'Montserrat_600SemiBold',
     },
 
@@ -77,9 +77,9 @@ const styles = StyleSheet.create({
         right: 0,
     },
     iconCircle: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
         backgroundColor: NEON,
         justifyContent: "center",
         alignItems: "center",
@@ -94,14 +94,14 @@ const styles = StyleSheet.create({
     promptText: {
         color: GRAY,
         textAlign: "center",
-        marginBottom: 24,
-        fontSize: 16,
+        marginBottom: 20,
+        fontSize: 15,
     },
     primaryBtn: {
         backgroundColor: NEON,
         width: "100%",
-        paddingVertical: 16,
-        borderRadius: 12,
+        paddingVertical: 14,
+        borderRadius: 10,
         alignItems: "center",
     },
     primaryBtnText: {
@@ -120,31 +120,31 @@ const styles = StyleSheet.create({
     },
     successTitle: {
         color: "#fff",
-        fontSize: 24,
+        fontSize: 20,
         fontFamily: 'Montserrat_700Bold',
-        marginBottom: 8,
+        marginBottom: 7,
     },
     successText: {
         color: GRAY,
-        fontSize: 16,
-        lineHeight: 24,
+        fontSize: 15,
+        lineHeight: 22,
         textAlign: "center",
-        marginBottom: 40,
+        marginBottom: 32,
     },
 
     /* ---------- Streak Comparison ---------- */
     streakComparison: {
         backgroundColor: "#111",
-        padding: 20,
-        borderRadius: 16,
+        padding: 16,
+        borderRadius: 14,
         width: "100%",
-        marginBottom: 30,
+        marginBottom: 24,
     },
     streakTitle: {
         color: GRAY,
-        fontSize: 14,
+        fontSize: 13,
         textAlign: "center",
-        marginBottom: 16,
+        marginBottom: 14,
         textTransform: "uppercase",
         letterSpacing: 1,
     },
@@ -158,23 +158,23 @@ const styles = StyleSheet.create({
     },
     streakNum: {
         color: "#fff",
-        fontSize: 24,
+        fontSize: 20,
         fontFamily: 'Montserrat_700Bold',
-        marginVertical: 4,
+        marginVertical: 3,
     },
     streakLabel: {
         color: GRAY,
-        fontSize: 12,
+        fontSize: 11,
     },
     vsBadge: {
         backgroundColor: "#222",
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4,
+        paddingHorizontal: 7,
+        paddingVertical: 3,
+        borderRadius: 3,
     },
     vsText: {
         color: "#666",
-        fontSize: 10,
+        fontSize: 9,
         fontFamily: 'Montserrat_700Bold',
     },
 
@@ -182,8 +182,8 @@ const styles = StyleSheet.create({
     secondaryBtn: {
         backgroundColor: "#222",
         width: "100%",
-        paddingVertical: 16,
-        borderRadius: 12,
+        paddingVertical: 14,
+        borderRadius: 10,
         alignItems: "center",
     },
     secondaryBtnText: {

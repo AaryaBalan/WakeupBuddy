@@ -30,9 +30,9 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: '#C9E265',
-        paddingHorizontal: 50,
-        paddingVertical: 18,
-        borderRadius: 30,
+        paddingHorizontal: 44,
+        paddingVertical: 16,
+        borderRadius: 24,
         elevation: 5,
         shadowColor: '#C9E265',
         shadowOffset: { width: 0, height: 4 },
