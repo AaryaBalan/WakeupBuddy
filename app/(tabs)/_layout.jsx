@@ -8,7 +8,7 @@ export default function TabLayout() {
                 headerShown: false,
                 tabBarStyle: {
                     backgroundColor: '#000',
-                    borderTopColor: '#333',
+                    borderTopColor: '#555',
                     height: 60,
                     paddingBottom: 5,
                     paddingTop: 8,
@@ -22,8 +22,8 @@ export default function TabLayout() {
                 name="home"
                 options={{
                     title: 'Home',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="home" size={size} color={color} />
+                    tabBarIcon: ({ color }) => (
+                        <Ionicons name="home" size={30} color={color} />
                     ),
                 }}
             />
@@ -31,8 +31,8 @@ export default function TabLayout() {
                 name="alarms"
                 options={{
                     title: 'Alarms',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="alarm-outline" size={size} color={color} />
+                    tabBarIcon: ({ color }) => (
+                        <Ionicons name="alarm-outline" size={30} color={color} />
                     ),
                 }}
             />
@@ -40,8 +40,8 @@ export default function TabLayout() {
                 name="explore"
                 options={{
                     title: 'Explore',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="compass-outline" size={size} color={color} />
+                    tabBarIcon: ({ color }) => (
+                        <Ionicons name="compass-outline" size={30} color={color} />
                     ),
                 }}
             />
@@ -49,8 +49,8 @@ export default function TabLayout() {
                 name="rank"
                 options={{
                     title: 'Rank',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="trophy-outline" size={size} color={color} />
+                    tabBarIcon: ({ color }) => (
+                        <Ionicons name="trophy-outline" size={30} color={color} />
                     ),
                 }}
             />
@@ -58,8 +58,8 @@ export default function TabLayout() {
                 name="profile"
                 options={{
                     title: 'Profile',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="person-outline" size={size} color={color} />
+                    tabBarIcon: ({ color }) => (
+                        <Ionicons name="person-outline" size={30} color={color} />
                     ),
                 }}
             />
