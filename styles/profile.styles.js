@@ -236,12 +236,29 @@ const profileStyles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    achCircleArrow: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: 'rgba(201, 226, 101, 0.15)',
+        borderWidth: 1,
+        borderColor: NEON,
+        borderStyle: 'dashed',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     achievedRing: {
         borderWidth: 2,
         borderColor: NEON,
     },
     achLabel: {
         color: GRAY,
+        fontSize: 10,
+        marginTop: 6,
+        textAlign: 'center',
+    },
+    achLabelMore: {
+        color: NEON,
         fontSize: 10,
         marginTop: 6,
         textAlign: 'center',
@@ -567,6 +584,91 @@ const profileStyles = StyleSheet.create({
         color: '#fff',
         fontSize: 14,
         marginTop: 12,
+    },
+
+    // Achievements Modal Styles
+    achievementsModalContent: {
+        backgroundColor: '#111',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 20,
+        height: '85%',
+        borderTopWidth: 1,
+        borderColor: '#333',
+    },
+    achModalSubtitle: {
+        color: GRAY,
+        fontSize: 12,
+        marginTop: 4,
+    },
+    achievementsList: {
+        flex: 1,
+        marginTop: 10,
+    },
+    achievementModalItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1a1a1a',
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#2a2a2a',
+    },
+    achievementModalItemLocked: {
+        opacity: 0.6,
+        backgroundColor: '#0d0d0d',
+        borderColor: '#1a1a1a',
+    },
+    achModalCircle: {
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        backgroundColor: '#222',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
+    achModalCircleEarned: {
+        backgroundColor: 'rgba(201, 226, 101, 0.15)',
+        borderWidth: 2,
+        borderColor: NEON,
+    },
+    achModalInfo: {
+        flex: 1,
+        marginRight: 10,
+    },
+    achModalName: {
+        color: '#fff',
+        fontSize: 14,
+        fontFamily: 'Montserrat_700Bold',
+    },
+    achModalNameLocked: {
+        color: '#888',
+    },
+    achModalDesc: {
+        color: GRAY,
+        fontSize: 11,
+        marginTop: 3,
+    },
+    achModalDescLocked: {
+        color: '#555',
+    },
+    achModalDate: {
+        color: NEON,
+        fontSize: 10,
+        marginTop: 4,
+    },
+    emptyAchievements: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 60,
+    },
+    emptyAchievementsText: {
+        color: GRAY,
+        fontSize: 14,
+        marginTop: 16,
     },
 });
 

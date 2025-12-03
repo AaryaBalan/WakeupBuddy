@@ -26,6 +26,7 @@ export default function Profile() {
   const [modalVisible, setModalVisible] = useState(false);
   const [friendsModalVisible, setFriendsModalVisible] = useState(false);
   const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
+  const [achievementsModalVisible, setAchievementsModalVisible] = useState(false);
   const [avatarOptions, setAvatarOptions] = useState([]);
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
@@ -51,6 +52,18 @@ export default function Profile() {
     user?.email ? { userEmail: user.email } : "skip"
   );
 
+  // Get user achievements with status
+  const achievementsWithStatus = useQuery(
+    api.achievements.getUserAchievementsWithStatus,
+    user?._id ? { userId: user._id } : "skip"
+  );
+
+  // Get achievement count
+  const achievementCount = useQuery(
+    api.achievements.getAchievementCount,
+    user?._id ? { userId: user._id } : "skip"
+  );
+
   useEffect(() => {
     if (user) {
       setEditName(user.name || '');
@@ -58,13 +71,6 @@ export default function Profile() {
       setEditPhone(user.phone || '');
     }
   }, [user]);
-
-  const achievements = [
-    { key: '7day', label: '7 Day Streak', icon: 'flame' },
-    { key: 'early', label: 'Early Bird', icon: 'sunny' },
-    { key: 'help5', label: 'Help 5 Buddies', icon: 'people' },
-    { key: 'locked', label: 'Locked', icon: 'lock-closed' },
-  ];
 
   // Generate random avatar codes
   const generateRandomAvatarCodes = () => {
@@ -284,21 +290,64 @@ export default function Profile() {
           {/* Achievements */}
           <View style={styles.sectionHeaderRow}>
             <AppText style={styles.sectionTitle}>Achievements</AppText>
-            <AppText style={styles.achCount}>12/48 Unlocked</AppText>
+            <AppText style={styles.achCount}>
+              {achievementCount ? `${achievementCount.earned}/${achievementCount.total}` : '0/0'} Unlocked
+            </AppText>
           </View>
 
           <View style={styles.achRow}>
-            {achievements.map((a, idx) => {
-              const achieved = a.key !== 'locked';
-              return (
-                <View key={a.key} style={styles.achItem}>
-                  <View style={[styles.achCircle, achieved && styles.achievedRing]}>
-                    <Ionicons name={a.icon} size={22} color={achieved ? NEON : GRAY} />
+            {achievementsWithStatus ? (
+              <>
+                {achievementsWithStatus.slice(0, 3).map((achievement, idx) => (
+                  <View key={achievement.type} style={styles.achItem}>
+                    <View style={[styles.achCircle, achievement.earned && styles.achievedRing]}>
+                      <Ionicons
+                        name={achievement.earned ? achievement.icon : 'lock-closed'}
+                        size={22}
+                        color={achievement.earned ? NEON : GRAY}
+                      />
+                    </View>
+                    <AppText style={styles.achLabel} numberOfLines={2}>
+                      {achievement.earned ? achievement.name : 'Locked'}
+                    </AppText>
                   </View>
-                  <AppText style={styles.achLabel}>{a.label}</AppText>
+                ))}
+                {/* 4th item - Arrow to open modal */}
+                <TouchableOpacity
+                  style={styles.achItem}
+                  onPress={() => setAchievementsModalVisible(true)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.achCircleArrow}>
+                    <Ionicons name="chevron-forward" size={22} color={NEON} />
+                  </View>
+                  <AppText style={styles.achLabelMore}>See All</AppText>
+                </TouchableOpacity>
+              </>
+            ) : (
+              // Default placeholder achievements while loading
+              <>
+                {[
+                  { key: '7day', label: '7 Day Streak', icon: 'flame' },
+                  { key: 'early', label: 'Early Bird', icon: 'sunny' },
+                  { key: 'help5', label: 'First Buddy', icon: 'people' },
+                ].map((a, idx) => (
+                  <View key={a.key} style={styles.achItem}>
+                    <View style={styles.achCircle}>
+                      <Ionicons name={a.icon} size={22} color={GRAY} />
+                    </View>
+                    <AppText style={styles.achLabel}>{a.label}</AppText>
+                  </View>
+                ))}
+                {/* 5th item - Arrow placeholder */}
+                <View style={styles.achItem}>
+                  <View style={styles.achCircleArrow}>
+                    <Ionicons name="chevron-forward" size={22} color={NEON} />
+                  </View>
+                  <AppText style={styles.achLabelMore}>See All</AppText>
                 </View>
-              );
-            })}
+              </>
+            )}
           </View>
 
           {/* Settings */}
@@ -540,6 +589,84 @@ export default function Profile() {
                 <AppText style={styles.savingText}>Updating avatar...</AppText>
               </View>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Achievements Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={achievementsModalVisible}
+        onRequestClose={() => setAchievementsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.achievementsModalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <AppText style={styles.modalTitle}>All Achievements</AppText>
+                <AppText style={styles.achModalSubtitle}>
+                  {achievementCount ? `${achievementCount.earned} of ${achievementCount.total} unlocked` : '0 of 0 unlocked'}
+                </AppText>
+              </View>
+              <TouchableOpacity onPress={() => setAchievementsModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.achievementsList} showsVerticalScrollIndicator={false}>
+              {achievementsWithStatus && achievementsWithStatus.length > 0 ? (
+                achievementsWithStatus.map((achievement) => (
+                  <View
+                    key={achievement.type}
+                    style={[
+                      styles.achievementModalItem,
+                      !achievement.earned && styles.achievementModalItemLocked
+                    ]}
+                  >
+                    <View style={[
+                      styles.achModalCircle,
+                      achievement.earned && styles.achModalCircleEarned
+                    ]}>
+                      <Ionicons
+                        name={achievement.icon}
+                        size={28}
+                        color={achievement.earned ? NEON : '#666'}
+                      />
+                    </View>
+                    <View style={styles.achModalInfo}>
+                      <AppText style={[
+                        styles.achModalName,
+                        !achievement.earned && styles.achModalNameLocked
+                      ]}>
+                        {achievement.name}
+                      </AppText>
+                      <AppText style={[
+                        styles.achModalDesc,
+                        !achievement.earned && styles.achModalDescLocked
+                      ]}>
+                        {achievement.description}
+                      </AppText>
+                      {achievement.earned && achievement.earnedAt && (
+                        <AppText style={styles.achModalDate}>
+                          Earned {new Date(achievement.earnedAt).toLocaleDateString()}
+                        </AppText>
+                      )}
+                    </View>
+                    {achievement.earned ? (
+                      <Ionicons name="checkmark-circle" size={24} color={NEON} />
+                    ) : (
+                      <Ionicons name="lock-closed" size={22} color="#666" />
+                    )}
+                  </View>
+                ))
+              ) : (
+                <View style={styles.emptyAchievements}>
+                  <Ionicons name="trophy-outline" size={60} color={GRAY} />
+                  <AppText style={styles.emptyAchievementsText}>Loading achievements...</AppText>
+                </View>
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>

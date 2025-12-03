@@ -60,6 +60,18 @@ export default function PublicProfile() {
         params.id ? { userId: params.id, days: 90 } : 'skip'
     );
 
+    // Fetch user achievements
+    const achievementsWithStatus = useQuery(
+        api.achievements.getUserAchievementsWithStatus,
+        params.id ? { userId: params.id } : 'skip'
+    );
+
+    // Get achievement count
+    const achievementCount = useQuery(
+        api.achievements.getAchievementCount,
+        params.id ? { userId: params.id } : 'skip'
+    );
+
     // Generate grid squares from real data
     const gridSquares = useMemo(() => {
         const today = new Date();
@@ -91,13 +103,6 @@ export default function PublicProfile() {
 
         return squares;
     }, [recentStreaks]);
-
-    const achievements = [
-        { key: '7day', label: '7 Day Streak', icon: 'flame' },
-        { key: 'early', label: 'Early Bird', icon: 'sunny' },
-        { key: 'help5', label: 'Help 5 Buddies', icon: 'people' },
-        { key: 'locked', label: 'Locked', icon: 'lock-closed' },
-    ];
 
     const handleSendFriendRequest = async () => {
         if (!currentUser?.email || !params.id) return;
@@ -351,21 +356,43 @@ export default function PublicProfile() {
                     {/* Achievements */}
                     <View style={styles.sectionHeaderRow}>
                         <AppText style={styles.sectionTitle}>Achievements</AppText>
-                        <AppText style={styles.achCount}>12/48 Unlocked</AppText>
+                        <AppText style={styles.achCount}>
+                            {achievementCount ? `${achievementCount.earned}/${achievementCount.total}` : '0/0'} Unlocked
+                        </AppText>
                     </View>
 
                     <View style={styles.achRow}>
-                        {achievements.map((a, idx) => {
-                            const achieved = a.key !== 'locked';
-                            return (
+                        {achievementsWithStatus ? (
+                            achievementsWithStatus.slice(0, 4).map((achievement) => (
+                                <View key={achievement.type} style={styles.achItem}>
+                                    <View style={[styles.achCircle, achievement.earned && styles.achievedRing]}>
+                                        <Ionicons
+                                            name={achievement.earned ? achievement.icon : 'lock-closed'}
+                                            size={22}
+                                            color={achievement.earned ? NEON : GRAY}
+                                        />
+                                    </View>
+                                    <AppText style={styles.achLabel} numberOfLines={2}>
+                                        {achievement.earned ? achievement.name : 'Locked'}
+                                    </AppText>
+                                </View>
+                            ))
+                        ) : (
+                            // Default placeholder achievements while loading
+                            [
+                                { key: '7day', label: '7 Day Streak', icon: 'flame' },
+                                { key: 'early', label: 'Early Bird', icon: 'sunny' },
+                                { key: 'help5', label: 'First Buddy', icon: 'people' },
+                                { key: 'locked', label: 'Locked', icon: 'lock-closed' },
+                            ].map((a) => (
                                 <View key={a.key} style={styles.achItem}>
-                                    <View style={[styles.achCircle, achieved && styles.achievedRing]}>
-                                        <Ionicons name={a.icon} size={22} color={achieved ? NEON : GRAY} />
+                                    <View style={styles.achCircle}>
+                                        <Ionicons name={a.icon} size={22} color={GRAY} />
                                     </View>
                                     <AppText style={styles.achLabel}>{a.label}</AppText>
                                 </View>
-                            );
-                        })}
+                            ))
+                        )}
                     </View>
 
                     <View style={{ height: 40 }} />

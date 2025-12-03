@@ -103,6 +103,46 @@ export const acceptFriendRequest = mutation({
             friends_since: Date.now(),
         });
 
+        // Award buddy achievements for both users
+        const senderId = friendship.users[0];
+        const receiverId = friendship.users[1];
+
+        // Count friends for both users and award achievements
+        for (const userId of [senderId, receiverId]) {
+            const allFriends = await ctx.db.query("friends").collect();
+            const friendCount = allFriends.filter(f =>
+                f.status === 1 && f.users.includes(userId)
+            ).length;
+
+            const buddyThresholds = [
+                { type: "first_buddy", threshold: 1, name: "First Buddy", description: "Connected with your first wake buddy", icon: "people-outline" },
+                { type: "buddy_5", threshold: 5, name: "Social Butterfly", description: "Connected with 5 wake buddies", icon: "people" },
+            ];
+
+            for (const { type, threshold, name, description, icon } of buddyThresholds) {
+                if (friendCount >= threshold) {
+                    const existing = await ctx.db
+                        .query("achievements")
+                        .withIndex("by_user_type", (q) =>
+                            q.eq("user_id", userId).eq("achievement_type", type)
+                        )
+                        .first();
+
+                    if (!existing) {
+                        await ctx.db.insert("achievements", {
+                            user_id: userId,
+                            achievement_type: type,
+                            achievement_name: name,
+                            description: description,
+                            icon: icon,
+                            earned_at: Date.now(),
+                            metadata: { buddy_count: friendCount },
+                        });
+                    }
+                }
+            }
+        }
+
         return { status: "accepted" };
     },
 });

@@ -509,3 +509,300 @@ export const getUserAchievementsWithStatus = query({
         });
     },
 });
+
+/**
+ * Backfill achievements for a specific user based on their current stats
+ * Call this once per user to award achievements for existing activity
+ */
+export const backfillUserAchievements = mutation({
+    args: {
+        userEmail: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .first();
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const awarded = [];
+
+        // Get user's streak stats
+        const currentStreak = user.streak || 0;
+        const maxStreak = user.maxStreak || 0;
+
+        // Use maxStreak to award streak achievements (since they may have had higher streaks before)
+        const streakToCheck = Math.max(currentStreak, maxStreak);
+
+        // Check streak achievements
+        const streakThresholds = [
+            { type: "streak_3", threshold: 3 },
+            { type: "streak_7", threshold: 7 },
+            { type: "streak_14", threshold: 14 },
+            { type: "streak_30", threshold: 30 },
+            { type: "streak_100", threshold: 100 },
+        ];
+
+        for (const { type, threshold } of streakThresholds) {
+            if (streakToCheck >= threshold) {
+                const existing = await ctx.db
+                    .query("achievements")
+                    .withIndex("by_user_type", (q) =>
+                        q.eq("user_id", user._id).eq("achievement_type", type)
+                    )
+                    .first();
+
+                if (!existing) {
+                    const def = ACHIEVEMENT_DEFINITIONS[type];
+                    await ctx.db.insert("achievements", {
+                        user_id: user._id,
+                        achievement_type: type,
+                        achievement_name: def.name,
+                        description: def.description,
+                        icon: def.icon,
+                        earned_at: Date.now(),
+                        metadata: { streak_count: streakToCheck },
+                    });
+                    awarded.push({ type, name: def.name });
+                }
+            }
+        }
+
+        // Get total wakeups from streaks table
+        const allStreaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .collect();
+        const totalWakeups = allStreaks.reduce((sum, s) => sum + s.count, 0);
+
+        // Check wakeup achievements
+        const wakeupThresholds = [
+            { type: "wakeup_1", threshold: 1 },
+            { type: "wakeup_10", threshold: 10 },
+            { type: "wakeup_50", threshold: 50 },
+            { type: "wakeup_100", threshold: 100 },
+        ];
+
+        for (const { type, threshold } of wakeupThresholds) {
+            if (totalWakeups >= threshold) {
+                const existing = await ctx.db
+                    .query("achievements")
+                    .withIndex("by_user_type", (q) =>
+                        q.eq("user_id", user._id).eq("achievement_type", type)
+                    )
+                    .first();
+
+                if (!existing) {
+                    const def = ACHIEVEMENT_DEFINITIONS[type];
+                    await ctx.db.insert("achievements", {
+                        user_id: user._id,
+                        achievement_type: type,
+                        achievement_name: def.name,
+                        description: def.description,
+                        icon: def.icon,
+                        earned_at: Date.now(),
+                        metadata: { wakeup_count: totalWakeups },
+                    });
+                    awarded.push({ type, name: def.name });
+                }
+            }
+        }
+
+        // Get friend count
+        const allFriends = await ctx.db.query("friends").collect();
+        const friendCount = allFriends.filter(f =>
+            f.status === 1 && f.users.includes(user._id)
+        ).length;
+
+        // Check buddy achievements
+        const buddyThresholds = [
+            { type: "first_buddy", threshold: 1 },
+            { type: "buddy_5", threshold: 5 },
+        ];
+
+        for (const { type, threshold } of buddyThresholds) {
+            if (friendCount >= threshold) {
+                const existing = await ctx.db
+                    .query("achievements")
+                    .withIndex("by_user_type", (q) =>
+                        q.eq("user_id", user._id).eq("achievement_type", type)
+                    )
+                    .first();
+
+                if (!existing) {
+                    const def = ACHIEVEMENT_DEFINITIONS[type];
+                    await ctx.db.insert("achievements", {
+                        user_id: user._id,
+                        achievement_type: type,
+                        achievement_name: def.name,
+                        description: def.description,
+                        icon: def.icon,
+                        earned_at: Date.now(),
+                        metadata: { buddy_count: friendCount },
+                    });
+                    awarded.push({ type, name: def.name });
+                }
+            }
+        }
+
+        return {
+            userId: user._id,
+            userName: user.name,
+            stats: {
+                currentStreak,
+                maxStreak,
+                totalWakeups,
+                friendCount,
+            },
+            awarded,
+        };
+    },
+});
+
+/**
+ * Backfill achievements for ALL users
+ */
+export const backfillAllUsersAchievements = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const users = await ctx.db.query("users").collect();
+        const results = [];
+
+        for (const user of users) {
+            const awarded = [];
+
+            // Get user's streak stats
+            const currentStreak = user.streak || 0;
+            const maxStreak = user.maxStreak || 0;
+            const streakToCheck = Math.max(currentStreak, maxStreak);
+
+            // Check streak achievements
+            const streakThresholds = [
+                { type: "streak_3", threshold: 3 },
+                { type: "streak_7", threshold: 7 },
+                { type: "streak_14", threshold: 14 },
+                { type: "streak_30", threshold: 30 },
+                { type: "streak_100", threshold: 100 },
+            ];
+
+            for (const { type, threshold } of streakThresholds) {
+                if (streakToCheck >= threshold) {
+                    const existing = await ctx.db
+                        .query("achievements")
+                        .withIndex("by_user_type", (q) =>
+                            q.eq("user_id", user._id).eq("achievement_type", type)
+                        )
+                        .first();
+
+                    if (!existing) {
+                        const def = ACHIEVEMENT_DEFINITIONS[type];
+                        await ctx.db.insert("achievements", {
+                            user_id: user._id,
+                            achievement_type: type,
+                            achievement_name: def.name,
+                            description: def.description,
+                            icon: def.icon,
+                            earned_at: Date.now(),
+                            metadata: { streak_count: streakToCheck },
+                        });
+                        awarded.push(def.name);
+                    }
+                }
+            }
+
+            // Get total wakeups
+            const allStreaks = await ctx.db
+                .query("streaks")
+                .withIndex("by_user", (q) => q.eq("user_id", user._id))
+                .collect();
+            const totalWakeups = allStreaks.reduce((sum, s) => sum + s.count, 0);
+
+            // Check wakeup achievements
+            const wakeupThresholds = [
+                { type: "wakeup_1", threshold: 1 },
+                { type: "wakeup_10", threshold: 10 },
+                { type: "wakeup_50", threshold: 50 },
+                { type: "wakeup_100", threshold: 100 },
+            ];
+
+            for (const { type, threshold } of wakeupThresholds) {
+                if (totalWakeups >= threshold) {
+                    const existing = await ctx.db
+                        .query("achievements")
+                        .withIndex("by_user_type", (q) =>
+                            q.eq("user_id", user._id).eq("achievement_type", type)
+                        )
+                        .first();
+
+                    if (!existing) {
+                        const def = ACHIEVEMENT_DEFINITIONS[type];
+                        await ctx.db.insert("achievements", {
+                            user_id: user._id,
+                            achievement_type: type,
+                            achievement_name: def.name,
+                            description: def.description,
+                            icon: def.icon,
+                            earned_at: Date.now(),
+                            metadata: { wakeup_count: totalWakeups },
+                        });
+                        awarded.push(def.name);
+                    }
+                }
+            }
+
+            // Get friend count
+            const allFriends = await ctx.db.query("friends").collect();
+            const friendCount = allFriends.filter(f =>
+                f.status === 1 && f.users.includes(user._id)
+            ).length;
+
+            // Check buddy achievements
+            const buddyThresholds = [
+                { type: "first_buddy", threshold: 1 },
+                { type: "buddy_5", threshold: 5 },
+            ];
+
+            for (const { type, threshold } of buddyThresholds) {
+                if (friendCount >= threshold) {
+                    const existing = await ctx.db
+                        .query("achievements")
+                        .withIndex("by_user_type", (q) =>
+                            q.eq("user_id", user._id).eq("achievement_type", type)
+                        )
+                        .first();
+
+                    if (!existing) {
+                        const def = ACHIEVEMENT_DEFINITIONS[type];
+                        await ctx.db.insert("achievements", {
+                            user_id: user._id,
+                            achievement_type: type,
+                            achievement_name: def.name,
+                            description: def.description,
+                            icon: def.icon,
+                            earned_at: Date.now(),
+                            metadata: { buddy_count: friendCount },
+                        });
+                        awarded.push(def.name);
+                    }
+                }
+            }
+
+            if (awarded.length > 0) {
+                results.push({
+                    user: user.name,
+                    email: user.email,
+                    awarded,
+                });
+            }
+        }
+
+        return {
+            totalUsers: users.length,
+            usersWithNewAchievements: results.length,
+            results,
+        };
+    },
+});

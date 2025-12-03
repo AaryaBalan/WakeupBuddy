@@ -224,12 +224,102 @@ export const markAwake = mutation({
         const updatedUser = await ctx.db.get(user._id);
         const leaderboardPoints = await updateLeaderboardForUser(ctx, updatedUser);
 
+        // Check and award achievements
+        const awardedAchievements = [];
+
+        // Check streak achievements
+        const streakThresholds = [
+            { type: "streak_3", threshold: 3 },
+            { type: "streak_7", threshold: 7 },
+            { type: "streak_14", threshold: 14 },
+            { type: "streak_30", threshold: 30 },
+            { type: "streak_100", threshold: 100 },
+        ];
+
+        for (const { type, threshold } of streakThresholds) {
+            if (newStreak >= threshold) {
+                const existing = await ctx.db
+                    .query("achievements")
+                    .withIndex("by_user_type", (q) =>
+                        q.eq("user_id", user._id).eq("achievement_type", type)
+                    )
+                    .first();
+
+                if (!existing) {
+                    const achievementDefs = {
+                        streak_3: { name: "Getting Started", description: "Maintained a 3-day wake streak", icon: "flame-outline" },
+                        streak_7: { name: "7 Day Streak", description: "Maintained a 7-day wake streak", icon: "flame" },
+                        streak_14: { name: "Two Week Warrior", description: "Maintained a 14-day wake streak", icon: "flame" },
+                        streak_30: { name: "Monthly Master", description: "Maintained a 30-day wake streak", icon: "trophy" },
+                        streak_100: { name: "Century Club", description: "Maintained a 100-day wake streak", icon: "medal" },
+                    };
+                    const def = achievementDefs[type];
+                    await ctx.db.insert("achievements", {
+                        user_id: user._id,
+                        achievement_type: type,
+                        achievement_name: def.name,
+                        description: def.description,
+                        icon: def.icon,
+                        earned_at: Date.now(),
+                        metadata: { streak_count: newStreak },
+                    });
+                    awardedAchievements.push({ type, name: def.name });
+                }
+            }
+        }
+
+        // Check wakeup count achievements
+        const allStreaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .collect();
+        const totalWakeups = allStreaks.reduce((sum, s) => sum + s.count, 0);
+
+        const wakeupThresholds = [
+            { type: "wakeup_1", threshold: 1 },
+            { type: "wakeup_10", threshold: 10 },
+            { type: "wakeup_50", threshold: 50 },
+            { type: "wakeup_100", threshold: 100 },
+        ];
+
+        for (const { type, threshold } of wakeupThresholds) {
+            if (totalWakeups >= threshold) {
+                const existing = await ctx.db
+                    .query("achievements")
+                    .withIndex("by_user_type", (q) =>
+                        q.eq("user_id", user._id).eq("achievement_type", type)
+                    )
+                    .first();
+
+                if (!existing) {
+                    const achievementDefs = {
+                        wakeup_1: { name: "First Wakeup", description: "Completed your first wakeup", icon: "sunny-outline" },
+                        wakeup_10: { name: "Early Riser", description: "Completed 10 wakeups", icon: "sunny" },
+                        wakeup_50: { name: "Morning Person", description: "Completed 50 wakeups", icon: "star" },
+                        wakeup_100: { name: "Wakeup Legend", description: "Completed 100 wakeups", icon: "star" },
+                    };
+                    const def = achievementDefs[type];
+                    await ctx.db.insert("achievements", {
+                        user_id: user._id,
+                        achievement_type: type,
+                        achievement_name: def.name,
+                        description: def.description,
+                        icon: def.icon,
+                        earned_at: Date.now(),
+                        metadata: { wakeup_count: totalWakeups },
+                    });
+                    awardedAchievements.push({ type, name: def.name });
+                }
+            }
+        }
+
         return {
             status: 'success',
             wakeupCount: 1,
             streak: newStreak,
             maxStreak: newMax,
-            points: leaderboardPoints.totalPoints
+            points: leaderboardPoints.totalPoints,
+            newAchievements: awardedAchievements
         };
     },
 });
