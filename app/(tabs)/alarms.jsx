@@ -153,8 +153,8 @@ export default function AlarmsScreen() {
                     onValueChange={() => toggleAlarm(item)}
                     value={item.enabled}
                 />
-                <TouchableOpacity 
-                    onPress={() => deleteAlarm(item._id)} 
+                <TouchableOpacity
+                    onPress={() => deleteAlarm(item._id)}
                     style={styles.deleteButton}
                     disabled={deletingId === item._id}
                 >
