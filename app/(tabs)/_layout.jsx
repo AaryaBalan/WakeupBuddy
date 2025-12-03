@@ -9,12 +9,13 @@ export default function TabLayout() {
                 tabBarStyle: {
                     backgroundColor: '#000',
                     borderTopColor: '#333',
-                    height: 70,
+                    height: 60,
                     paddingBottom: 5,
                     paddingTop: 5,
                 },
                 tabBarActiveTintColor: '#C9E265',
                 tabBarInactiveTintColor: '#666',
+                tabBarShowLabel: false,
             }}
         >
             <Tabs.Screen
@@ -27,20 +28,29 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="rank"
-                options={{
-                    title: 'Rank',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="trophy-outline" size={size} color={color} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
                 name="alarms"
                 options={{
                     title: 'Alarms',
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="alarm-outline" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="explore"
+                options={{
+                    title: 'Explore',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="compass-outline" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="rank"
+                options={{
+                    title: 'Rank',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="trophy-outline" size={size} color={color} />
                     ),
                 }}
             />
