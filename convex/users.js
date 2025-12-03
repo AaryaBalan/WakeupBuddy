@@ -59,3 +59,32 @@ export const updateUser = mutation({
         return await ctx.db.get(id);
     },
 });
+
+/**
+ * Get all users for the explore screen
+ * Excludes the current user and returns basic profile info
+ */
+export const getAllUsers = query({
+    args: {
+        excludeEmail: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const users = await ctx.db.query("users").collect();
+
+        // Filter out the current user if email provided
+        const filteredUsers = args.excludeEmail
+            ? users.filter(user => user.email !== args.excludeEmail)
+            : users;
+
+        // Return users with safe fields (exclude password)
+        return filteredUsers.map(user => ({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            bio: user.bio || "",
+            streak: user.streak || 0,
+            maxStreak: user.maxStreak || 0,
+        }));
+    },
+});
