@@ -119,13 +119,17 @@ export default function AlarmsScreen() {
                 ]}>
                     <Ionicons
                         name={item.solo_mode ? "person" : "people"}
-                        size={12}
+                        size={10}
                         color={item.solo_mode ? "#888" : (item.buddy ? "#C9E265" : "#C9E265")}
                     />
-                    <AppText style={[
-                        styles.modeText,
-                        item.solo_mode ? styles.soloText : (item.buddy ? styles.buddyText : styles.strangerText)
-                    ]}>
+                    <AppText
+                        style={[
+                            styles.modeText,
+                            item.solo_mode ? styles.soloText : (item.buddy ? styles.buddyText : styles.strangerText)
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="middle"
+                    >
                         {item.solo_mode
                             ? "Solo Mode"
                             : item.buddy

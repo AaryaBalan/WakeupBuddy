@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 16,
         marginBottom: 60,
         textAlign: 'center',
     },
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#000',
-        fontSize: 22,
+        fontSize: 20,
         fontFamily: 'Montserrat_700Bold',
     },
 });

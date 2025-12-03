@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     stepNumberText: {
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
         color: '#000',
     },
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     actionButtonText: {
-        fontSize: 15,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
         color: '#000',
     },

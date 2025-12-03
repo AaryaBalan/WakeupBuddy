@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         color: "#fff",
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
     iconButton: {

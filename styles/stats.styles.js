@@ -32,7 +32,7 @@ const statsStyles = StyleSheet.create({
     },
     headerTitle: {
         color: '#fff',
-        fontSize: 20,
+        fontSize: 18,
         fontFamily: 'Montserrat_700Bold',
     },
     iconButton: {
@@ -68,7 +68,7 @@ const statsStyles = StyleSheet.create({
     },
     buddyNames: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
     buddySubtitle: {
@@ -281,7 +281,7 @@ const statsStyles = StyleSheet.create({
     },
     emptyTitle: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_600SemiBold',
         marginTop: 16,
     },

@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
     timeContainer: {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: '#000',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
 });

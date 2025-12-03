@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#1a1a1a',
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     },
     avatarText: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
     userName: {

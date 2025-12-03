@@ -74,12 +74,12 @@ const profileStyles = StyleSheet.create({
     },
     name: {
         color: '#fff',
-        fontSize: 22,
+        fontSize: 20,
         fontFamily: 'Montserrat_700Bold',
     },
     username: {
         color: GRAY,
-        fontSize: 15,
+        fontSize: 14,
         marginTop: 4,
     },
     bio: {
@@ -118,7 +118,7 @@ const profileStyles = StyleSheet.create({
     },
     statNumber: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
     statLabel: {
@@ -302,7 +302,7 @@ const profileStyles = StyleSheet.create({
     },
     logoutText: {
         color: '#000',
-        fontSize: 15,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
     },
     versionText: {
@@ -333,7 +333,7 @@ const profileStyles = StyleSheet.create({
     },
     modalTitle: {
         color: '#fff',
-        fontSize: 20,
+        fontSize: 18,
         fontFamily: 'Montserrat_700Bold',
     },
     modalForm: {
@@ -387,7 +387,7 @@ const profileStyles = StyleSheet.create({
     },
     friendsButtonText: {
         color: '#000',
-        fontSize: 15,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
     },
     friendsCountBadge: {
@@ -445,7 +445,7 @@ const profileStyles = StyleSheet.create({
     },
     emptyFriendsText: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_600SemiBold',
         marginTop: 16,
     },
@@ -466,7 +466,7 @@ const profileStyles = StyleSheet.create({
     },
     exploreFriendsText: {
         color: '#000',
-        fontSize: 15,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
     },
     actionButtons: {
@@ -548,7 +548,7 @@ const profileStyles = StyleSheet.create({
     },
     refreshAvatarsText: {
         color: '#000',
-        fontSize: 15,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
     },
     savingOverlay: {

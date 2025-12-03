@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     },
     rankText: {
         color: "#666",
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
 
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     footerTotal: {
         color: NEON,
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 18,
+        fontSize: 16,
     },
     footerPercent: {
         color: "#666",

@@ -29,7 +29,7 @@ const homeStyles = StyleSheet.create({
         alignItems: 'center',
     },
     headerTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
@@ -159,7 +159,7 @@ const homeStyles = StyleSheet.create({
         marginBottom: 15,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
@@ -205,7 +205,7 @@ const homeStyles = StyleSheet.create({
         color: '#fff',
     },
     ampmText: {
-        fontSize: 20,
+        fontSize: 18,
         color: '#888',
         marginLeft: 10,
     },

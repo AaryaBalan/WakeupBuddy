@@ -28,7 +28,7 @@ const exploreStyles = StyleSheet.create({
         backgroundColor: '#1a1a1a',
         borderRadius: 16,
         paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingVertical: 5,
         marginBottom: 25,
         borderWidth: 1,
         borderColor: '#333',
@@ -39,7 +39,7 @@ const exploreStyles = StyleSheet.create({
     searchInput: {
         flex: 1,
         color: '#fff',
-        fontSize: 16,
+        fontSize: 13,
     },
     statsContainer: {
         flexDirection: 'row',
@@ -50,25 +50,25 @@ const exploreStyles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#111',
         borderRadius: 16,
-        padding: 16,
+        padding: 10,
         marginHorizontal: 5,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#222',
     },
     statNumber: {
-        fontSize: 28,
+        fontSize: 20,
         fontFamily: 'Montserrat_700Bold',
         color: '#C9E265',
         marginBottom: 4,
     },
     statLabel: {
-        fontSize: 12,
+        fontSize: 11,
         color: '#888',
         textAlign: 'center',
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontFamily: 'Montserrat_700Bold',
         color: '#fff',
         marginBottom: 16,
@@ -105,20 +105,20 @@ const exploreStyles = StyleSheet.create({
         flex: 1,
     },
     userName: {
-        fontSize: 18,
+        fontSize: 13,
         fontFamily: 'Montserrat_700Bold',
         color: '#fff',
         marginBottom: 2,
     },
     userUsername: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#C9E265',
         marginBottom: 4,
     },
     userBio: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#888',
-        lineHeight: 20,
+        lineHeight: 15,
     },
     userCardBottom: {
         flexDirection: 'row',
@@ -177,7 +177,7 @@ const exploreStyles = StyleSheet.create({
     },
     inviteButtonText: {
         color: '#000',
-        fontSize: 14,
+        fontSize: 11,
         fontFamily: 'Montserrat_600SemiBold',
     },
     profileButton: {
@@ -208,7 +208,7 @@ const exploreStyles = StyleSheet.create({
     },
     emptyText: {
         color: '#888',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Montserrat_600SemiBold',
         marginBottom: 8,
     },
