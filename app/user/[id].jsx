@@ -6,7 +6,7 @@ import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProfilePic from '../../components/ProfilePic';
 import { api } from '../../convex/_generated/api';
-import styles from "../../styles/profile.styles"
+import styles from "../../styles/profile.styles";
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
@@ -39,7 +39,7 @@ export default function PublicProfile() {
     const gridSquares = useMemo(() => {
         const today = new Date();
         const squares = [];
-        
+
         // Create a map of dates with wakeups
         const streakMap = new Map();
         if (recentStreaks) {
@@ -47,14 +47,14 @@ export default function PublicProfile() {
                 streakMap.set(s.date, s.count);
             });
         }
-        
+
         // Generate 90 days (3 months) going backwards from today
         for (let i = 89; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(today.getDate() - i);
             const dateStr = date.toISOString().split('T')[0];
             const count = streakMap.get(dateStr) || 0;
-            
+
             squares.push({
                 id: 89 - i,
                 date: dateStr,
@@ -63,7 +63,7 @@ export default function PublicProfile() {
                 intensity: count >= 3 ? 4 : count >= 2 ? 3 : count >= 1 ? 2 : 0,
             });
         }
-        
+
         return squares;
     }, [recentStreaks]);
 
@@ -165,15 +165,15 @@ export default function PublicProfile() {
 
                     <View style={styles.gridContainer}>
                         {gridSquares.map((sq) => (
-                            <View 
-                                key={sq.id} 
+                            <View
+                                key={sq.id}
                                 style={[
-                                    styles.gridSquare, 
+                                    styles.gridSquare,
                                     sq.intensity === 1 && styles.gridSquareLight,
                                     sq.intensity === 2 && styles.gridSquareMedium,
                                     sq.intensity === 3 && styles.gridSquareHigh,
                                     sq.intensity === 4 && styles.gridSquareFilled
-                                ]} 
+                                ]}
                             />
                         ))}
                     </View>

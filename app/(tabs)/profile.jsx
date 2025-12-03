@@ -191,14 +191,14 @@ export default function Profile() {
                 const intensity = count >= 3 ? 4 : count >= 2 ? 3 : count >= 1 ? 2 : 0;
 
                 return (
-                  <View 
-                    key={index} 
+                  <View
+                    key={index}
                     style={[
                       styles.gridSquare,
                       intensity === 2 && styles.gridSquareLight,
                       intensity === 3 && styles.gridSquareMedium,
                       intensity === 4 && styles.gridSquareFilled,
-                    ]} 
+                    ]}
                   />
                 );
               });
