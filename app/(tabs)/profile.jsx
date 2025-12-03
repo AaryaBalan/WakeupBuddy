@@ -465,7 +465,8 @@ export default function Profile() {
                           name: item.friend.name,
                           email: item.friend.email,
                           bio: item.friend.bio || '',
-                          profileImageSeed: item.friend.profileImageSeed || ''
+                          username: item.friend.username || '',
+                          profile_code: item.friend.profile_code || ''
                         }
                       });
                     }}

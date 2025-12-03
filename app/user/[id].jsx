@@ -24,9 +24,9 @@ export default function PublicProfile() {
     const user = {
         _id: params.id,
         name: params.name || 'User',
-        username: params.username || `user_${params.id}`,
+        username: params.username || (params.email ? params.email.split('@')[0] : params.name?.toLowerCase().replace(/\s+/g, '_') || 'user'),
         bio: params.bio || 'Morning person in training.',
-        profileImageSeed: params.profileImageSeed || params.username,
+        profile_code: params.profile_code || params.email,
         badge: params.badge || '',
         streak: parseInt(params.streak) || 0,
         maxStreak: parseInt(params.maxStreak) || 0,
