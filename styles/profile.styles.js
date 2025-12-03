@@ -488,31 +488,36 @@ const profileStyles = StyleSheet.create({
         fontFamily: 'Montserrat_700Bold',
     },
     actionButtons: {
+        flexDirection: 'row',
         marginTop: 24,
         gap: 12,
     },
     primaryBtn: {
+        flex: 1,
         backgroundColor: NEON,
         padding: 14,
         borderRadius: 12,
         alignItems: 'center',
+        justifyContent: 'center',
     },
     primaryBtnText: {
         color: '#000',
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
     },
     secondaryBtn: {
+        flex: 1,
         backgroundColor: '#222',
         padding: 14,
         borderRadius: 12,
         alignItems: 'center',
+        justifyContent: 'center',
         borderWidth: 1,
         borderColor: '#333',
     },
     secondaryBtnText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'Montserrat_600SemiBold',
     },
     // Avatar Picker Modal Styles
