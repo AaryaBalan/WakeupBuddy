@@ -766,7 +766,7 @@ export default function HomeScreen() {
                                             style={styles.actionButton}
                                             onPress={() => router.push({
                                                 pathname: '/screens/alarm-editor',
-                                                params: { alarmId: alarm._id }
+                                                params: { alarm: JSON.stringify(alarm) }
                                             })}
                                         >
                                             <Ionicons name="pencil" size={16} color="#888" />
