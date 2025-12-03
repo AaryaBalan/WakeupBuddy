@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
@@ -19,6 +20,7 @@ export default function AlarmsScreen() {
     const alarms = useQuery(api.alarms.getAlarmsByUser, userId ? { user_id: userId } : "skip");
     const toggleAlarmMutation = useMutation(api.alarms.toggleAlarm);
     const deleteAlarmMutation = useMutation(api.alarms.deleteAlarm);
+    const [deletingId, setDeletingId] = useState(null); // Track which alarm is being deleted
 
     const toggleAlarm = async (alarm) => {
         const newStatus = !alarm.enabled;
@@ -62,6 +64,8 @@ export default function AlarmsScreen() {
     };
 
     const deleteAlarm = async (id) => {
+        if (deletingId) return; // Prevent multiple deletions
+        setDeletingId(id);
         try {
             // Generate unique request code from alarm ID for proper cancellation
             const requestCode = generateRequestCode(id.toString());
@@ -72,6 +76,8 @@ export default function AlarmsScreen() {
         } catch (error) {
             console.error('Error deleting alarm:', error);
             showPopup('Failed to delete alarm', '#FF6B6B');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -147,8 +153,16 @@ export default function AlarmsScreen() {
                     onValueChange={() => toggleAlarm(item)}
                     value={item.enabled}
                 />
-                <TouchableOpacity onPress={() => deleteAlarm(item._id)} style={styles.deleteButton}>
-                    <Ionicons name="trash-outline" size={20} color="#ff4444" />
+                <TouchableOpacity 
+                    onPress={() => deleteAlarm(item._id)} 
+                    style={styles.deleteButton}
+                    disabled={deletingId === item._id}
+                >
+                    {deletingId === item._id ? (
+                        <ActivityIndicator size="small" color="#ff4444" />
+                    ) : (
+                        <Ionicons name="trash-outline" size={20} color="#ff4444" />
+                    )}
                 </TouchableOpacity>
             </View>
         </TouchableOpacity>
