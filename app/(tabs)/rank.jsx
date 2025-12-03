@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useUser } from '../../contexts/UserContext';
+import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import ProfilePic from '../../components/ProfilePic';
+import { useUser } from '../../contexts/UserContext';
 import styles from '../../styles/rank.styles';
 
 const NEON = '#C9E265';
@@ -12,7 +12,7 @@ const GRAY = '#BDBDBD';
 const DARK_GRAY = '#1A1A1A';
 
 const DATA = [
-    { id: '1', name: 'Sarah Jenkins', badge: '🔥', location: 'New York • 98% Success', points: '12,450', rank: 1, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&q=80' },
+    { id: '1', name: 'Sarah Jenkins', badge: 'flame', location: 'New York • 98% Success', points: '12,450', rank: 1, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&q=80' },
     { id: '2', name: 'Mike T.', badge: '', location: 'London • 95% Success', points: '11,200', rank: 2, avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&q=80' },
     { id: '3', name: 'Elena R.', badge: '', location: 'Berlin • 92% Success', points: '10,850', rank: 3, avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&q=80' },
     { id: '4', name: 'David Chen', badge: '', location: 'Toronto', points: '9,540', rank: 4, avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&q=80' },
@@ -64,7 +64,7 @@ export default function RankScreen() {
                 <View style={styles.infoCol}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={styles.nameText}>{item.name}</Text>
-                        {item.badge ? <Text style={styles.badgeText}> {item.badge}</Text> : null}
+                        {item.badge ? <Ionicons name={item.badge} size={14} color="#FF6B35" style={{ marginLeft: 4 }} /> : null}
                     </View>
                     <Text style={styles.locationText}>{item.location}</Text>
                 </View>

@@ -54,6 +54,15 @@ export default defineSchema({
         alarm_id: v.id('alarms')       // foreign key to alarms table
     })
         .index('by_user', ['users'])
-        .index('by_alarm', ['alarm_id'])
+        .index('by_alarm', ['alarm_id']),
+
+    friends: defineTable({
+        users: v.array(v.id('users')),  // [sender_id, receiver_id]
+        status: v.number(),              // 0 = pending, 1 = approved, -1 = rejected
+        created_at: v.number(),          // timestamp when request was created
+        friends_since: v.optional(v.number()), // timestamp when friendship was approved
+    })
+        .index('by_users', ['users'])
+        .index('by_status', ['status'])
 
 })

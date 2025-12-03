@@ -192,6 +192,91 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    // Friend Request Card Styles
+    friendRequestCard: {
+        backgroundColor: '#111',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 20,
+        borderLeftWidth: 4,
+        borderLeftColor: '#6B8BE3',
+    },
+    friendBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(107, 139, 227, 0.15)',
+        alignSelf: 'flex-start',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        marginBottom: 20,
+        marginLeft: 52,
+    },
+    friendBadgeText: {
+        color: '#6B8BE3',
+        fontWeight: 'bold',
+        marginLeft: 6,
+    },
+    friendAcceptButton: {
+        flex: 1,
+        backgroundColor: '#6B8BE3',
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    friendAcceptText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    // Alarm request accent
+    alarmRequestCard: {
+        backgroundColor: '#111',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 20,
+        borderLeftWidth: 4,
+        borderLeftColor: '#C9E265',
+    },
+    // Section tabs
+    tabsContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingTop: 15,
+        gap: 10,
+    },
+    tab: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        backgroundColor: '#1a1a1a',
+    },
+    tabActive: {
+        backgroundColor: '#C9E265',
+    },
+    tabText: {
+        color: '#888',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    tabTextActive: {
+        color: '#000',
+    },
+    tabBadge: {
+        position: 'absolute',
+        top: -5,
+        right: -5,
+        backgroundColor: '#ff4444',
+        borderRadius: 10,
+        minWidth: 18,
+        height: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    tabBadgeText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: 'bold',
+    },
 });
 
 export default styles;

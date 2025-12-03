@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
-import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProfilePic from '../../components/ProfilePic';
+import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from "../../styles/profile.styles";
 
@@ -16,18 +17,35 @@ const GRAY = '#BDBDBD';
 export default function PublicProfile() {
     const params = useLocalSearchParams();
     const router = useRouter();
+    const { user: currentUser } = useUser();
+    const [isLoading, setIsLoading] = useState(false);
 
     // Use params from navigation, fallback to defaults if missing
     const user = {
+        _id: params.id,
         name: params.name || 'User',
         username: params.username || `user_${params.id}`,
-        bio: params.bio || 'Morning person in training. 🌅',
+        bio: params.bio || 'Morning person in training.',
         profileImageSeed: params.profileImageSeed || params.username,
         badge: params.badge || '',
         streak: parseInt(params.streak) || 0,
         maxStreak: parseInt(params.maxStreak) || 0,
         email: params.email || '',
     };
+
+    // Mutations
+    const sendFriendRequest = useMutation(api.friends.sendFriendRequest);
+    const acceptFriendRequest = useMutation(api.friends.acceptFriendRequest);
+    const rejectFriendRequest = useMutation(api.friends.rejectFriendRequest);
+    const removeFriend = useMutation(api.friends.removeFriend);
+
+    // Get friendship status
+    const friendshipStatus = useQuery(
+        api.friends.getFriendshipStatus,
+        currentUser?.email && params.id
+            ? { userEmail: currentUser.email, otherUserId: params.id }
+            : 'skip'
+    );
 
     // Fetch real wake history for the last 90 days (3 months)
     const recentStreaks = useQuery(
@@ -74,15 +92,148 @@ export default function PublicProfile() {
         { key: 'locked', label: 'Locked', icon: 'lock-closed' },
     ];
 
-    const handleFriendRequest = () => {
-        router.push({
-            pathname: `/request/${params.id}`,
-            params: {
-                name: user.name,
-                avatar: user.avatar,
-                username: user.username
+    const handleSendFriendRequest = async () => {
+        if (!currentUser?.email || !params.id) return;
+        setIsLoading(true);
+        try {
+            await sendFriendRequest({
+                senderEmail: currentUser.email,
+                receiverId: params.id,
+            });
+        } catch (error) {
+            console.error('Failed to send friend request:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleAcceptRequest = async () => {
+        if (!currentUser?.email || !friendshipStatus?.friendshipId) return;
+        setIsLoading(true);
+        try {
+            await acceptFriendRequest({
+                friendshipId: friendshipStatus.friendshipId,
+                userEmail: currentUser.email,
+            });
+        } catch (error) {
+            console.error('Failed to accept friend request:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRejectRequest = async () => {
+        if (!currentUser?.email || !friendshipStatus?.friendshipId) return;
+        setIsLoading(true);
+        try {
+            await rejectFriendRequest({
+                friendshipId: friendshipStatus.friendshipId,
+                userEmail: currentUser.email,
+            });
+        } catch (error) {
+            console.error('Failed to reject friend request:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRemoveFriend = async () => {
+        if (!currentUser?.email || !friendshipStatus?.friendshipId) return;
+        setIsLoading(true);
+        try {
+            await removeFriend({
+                friendshipId: friendshipStatus.friendshipId,
+                userEmail: currentUser.email,
+            });
+        } catch (error) {
+            console.error('Failed to remove friend:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const renderFriendActions = () => {
+        if (isLoading) {
+            return (
+                <View style={styles.actionButtons}>
+                    <View style={[styles.primaryBtn, { opacity: 0.7 }]}>
+                        <ActivityIndicator color="#000" />
+                    </View>
+                </View>
+            );
+        }
+
+        if (!friendshipStatus || friendshipStatus.status === 'none' || friendshipStatus.status === 'rejected') {
+            return (
+                <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                        style={styles.primaryBtn}
+                        onPress={handleSendFriendRequest}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.primaryBtnText}>Send Friend Request</Text>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
+
+        if (friendshipStatus.status === 'pending') {
+            if (friendshipStatus.isSender) {
+                // Current user sent the request
+                return (
+                    <View style={styles.actionButtons}>
+                        <View style={[styles.secondaryBtn, { backgroundColor: '#333' }]}>
+                            <Text style={styles.secondaryBtnText}>Request Pending...</Text>
+                        </View>
+                    </View>
+                );
+            } else {
+                // Current user received the request
+                return (
+                    <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                            style={styles.primaryBtn}
+                            onPress={handleAcceptRequest}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.primaryBtnText}>Accept Request</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.secondaryBtn, { backgroundColor: '#ff4444', borderColor: '#ff4444' }]}
+                            onPress={handleRejectRequest}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={[styles.secondaryBtnText, { color: '#fff' }]}>Decline</Text>
+                        </TouchableOpacity>
+                    </View>
+                );
             }
-        });
+        }
+
+        if (friendshipStatus.status === 'friends') {
+            const friendsSince = friendshipStatus.friendsSince
+                ? new Date(friendshipStatus.friendsSince).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                : '';
+            return (
+                <View style={styles.actionButtons}>
+                    <View style={[styles.primaryBtn, { backgroundColor: '#2d4a2d', flexDirection: 'row', gap: 8 }]}>
+                        <Ionicons name="checkmark-circle" size={18} color="#C9E265" />
+                        <Text style={[styles.primaryBtnText, { color: '#C9E265' }]}>
+                            Friends {friendsSince ? `since ${friendsSince}` : ''}
+                        </Text>
+                    </View>
+                    <TouchableOpacity
+                        style={styles.secondaryBtn}
+                        onPress={handleRemoveFriend}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.secondaryBtnText}>Remove Friend</Text>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
+
+        return null;
     };
 
     return (
@@ -114,15 +265,7 @@ export default function PublicProfile() {
                         <Text style={styles.bio}>{user.bio}</Text>
 
                         {/* Friend Actions */}
-                        <View style={styles.actionButtons}>
-                            <TouchableOpacity style={styles.primaryBtn} onPress={handleFriendRequest} activeOpacity={0.8}>
-                                <Text style={styles.primaryBtnText}>Give Friend Request</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.8}>
-                                <Text style={styles.secondaryBtnText}>Manage Friendship</Text>
-                            </TouchableOpacity>
-                        </View>
+                        {renderFriendActions()}
                     </View>
 
                     {/* Stats Section */}

@@ -66,7 +66,7 @@ public class AlarmActivity extends Activity {
             }
             
             if (buddyName != null && !buddyName.isEmpty()) {
-                buddyText.setText("👥 With: " + buddyName);
+                buddyText.setText("With: " + buddyName);
                 buddyText.setVisibility(android.view.View.VISIBLE);
             } else {
                 buddyText.setVisibility(android.view.View.GONE);

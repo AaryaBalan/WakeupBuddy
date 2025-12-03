@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ProfilePic from '../../components/ProfilePic';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -15,14 +16,23 @@ export default function NotificationsScreen() {
     const { user } = useUser();
     const { showPopup } = usePopup();
     const userEmail = user?.email;
+    const [activeTab, setActiveTab] = useState('all'); // 'all', 'alarms', 'friends'
 
-    // Fetch notifications using Convex query
+    // Fetch alarm notifications using Convex query
     const notifications = useQuery(api.notifications.getNotificationsByEmail, userEmail ? { email: userEmail } : "skip");
-    const [processingId, setProcessingId] = useState(null); // Track which item is being processed
+
+    // Fetch friend requests
+    const friendRequests = useQuery(api.friends.getPendingRequests, userEmail ? { userEmail } : "skip");
+
+    const [processingId, setProcessingId] = useState(null);
 
     const createAlarm = useMutation(api.alarms.createAlarm);
     const updateNotificationStatus = useMutation(api.notifications.updateNotificationStatus);
     const acceptBuddyRequest = useMutation(api.notifications.acceptBuddyRequest);
+
+    // Friend request mutations
+    const acceptFriendRequest = useMutation(api.friends.acceptFriendRequest);
+    const rejectFriendRequest = useMutation(api.friends.rejectFriendRequest);
 
     const handleAccept = async (item) => {
         setProcessingId(item._id);
@@ -106,6 +116,39 @@ export default function NotificationsScreen() {
         }
     };
 
+    // Friend request handlers
+    const handleAcceptFriend = async (friendshipId) => {
+        setProcessingId(friendshipId);
+        try {
+            await acceptFriendRequest({
+                friendshipId,
+                userEmail: user.email,
+            });
+            showPopup('Friend request accepted!', '#4CAF50');
+        } catch (error) {
+            console.error('Error accepting friend request:', error);
+            showPopup('Failed to accept request', '#FF6B6B');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleDeclineFriend = async (friendshipId) => {
+        setProcessingId(friendshipId);
+        try {
+            await rejectFriendRequest({
+                friendshipId,
+                userEmail: user.email,
+            });
+            showPopup('Friend request declined', '#888');
+        } catch (error) {
+            console.error('Error declining friend request:', error);
+            showPopup('Failed to decline request', '#FF6B6B');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
     const formatRelativeTime = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
@@ -156,7 +199,7 @@ export default function NotificationsScreen() {
     );
 
     const renderInviteItem = ({ item }) => (
-        <View style={styles.inviteCard}>
+        <View style={styles.alarmRequestCard}>
             <View style={styles.inviteHeader}>
                 <View style={styles.userInfo}>
                     {/* Placeholder Avatar */}
@@ -198,19 +241,101 @@ export default function NotificationsScreen() {
         </View>
     );
 
+    const renderFriendRequestItem = ({ item }) => (
+        <View style={styles.friendRequestCard}>
+            <View style={styles.inviteHeader}>
+                <View style={styles.userInfo}>
+                    <View style={{ marginRight: 12 }}>
+                        <ProfilePic user={item.sender} size={40} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.userName}>{item.sender.name}</Text>
+                        <Text style={styles.inviteText}>
+                            Wants to be your <Text style={[styles.boldText, { color: '#6B8BE3' }]}>Friend</Text>
+                        </Text>
+                    </View>
+                </View>
+                <Text style={styles.timeAgo}>{formatRelativeTime(item.createdAt)}</Text>
+            </View>
+
+            <View style={styles.friendBadge}>
+                <Ionicons name="people" size={16} color="#6B8BE3" />
+                <Text style={styles.friendBadgeText}>Friend Request</Text>
+                {item.sender.streak > 0 && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
+                        <Ionicons name="flame" size={12} color="#FF6B35" />
+                        <Text style={{ color: '#888', marginLeft: 4, fontSize: 12 }}>
+                            {item.sender.streak} day streak
+                        </Text>
+                    </View>
+                )}
+            </View>
+
+            <View style={styles.actionButtons}>
+                <TouchableOpacity
+                    style={styles.declineButton}
+                    onPress={() => handleDeclineFriend(item.friendshipId)}
+                    disabled={processingId === item.friendshipId}
+                >
+                    {processingId === item.friendshipId ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <Text style={styles.declineText}>Decline</Text>
+                    )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.friendAcceptButton}
+                    onPress={() => handleAcceptFriend(item.friendshipId)}
+                    disabled={processingId === item.friendshipId}
+                >
+                    {processingId === item.friendshipId ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <Text style={styles.friendAcceptText}>Accept</Text>
+                    )}
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+
     const renderItem = ({ item }) => {
+        // Check if it's a friend request
+        if (item.type === 'friend_request') {
+            return renderFriendRequestItem({ item });
+        }
+        // Alarm notifications
         if (item.status === 1 || item.status === -1) {
             return renderHistoryItem({ item });
         }
         return renderInviteItem({ item });
     };
 
-    // Separate invites and earlier notifications if needed. 
-    // For now, I'll render everything as invites based on the UI, 
-    // or we can differentiate based on some data field. 
-    // The prompt implies all are "info" but the UI shows sections.
-    // I'll assume for now all fetched items are "Invites" for the top section.
-    // If there's a distinction, we'd need a field in the response.
+    // Combine and filter notifications based on active tab
+    const getCombinedNotifications = () => {
+        const alarmNotifs = (notifications || []).map(n => ({ ...n, type: 'alarm' }));
+        const friendNotifs = (friendRequests || []).map(f => ({ ...f, type: 'friend_request' }));
+
+        let combined = [];
+
+        if (activeTab === 'all') {
+            combined = [...alarmNotifs, ...friendNotifs];
+        } else if (activeTab === 'alarms') {
+            combined = alarmNotifs;
+        } else if (activeTab === 'friends') {
+            combined = friendNotifs;
+        }
+
+        // Sort by time (most recent first)
+        return combined.sort((a, b) => {
+            const timeA = a.type === 'friend_request' ? a.createdAt : new Date(a.time).getTime();
+            const timeB = b.type === 'friend_request' ? b.createdAt : new Date(b.time).getTime();
+            return timeB - timeA;
+        });
+    };
+
+    const pendingAlarms = (notifications || []).filter(n => n.status === 0).length;
+    const pendingFriends = (friendRequests || []).length;
+    const isLoading = notifications === undefined || friendRequests === undefined;
 
     return (
         <SafeAreaView style={styles.container}>
@@ -222,24 +347,81 @@ export default function NotificationsScreen() {
                 <Ionicons name="checkmark-done-outline" size={24} color="#888" />
             </View>
 
-            <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>INVITES</Text>
+            {/* Filter Tabs */}
+            <View style={styles.tabsContainer}>
+                <TouchableOpacity
+                    style={[styles.tab, activeTab === 'all' && styles.tabActive]}
+                    onPress={() => setActiveTab('all')}
+                >
+                    <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>
+                        All
+                    </Text>
+                    {(pendingAlarms + pendingFriends) > 0 && (
+                        <View style={styles.tabBadge}>
+                            <Text style={styles.tabBadgeText}>{pendingAlarms + pendingFriends}</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.tab, activeTab === 'alarms' && styles.tabActive]}
+                    onPress={() => setActiveTab('alarms')}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Ionicons name="notifications" size={14} color={activeTab === 'alarms' ? '#000' : '#888'} />
+                        <Text style={[styles.tabText, activeTab === 'alarms' && styles.tabTextActive]}>
+                            Alarms
+                        </Text>
+                    </View>
+                    {pendingAlarms > 0 && (
+                        <View style={styles.tabBadge}>
+                            <Text style={styles.tabBadgeText}>{pendingAlarms}</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.tab, activeTab === 'friends' && styles.tabActive]}
+                    onPress={() => setActiveTab('friends')}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Ionicons name="people" size={14} color={activeTab === 'friends' ? '#000' : '#888'} />
+                        <Text style={[styles.tabText, activeTab === 'friends' && styles.tabTextActive]}>
+                            Friends
+                        </Text>
+                    </View>
+                    {pendingFriends > 0 && (
+                        <View style={styles.tabBadge}>
+                            <Text style={styles.tabBadgeText}>{pendingFriends}</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
             </View>
 
-            {notifications === undefined ? (
+            <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>
+                    {activeTab === 'all' ? 'ALL NOTIFICATIONS' :
+                        activeTab === 'alarms' ? 'ALARM INVITES' : 'FRIEND REQUESTS'}
+                </Text>
+            </View>
+
+            {isLoading ? (
                 <View style={[styles.listContent, styles.loadingContainer]}>
                     <ActivityIndicator size="large" color="#C9E265" />
                 </View>
             ) : (
                 <FlatList
-                    data={notifications}
+                    data={getCombinedNotifications()}
                     renderItem={renderItem}
-                    keyExtractor={item => item._id}
+                    keyExtractor={item => item._id || item.friendshipId}
                     contentContainerStyle={styles.listContent}
                     ListEmptyComponent={
                         (
                             <View style={styles.emptyState}>
-                                <Text style={styles.emptyText}>No new notifications</Text>
+                                <Text style={styles.emptyText}>
+                                    {activeTab === 'all' ? 'No notifications' :
+                                        activeTab === 'alarms' ? 'No alarm invites' : 'No friend requests'}
+                                </Text>
                             </View>
                         )
                     }

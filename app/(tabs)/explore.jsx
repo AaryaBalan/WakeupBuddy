@@ -55,7 +55,7 @@ export default function ExploreScreen() {
                     <ProfilePic user={item} size={70} />
                     {item.streak >= 7 && (
                         <View style={[styles.featuredBadge, isMe && styles.featuredBadgeMe]}>
-                            <Text style={{ fontSize: 10 }}>🔥</Text>
+                            <Ionicons name="flame" size={10} color="#FF6B35" />
                         </View>
                     )}
                     {isMe && (
@@ -112,11 +112,11 @@ export default function ExploreScreen() {
             <View style={styles.userCardBottom}>
                 <View style={styles.streakContainer}>
                     <View style={styles.streakBadge}>
-                        <Text style={{ fontSize: 12 }}>🔥</Text>
+                        <Ionicons name="flame" size={12} color="#FF6B35" />
                         <Text style={styles.streakText}>{item.streak || 0}</Text>
                     </View>
                     <View style={styles.maxStreakBadge}>
-                        <Text style={{ fontSize: 12 }}>🏆</Text>
+                        <Ionicons name="trophy" size={12} color="#FFD700" />
                         <Text style={styles.maxStreakText}>{item.maxStreak || 0}</Text>
                     </View>
                 </View>
@@ -209,7 +209,10 @@ export default function ExploreScreen() {
                         {/* Featured Top Streakers */}
                         {topStreakers && topStreakers.length > 0 && (
                             <View style={styles.featuredSection}>
-                                <Text style={styles.sectionTitle}>🏆 Top Streakers</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <Ionicons name="trophy" size={18} color="#FFD700" />
+                                    <Text style={styles.sectionTitle}>Top Streakers</Text>
+                                </View>
                                 <ScrollView
                                     horizontal
                                     showsHorizontalScrollIndicator={false}

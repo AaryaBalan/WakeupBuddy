@@ -245,9 +245,9 @@ export default function HomeScreen() {
 
             if (result.status === 'success') {
                 updateUser({ streak: result.streak, maxStreak: result.maxStreak });
-                showPopup(`Streak: ${result.streak} days! 🔥 (Wakeup #${result.wakeupCount} today)`, '#4CAF50');
+                showPopup(`Streak: ${result.streak} days! (Wakeup #${result.wakeupCount} today)`, '#4CAF50');
             } else if (result.status === 'incremented') {
-                showPopup(`Wakeup #${result.wakeupCount} today! Keep it up! 💪`, '#4CAF50');
+                showPopup(`Wakeup #${result.wakeupCount} today! Keep it up!`, '#4CAF50');
             } else {
                 showPopup("Marked awake!", '#4CAF50');
             }
@@ -575,7 +575,7 @@ export default function HomeScreen() {
                     </View>
                     <View style={styles.streakCountContainer}>
                         <Text style={styles.streakCount}>{user?.streak || 0} days</Text>
-                        <Text style={styles.fireEmoji}>🔥</Text>
+                        <Ionicons name="flame" size={32} color="#FF6B35" style={{ marginLeft: 8 }} />
                     </View>
                     <Text style={styles.streakSubtext}>You're on fire! Keep it up.</Text>
 
