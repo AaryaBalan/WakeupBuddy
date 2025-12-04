@@ -295,3 +295,81 @@ export const getBuddyStats = query({
         };
     },
 });
+
+// Get comparison stats between user and buddy for charts
+export const getComparisonStats = query({
+    args: {
+        user1Email: v.string(),
+        user2Email: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user1 = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.user1Email))
+            .unique();
+
+        const user2 = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.user2Email))
+            .unique();
+
+        if (!user1 || !user2) {
+            return {
+                user1Stats: { streak: 0, maxStreak: 0, totalWakeups: 0 },
+                user2Stats: { streak: 0, maxStreak: 0, totalWakeups: 0 },
+                weeklyComparison: [],
+            };
+        }
+
+        // Get all streaks for both users
+        const user1Streaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", user1._id))
+            .collect();
+
+        const user2Streaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", user2._id))
+            .collect();
+
+        const user1TotalWakeups = user1Streaks.reduce((sum, s) => sum + s.count, 0);
+        const user2TotalWakeups = user2Streaks.reduce((sum, s) => sum + s.count, 0);
+
+        // Generate last 7 days for comparison
+        const today = new Date();
+        const weeklyComparison = [];
+
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+
+            const user1Day = user1Streaks.find(s => s.date === dateStr);
+            const user2Day = user2Streaks.find(s => s.date === dateStr);
+
+            weeklyComparison.push({
+                date: dateStr,
+                dayName,
+                user1Count: user1Day?.count || 0,
+                user2Count: user2Day?.count || 0,
+            });
+        }
+
+        return {
+            user1Stats: {
+                name: user1.name,
+                streak: user1.streak || 0,
+                maxStreak: user1.maxStreak || 0,
+                totalWakeups: user1TotalWakeups,
+            },
+            user2Stats: {
+                name: user2.name,
+                streak: user2.streak || 0,
+                maxStreak: user2.maxStreak || 0,
+                totalWakeups: user2TotalWakeups,
+            },
+            weeklyComparison,
+        };
+    },
+});

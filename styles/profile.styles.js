@@ -126,6 +126,58 @@ const profileStyles = StyleSheet.create({
         fontSize: 12,
         marginTop: 3,
     },
+    // Weekly Bar Chart Styles
+    weeklyChartContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        backgroundColor: '#070707',
+        borderRadius: 14,
+        padding: 16,
+        paddingTop: 12,
+        marginBottom: 12,
+    },
+    barColumn: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    barCount: {
+        color: NEON,
+        fontSize: 11,
+        fontFamily: 'Montserrat_700Bold',
+        height: 16,
+        marginBottom: 4,
+    },
+    barTrack: {
+        width: 28,
+        height: 85,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 6,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+    bar: {
+        width: '100%',
+        backgroundColor: '#1a1a1a',
+        borderRadius: 6,
+    },
+    barFilled: {
+        backgroundColor: 'rgba(201, 226, 101, 0.4)',
+    },
+    barToday: {
+        backgroundColor: NEON,
+    },
+    barDay: {
+        color: GRAY,
+        fontSize: 10,
+        marginTop: 6,
+        fontFamily: 'Montserrat_500Medium',
+    },
+    barDayToday: {
+        color: NEON,
+        fontFamily: 'Montserrat_700Bold',
+    },
     sectionHeaderRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -218,6 +270,167 @@ const profileStyles = StyleSheet.create({
     },
     gridSquareFilled: {
         backgroundColor: NEON,
+    },
+    // Time Period Selector
+    periodSelector: {
+        flexDirection: 'row',
+        backgroundColor: '#0a0a0a',
+        borderRadius: 10,
+        padding: 4,
+        marginBottom: 12,
+    },
+    periodButton: {
+        flex: 1,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    periodButtonActive: {
+        backgroundColor: NEON,
+    },
+    periodButtonText: {
+        color: GRAY,
+        fontSize: 12,
+        fontFamily: 'Montserrat_600SemiBold',
+    },
+    periodButtonTextActive: {
+        color: '#000',
+        fontFamily: 'Montserrat_700Bold',
+    },
+    // Line Graph Styles
+    lineGraphContainer: {
+        backgroundColor: '#070707',
+        borderRadius: 14,
+        padding: 12,
+        paddingBottom: 8,
+        marginBottom: 12,
+    },
+    lineGraphLabels: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        marginTop: 4,
+    },
+    lineGraphLabel: {
+        color: GRAY,
+        fontSize: 9,
+        fontFamily: 'Montserrat_500Medium',
+    },
+    // Charts Row (Side by side bar charts)
+    chartsRow: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 16,
+    },
+    miniChartCard: {
+        flex: 1,
+        backgroundColor: '#070707',
+        borderRadius: 12,
+        padding: 12,
+    },
+    miniChartTitle: {
+        color: '#fff',
+        fontSize: 12,
+        fontFamily: 'Montserrat_700Bold',
+        marginBottom: 10,
+    },
+    miniBarContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        height: 60,
+        marginBottom: 8,
+    },
+    miniBarColumn: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    miniBarTrack: {
+        width: 16,
+        height: 55,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 4,
+        justifyContent: 'flex-end',
+        overflow: 'hidden',
+    },
+    miniBar: {
+        width: '100%',
+        backgroundColor: '#1a1a1a',
+        borderRadius: 4,
+    },
+    miniBarFilled: {
+        backgroundColor: 'rgba(201, 226, 101, 0.4)',
+    },
+    miniBarToday: {
+        backgroundColor: NEON,
+    },
+    miniBarDay: {
+        color: GRAY,
+        fontSize: 8,
+        marginTop: 4,
+        fontFamily: 'Montserrat_500Medium',
+    },
+    miniBarDayToday: {
+        color: NEON,
+        fontFamily: 'Montserrat_700Bold',
+    },
+    miniChartTotal: {
+        color: GRAY,
+        fontSize: 10,
+        textAlign: 'center',
+    },
+    // Monthly Progress Chart Styles
+    monthlyChartContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        backgroundColor: '#070707',
+        borderRadius: 14,
+        padding: 16,
+        paddingTop: 12,
+        marginBottom: 16,
+    },
+    monthBarColumn: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    monthBarCount: {
+        color: NEON,
+        fontSize: 11,
+        fontFamily: 'Montserrat_700Bold',
+        height: 16,
+        marginBottom: 4,
+    },
+    monthBarTrack: {
+        width: 36,
+        height: 75,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 6,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+    monthBar: {
+        width: '100%',
+        backgroundColor: '#1a1a1a',
+        borderRadius: 6,
+    },
+    monthBarFilled: {
+        backgroundColor: 'rgba(201, 226, 101, 0.35)',
+    },
+    monthBarCurrent: {
+        backgroundColor: NEON,
+    },
+    monthBarLabel: {
+        color: GRAY,
+        fontSize: 10,
+        marginTop: 6,
+        fontFamily: 'Montserrat_500Medium',
+    },
+    monthBarLabelCurrent: {
+        color: NEON,
+        fontFamily: 'Montserrat_700Bold',
     },
     achRow: {
         flexDirection: 'row',
@@ -675,6 +888,75 @@ const profileStyles = StyleSheet.create({
         color: GRAY,
         fontSize: 14,
         marginTop: 16,
+    },
+    // Full Width Stacked Bar Charts
+    fullWidthChartCard: {
+        backgroundColor: '#070707',
+        borderRadius: 14,
+        padding: 16,
+        marginBottom: 14,
+    },
+    chartCardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 14,
+    },
+    chartCardTitle: {
+        color: '#fff',
+        fontSize: 14,
+        fontFamily: 'Montserrat_700Bold',
+    },
+    chartCardTotal: {
+        color: NEON,
+        fontSize: 12,
+        fontFamily: 'Montserrat_600SemiBold',
+    },
+    fullBarContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        height: 100,
+    },
+    fullBarColumn: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    barValueLabel: {
+        color: NEON,
+        fontSize: 10,
+        fontFamily: 'Montserrat_700Bold',
+        height: 14,
+        marginBottom: 4,
+    },
+    fullBarTrack: {
+        width: 32,
+        height: 65,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 6,
+        justifyContent: 'flex-end',
+        overflow: 'hidden',
+    },
+    fullBar: {
+        width: '100%',
+        backgroundColor: '#1a1a1a',
+        borderRadius: 6,
+    },
+    fullBarFilled: {
+        backgroundColor: 'rgba(201, 226, 101, 0.4)',
+    },
+    fullBarToday: {
+        backgroundColor: NEON,
+    },
+    fullBarDay: {
+        color: GRAY,
+        fontSize: 10,
+        marginTop: 6,
+        fontFamily: 'Montserrat_500Medium',
+    },
+    fullBarDayToday: {
+        color: NEON,
+        fontFamily: 'Montserrat_700Bold',
     },
 });
 

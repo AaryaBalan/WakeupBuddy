@@ -420,3 +420,228 @@ export const getRecentStreaksById = query({
         return filteredStreaks;
     }
 });
+
+/**
+ * Get weekly wakeup stats for bar chart (last 7 days)
+ */
+export const getWeeklyStats = query({
+    args: {
+        userEmail: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .unique();
+
+        if (!user) return [];
+
+        const today = new Date();
+        const weekDays = [];
+
+        // Generate last 7 days
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+            weekDays.push({ date: dateStr, dayName, count: 0 });
+        }
+
+        // Get streak entries for this week
+        const streaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .collect();
+
+        // Map counts to days
+        const streakMap = new Map(streaks.map(s => [s.date, s.count]));
+        weekDays.forEach(day => {
+            day.count = streakMap.get(day.date) || 0;
+        });
+
+        return weekDays;
+    }
+});
+
+/**
+ * Get monthly wakeup stats for the last 6 months (for bar chart)
+ */
+export const getMonthlyStats = query({
+    args: {
+        userEmail: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .unique();
+
+        if (!user) return [];
+
+        const today = new Date();
+        const months = [];
+
+        // Generate last 6 months
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+            months.push({ month: monthKey, monthName, wakeups: 0 });
+        }
+
+        // Get all streak entries
+        const streaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .collect();
+
+        // Aggregate by month
+        streaks.forEach(s => {
+            const monthKey = s.date.substring(0, 7); // YYYY-MM
+            const monthEntry = months.find(m => m.month === monthKey);
+            if (monthEntry) {
+                monthEntry.wakeups += s.count;
+            }
+        });
+
+        return months;
+    }
+});
+
+/**
+ * Get profile stats summary
+ */
+export const getProfileStats = query({
+    args: {
+        userEmail: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .unique();
+
+        if (!user) return null;
+
+        // Get all streaks
+        const allStreaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .collect();
+
+        const totalWakeups = allStreaks.reduce((sum, s) => sum + s.count, 0);
+        const totalDaysActive = allStreaks.length;
+
+        // Calculate average wakeups per active day
+        const avgWakeups = totalDaysActive > 0
+            ? (totalWakeups / totalDaysActive).toFixed(1)
+            : "0.0";
+
+        // Get leaderboard entry for rank
+        const leaderboardEntry = await ctx.db
+            .query("leaderboard")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .unique();
+
+        return {
+            totalWakeups,
+            totalDaysActive,
+            avgWakeups,
+            currentStreak: user.streak || 0,
+            maxStreak: user.maxStreak || 0,
+            rank: leaderboardEntry?.rank || '-',
+            points: leaderboardEntry?.total_points || 0,
+        };
+    }
+});
+
+/**
+ * Get chart data for different time periods (day, week, month, year)
+ */
+export const getChartData = query({
+    args: {
+        userEmail: v.string(),
+        period: v.string(), // 'day', 'week', 'month', 'year'
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .unique();
+
+        if (!user) return { labels: [], data: [], total: 0 };
+
+        const allStreaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .collect();
+
+        const streakMap = new Map(allStreaks.map(s => [s.date, s.count]));
+        const today = new Date();
+        let labels = [];
+        let data = [];
+
+        if (args.period === 'day') {
+            // Last 24 hours - show hourly (we'll use daily data as proxy)
+            // Since we don't track hourly, show last 7 days hourly view
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                labels.push(dayName);
+                data.push(streakMap.get(dateStr) || 0);
+            }
+        } else if (args.period === 'week') {
+            // Last 7 days
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                labels.push(dayName);
+                data.push(streakMap.get(dateStr) || 0);
+            }
+        } else if (args.period === 'month') {
+            // Last 30 days - grouped by week
+            for (let week = 3; week >= 0; week--) {
+                let weekTotal = 0;
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - (week * 7 + 6));
+
+                for (let day = 0; day < 7; day++) {
+                    const date = new Date(weekStart);
+                    date.setDate(weekStart.getDate() + day);
+                    const dateStr = date.toISOString().split('T')[0];
+                    weekTotal += streakMap.get(dateStr) || 0;
+                }
+
+                const weekLabel = `W${4 - week}`;
+                labels.push(weekLabel);
+                data.push(weekTotal);
+            }
+        } else if (args.period === 'year') {
+            // Last 12 months
+            for (let i = 11; i >= 0; i--) {
+                const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+
+                let monthTotal = 0;
+                allStreaks.forEach(s => {
+                    if (s.date.startsWith(monthKey)) {
+                        monthTotal += s.count;
+                    }
+                });
+
+                labels.push(monthName);
+                data.push(monthTotal);
+            }
+        }
+
+        const total = data.reduce((sum, val) => sum + val, 0);
+        return { labels, data, total };
+    }
+});
+

@@ -174,9 +174,12 @@ export default function NotificationsScreen() {
         <View style={styles.historyCard}>
             <View style={styles.historyHeader}>
                 <View style={styles.userInfo}>
-                    <View style={styles.avatarPlaceholderSmall}>
-                        <AppText style={styles.avatarTextSmall}>{item.created_by.name?.charAt(0).toUpperCase()}</AppText>
-                    </View>
+                    <TouchableOpacity
+                        style={{ marginRight: 10 }}
+                        onPress={() => router.push(`/user/${item.created_by._id}?name=${encodeURIComponent(item.created_by.name)}&email=${encodeURIComponent(item.created_by.email || '')}&avatar=${encodeURIComponent(item.created_by.avatar || '')}`)}
+                    >
+                        <ProfilePic user={item.created_by} size={32} />
+                    </TouchableOpacity>
                     <View>
                         <AppText style={styles.userNameSmall}>{item.created_by.name}</AppText>
                         <AppText style={styles.historyText}>
@@ -203,10 +206,12 @@ export default function NotificationsScreen() {
         <View style={styles.alarmRequestCard}>
             <View style={styles.inviteHeader}>
                 <View style={styles.userInfo}>
-                    {/* Placeholder Avatar */}
-                    <View style={styles.avatarPlaceholder}>
-                        <AppText style={styles.avatarText}>{item.created_by.name?.charAt(0).toUpperCase()}</AppText>
-                    </View>
+                    <TouchableOpacity
+                        style={{ marginRight: 12 }}
+                        onPress={() => router.push(`/user/${item.created_by._id}?name=${encodeURIComponent(item.created_by.name)}&email=${encodeURIComponent(item.created_by.email || '')}&avatar=${encodeURIComponent(item.created_by.avatar || '')}`)}
+                    >
+                        <ProfilePic user={item.created_by} size={40} />
+                    </TouchableOpacity>
                     <View>
                         <AppText style={styles.userName}>{item.created_by.name}</AppText>
                         <AppText style={styles.inviteText}>
@@ -246,12 +251,15 @@ export default function NotificationsScreen() {
         // If it's accepted or rejected, show history view
         if (item.status === 1 || item.status === -1) {
             return (
-                <View style={[styles.historyCard, { borderLeftWidth: 4, borderLeftColor: '#6B8BE3' }]}>
+                <View style={[styles.historyCard, { borderLeftWidth: 4, borderLeftColor: '#FF6B9D' }]}>
                     <View style={styles.historyHeader}>
                         <View style={styles.userInfo}>
-                            <View style={{ marginRight: 10 }}>
+                            <TouchableOpacity
+                                style={{ marginRight: 10 }}
+                                onPress={() => router.push(`/user/${item.sender._id}?name=${encodeURIComponent(item.sender.name)}&email=${encodeURIComponent(item.sender.email || '')}&avatar=${encodeURIComponent(item.sender.avatar || '')}`)}
+                            >
                                 <ProfilePic user={item.sender} size={32} />
-                            </View>
+                            </TouchableOpacity>
                             <View>
                                 <AppText style={styles.userNameSmall}>{item.sender.name}</AppText>
                                 <AppText style={styles.historyText}>
@@ -265,9 +273,9 @@ export default function NotificationsScreen() {
                         <Ionicons
                             name={item.status === 1 ? "people" : "close-circle"}
                             size={16}
-                            color={item.status === 1 ? "#6B8BE3" : "#ff4444"}
+                            color={item.status === 1 ? "#FF6B9D" : "#ff4444"}
                         />
-                        <AppText style={[styles.historyStatus, { color: item.status === 1 ? "#6B8BE3" : "#ff4444" }]}>
+                        <AppText style={[styles.historyStatus, { color: item.status === 1 ? "#FF6B9D" : "#ff4444" }]}>
                             {item.status === 1 ? 'Friends' : 'Declined'}
                         </AppText>
                     </View>
@@ -280,13 +288,16 @@ export default function NotificationsScreen() {
             <View style={styles.friendRequestCard}>
                 <View style={styles.inviteHeader}>
                     <View style={styles.userInfo}>
-                        <View style={{ marginRight: 12 }}>
+                        <TouchableOpacity
+                            style={{ marginRight: 12 }}
+                            onPress={() => router.push(`/user/${item.sender._id}?name=${encodeURIComponent(item.sender.name)}&email=${encodeURIComponent(item.sender.email || '')}&avatar=${encodeURIComponent(item.sender.avatar || '')}`)}
+                        >
                             <ProfilePic user={item.sender} size={40} />
-                        </View>
+                        </TouchableOpacity>
                         <View style={{ flex: 1 }}>
                             <AppText style={styles.userName}>{item.sender.name}</AppText>
                             <AppText style={styles.inviteText}>
-                                Wants to be your <AppText style={[styles.boldText, { color: '#6B8BE3' }]}>Friend</AppText>
+                                Wants to be your <AppText style={[styles.boldText, { color: '#FF6B9D' }]}>Friend</AppText>
                             </AppText>
                         </View>
                     </View>
@@ -294,7 +305,7 @@ export default function NotificationsScreen() {
                 </View>
 
                 <View style={styles.friendBadge}>
-                    <Ionicons name="people" size={16} color="#6B8BE3" />
+                    <Ionicons name="people" size={16} color="#FF6B9D" />
                     <AppText style={styles.friendBadgeText}>Friend Request</AppText>
                     {item.sender.streak > 0 && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
