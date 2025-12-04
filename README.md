@@ -216,11 +216,15 @@ This project is private and proprietary.
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Authors
 
 **Aarya Balan**
 
 - GitHub: [@AaryaBalan](https://github.com/AaryaBalan)
+
+**Akshaya T**
+
+- GitHub: [@Akshayathiru](https://github.com/Akshayathiru)
 
 ---
 
