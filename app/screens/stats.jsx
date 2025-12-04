@@ -163,24 +163,24 @@ export default function BuddyStats() {
                                 const user1Height = day.user1Count > 0 ? Math.max((day.user1Count / maxCount) * 70, 8) : 4;
                                 const user2Height = day.user2Count > 0 ? Math.max((day.user2Count / maxCount) * 70, 8) : 4;
                                 const isToday = index === 6;
-                                
+
                                 return (
                                     <View key={day.date} style={styles.comparisonBarColumn}>
                                         <View style={styles.comparisonBarsRow}>
                                             <View style={styles.comparisonBarTrack}>
-                                                <View 
+                                                <View
                                                     style={[
                                                         styles.comparisonBar,
                                                         { height: user1Height, backgroundColor: day.user1Count > 0 ? NEON : '#1a1a1a' },
-                                                    ]} 
+                                                    ]}
                                                 />
                                             </View>
                                             <View style={styles.comparisonBarTrack}>
-                                                <View 
+                                                <View
                                                     style={[
                                                         styles.comparisonBar,
                                                         { height: user2Height, backgroundColor: day.user2Count > 0 ? BUDDY_COLOR : '#1a1a1a' },
-                                                    ]} 
+                                                    ]}
                                                 />
                                             </View>
                                         </View>
@@ -218,7 +218,7 @@ export default function BuddyStats() {
                                     </View>
                                 </View>
                             </View>
-                            
+
                             {/* Max Streak Comparison */}
                             <View style={styles.statCompareRow}>
                                 <AppText style={styles.statCompareLabel}>Best Streak</AppText>
@@ -238,7 +238,7 @@ export default function BuddyStats() {
                                     </View>
                                 </View>
                             </View>
-                            
+
                             {/* Total Wakeups Comparison */}
                             <View style={[styles.statCompareRow, { borderBottomWidth: 0 }]}>
                                 <AppText style={styles.statCompareLabel}>Total Wakeups</AppText>

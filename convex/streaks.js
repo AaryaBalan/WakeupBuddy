@@ -438,7 +438,7 @@ export const getWeeklyStats = query({
 
         const today = new Date();
         const weekDays = [];
-        
+
         // Generate last 7 days
         for (let i = 6; i >= 0; i--) {
             const date = new Date(today);
@@ -481,7 +481,7 @@ export const getMonthlyStats = query({
 
         const today = new Date();
         const months = [];
-        
+
         // Generate last 6 months
         for (let i = 5; i >= 0; i--) {
             const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -534,8 +534,8 @@ export const getProfileStats = query({
         const totalDaysActive = allStreaks.length;
 
         // Calculate average wakeups per active day
-        const avgWakeups = totalDaysActive > 0 
-            ? (totalWakeups / totalDaysActive).toFixed(1) 
+        const avgWakeups = totalDaysActive > 0
+            ? (totalWakeups / totalDaysActive).toFixed(1)
             : "0.0";
 
         // Get leaderboard entry for rank
@@ -609,14 +609,14 @@ export const getChartData = query({
                 let weekTotal = 0;
                 const weekStart = new Date(today);
                 weekStart.setDate(today.getDate() - (week * 7 + 6));
-                
+
                 for (let day = 0; day < 7; day++) {
                     const date = new Date(weekStart);
                     date.setDate(weekStart.getDate() + day);
                     const dateStr = date.toISOString().split('T')[0];
                     weekTotal += streakMap.get(dateStr) || 0;
                 }
-                
+
                 const weekLabel = `W${4 - week}`;
                 labels.push(weekLabel);
                 data.push(weekTotal);
@@ -627,14 +627,14 @@ export const getChartData = query({
                 const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
                 const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-                
+
                 let monthTotal = 0;
                 allStreaks.forEach(s => {
                     if (s.date.startsWith(monthKey)) {
                         monthTotal += s.count;
                     }
                 });
-                
+
                 labels.push(monthName);
                 data.push(monthTotal);
             }

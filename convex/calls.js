@@ -338,16 +338,16 @@ export const getComparisonStats = query({
         // Generate last 7 days for comparison
         const today = new Date();
         const weeklyComparison = [];
-        
+
         for (let i = 6; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(today.getDate() - i);
             const dateStr = date.toISOString().split('T')[0];
             const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-            
+
             const user1Day = user1Streaks.find(s => s.date === dateStr);
             const user2Day = user2Streaks.find(s => s.date === dateStr);
-            
+
             weeklyComparison.push({
                 date: dateStr,
                 dayName,

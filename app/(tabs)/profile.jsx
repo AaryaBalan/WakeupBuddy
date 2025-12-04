@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Rect } from 'react-native-svg';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { usePopup } from '../../contexts/PopupContext';
@@ -320,18 +319,18 @@ export default function Profile() {
                 const maxCount = Math.max(...(weeklyStats?.map(d => d.count) || [1]), 1);
                 const barHeight = day.count > 0 ? Math.max((day.count / maxCount) * 60, 8) : 4;
                 const isToday = index === 6;
-                
+
                 return (
                   <View key={day.date} style={styles.fullBarColumn}>
                     <AppText style={styles.barValueLabel}>{day.count > 0 ? day.count : ''}</AppText>
                     <View style={styles.fullBarTrack}>
-                      <View 
+                      <View
                         style={[
                           styles.fullBar,
                           { height: barHeight },
                           day.count > 0 && styles.fullBarFilled,
                           isToday && day.count > 0 && styles.fullBarToday,
-                        ]} 
+                        ]}
                       />
                     </View>
                     <AppText style={[styles.fullBarDay, isToday && styles.fullBarDayToday]}>
@@ -356,18 +355,18 @@ export default function Profile() {
                 const maxWakeups = Math.max(...(monthlyStats?.map(m => m.wakeups) || [1]), 1);
                 const barHeight = month.wakeups > 0 ? Math.max((month.wakeups / maxWakeups) * 60, 8) : 4;
                 const isCurrentMonth = index === monthlyStats.length - 1;
-                
+
                 return (
                   <View key={month.month} style={styles.fullBarColumn}>
                     <AppText style={styles.barValueLabel}>{month.wakeups > 0 ? month.wakeups : ''}</AppText>
                     <View style={styles.fullBarTrack}>
-                      <View 
+                      <View
                         style={[
                           styles.fullBar,
                           { height: barHeight },
                           month.wakeups > 0 && styles.fullBarFilled,
                           isCurrentMonth && month.wakeups > 0 && styles.fullBarToday,
-                        ]} 
+                        ]}
                       />
                     </View>
                     <AppText style={[styles.fullBarDay, isCurrentMonth && styles.fullBarDayToday]}>

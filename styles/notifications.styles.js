@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     // History Card Styles
     historyCard: {
         backgroundColor: '#111',
-        borderRadius: 14,
+        // borderRadius: 14,
         padding: 12,
         marginBottom: 12,
         opacity: 0.8,
