@@ -112,7 +112,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#1a1a1a',
         paddingVertical: 10,
-        borderRadius: 10,
         alignItems: 'center',
     },
     declineText: {
@@ -123,7 +122,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#C9E265',
         paddingVertical: 10,
-        borderRadius: 10,
         alignItems: 'center',
     },
     acceptText: {
@@ -195,16 +193,15 @@ const styles = StyleSheet.create({
     // Friend Request Card Styles
     friendRequestCard: {
         backgroundColor: '#111',
-        borderRadius: 14,
         padding: 16,
         marginBottom: 16,
         borderLeftWidth: 3,
-        borderLeftColor: '#6B8BE3',
+        borderLeftColor: '#FF6B9D',
     },
     friendBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(107, 139, 227, 0.15)',
+        backgroundColor: 'rgba(255, 107, 157, 0.15)',
         alignSelf: 'flex-start',
         paddingVertical: 5,
         paddingHorizontal: 10,
@@ -213,15 +210,14 @@ const styles = StyleSheet.create({
         marginLeft: 46,
     },
     friendBadgeText: {
-        color: '#6B8BE3',
+        color: '#FF6B9D',
         fontFamily: 'Montserrat_700Bold',
         marginLeft: 6,
     },
     friendAcceptButton: {
         flex: 1,
-        backgroundColor: '#6B8BE3',
+        backgroundColor: '#FF6B9D',
         paddingVertical: 12,
-        borderRadius: 12,
         alignItems: 'center',
     },
     friendAcceptText: {
@@ -231,7 +227,6 @@ const styles = StyleSheet.create({
     // Alarm request accent
     alarmRequestCard: {
         backgroundColor: '#111',
-        borderRadius: 14,
         padding: 16,
         marginBottom: 16,
         borderLeftWidth: 3,
