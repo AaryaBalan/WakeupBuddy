@@ -218,7 +218,7 @@ This project is private and proprietary.
 
 ## 👨‍💻 Authors
 
-**Aarya Balan**
+**Aarya B**
 
 - GitHub: [@AaryaBalan](https://github.com/AaryaBalan)
 
