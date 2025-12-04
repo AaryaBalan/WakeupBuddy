@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -9,8 +9,10 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from '../../styles/stats.styles';
 
+const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
 const GRAY = '#BDBDBD';
+const BUDDY_COLOR = '#FF6B9D';
 
 export default function BuddyStats() {
     const params = useLocalSearchParams();
@@ -29,6 +31,14 @@ export default function BuddyStats() {
     // Fetch buddy stats
     const buddyStats = useQuery(
         api.calls.getBuddyStats,
+        currentUser?.email && buddy.email
+            ? { user1Email: currentUser.email, user2Email: buddy.email }
+            : 'skip'
+    );
+
+    // Fetch comparison stats for charts
+    const comparisonStats = useQuery(
+        api.calls.getComparisonStats,
         currentUser?.email && buddy.email
             ? { user1Email: currentUser.email, user2Email: buddy.email }
             : 'skip'
@@ -129,6 +139,128 @@ export default function BuddyStats() {
                         <AppText style={styles.overviewLabel}>Best Streak</AppText>
                     </View>
                 </View>
+
+                {/* Weekly Comparison Chart */}
+                {comparisonStats && comparisonStats.weeklyComparison && (
+                    <>
+                        <AppText style={styles.sectionTitle}>Weekly Comparison</AppText>
+                        <View style={styles.comparisonLegend}>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: NEON }]} />
+                                <AppText style={styles.legendLabel}>You</AppText>
+                            </View>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: BUDDY_COLOR }]} />
+                                <AppText style={styles.legendLabel}>{buddy.name?.split(' ')[0] || 'Buddy'}</AppText>
+                            </View>
+                        </View>
+                        <View style={styles.comparisonChartContainer}>
+                            {comparisonStats.weeklyComparison.map((day, index) => {
+                                const maxCount = Math.max(
+                                    ...comparisonStats.weeklyComparison.map(d => Math.max(d.user1Count, d.user2Count)),
+                                    1
+                                );
+                                const user1Height = day.user1Count > 0 ? Math.max((day.user1Count / maxCount) * 70, 8) : 4;
+                                const user2Height = day.user2Count > 0 ? Math.max((day.user2Count / maxCount) * 70, 8) : 4;
+                                const isToday = index === 6;
+                                
+                                return (
+                                    <View key={day.date} style={styles.comparisonBarColumn}>
+                                        <View style={styles.comparisonBarsRow}>
+                                            <View style={styles.comparisonBarTrack}>
+                                                <View 
+                                                    style={[
+                                                        styles.comparisonBar,
+                                                        { height: user1Height, backgroundColor: day.user1Count > 0 ? NEON : '#1a1a1a' },
+                                                    ]} 
+                                                />
+                                            </View>
+                                            <View style={styles.comparisonBarTrack}>
+                                                <View 
+                                                    style={[
+                                                        styles.comparisonBar,
+                                                        { height: user2Height, backgroundColor: day.user2Count > 0 ? BUDDY_COLOR : '#1a1a1a' },
+                                                    ]} 
+                                                />
+                                            </View>
+                                        </View>
+                                        <AppText style={[styles.comparisonDayLabel, isToday && styles.comparisonDayLabelToday]}>
+                                            {day.dayName}
+                                        </AppText>
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    </>
+                )}
+
+                {/* Individual Stats Comparison */}
+                {comparisonStats && (
+                    <>
+                        <AppText style={styles.sectionTitle}>Stats Comparison</AppText>
+                        <View style={styles.statsComparisonCard}>
+                            {/* Streak Comparison */}
+                            <View style={styles.statCompareRow}>
+                                <AppText style={styles.statCompareLabel}>Current Streak</AppText>
+                                <View style={styles.statCompareValues}>
+                                    <View style={styles.statCompareItem}>
+                                        <AppText style={[styles.statCompareValue, { color: NEON }]}>
+                                            {comparisonStats.user1Stats?.streak || 0}
+                                        </AppText>
+                                        <AppText style={styles.statCompareUser}>You</AppText>
+                                    </View>
+                                    <View style={styles.statCompareDivider} />
+                                    <View style={styles.statCompareItem}>
+                                        <AppText style={[styles.statCompareValue, { color: BUDDY_COLOR }]}>
+                                            {comparisonStats.user2Stats?.streak || 0}
+                                        </AppText>
+                                        <AppText style={styles.statCompareUser}>{buddy.name?.split(' ')[0]}</AppText>
+                                    </View>
+                                </View>
+                            </View>
+                            
+                            {/* Max Streak Comparison */}
+                            <View style={styles.statCompareRow}>
+                                <AppText style={styles.statCompareLabel}>Best Streak</AppText>
+                                <View style={styles.statCompareValues}>
+                                    <View style={styles.statCompareItem}>
+                                        <AppText style={[styles.statCompareValue, { color: NEON }]}>
+                                            {comparisonStats.user1Stats?.maxStreak || 0}
+                                        </AppText>
+                                        <AppText style={styles.statCompareUser}>You</AppText>
+                                    </View>
+                                    <View style={styles.statCompareDivider} />
+                                    <View style={styles.statCompareItem}>
+                                        <AppText style={[styles.statCompareValue, { color: BUDDY_COLOR }]}>
+                                            {comparisonStats.user2Stats?.maxStreak || 0}
+                                        </AppText>
+                                        <AppText style={styles.statCompareUser}>{buddy.name?.split(' ')[0]}</AppText>
+                                    </View>
+                                </View>
+                            </View>
+                            
+                            {/* Total Wakeups Comparison */}
+                            <View style={[styles.statCompareRow, { borderBottomWidth: 0 }]}>
+                                <AppText style={styles.statCompareLabel}>Total Wakeups</AppText>
+                                <View style={styles.statCompareValues}>
+                                    <View style={styles.statCompareItem}>
+                                        <AppText style={[styles.statCompareValue, { color: NEON }]}>
+                                            {comparisonStats.user1Stats?.totalWakeups || 0}
+                                        </AppText>
+                                        <AppText style={styles.statCompareUser}>You</AppText>
+                                    </View>
+                                    <View style={styles.statCompareDivider} />
+                                    <View style={styles.statCompareItem}>
+                                        <AppText style={[styles.statCompareValue, { color: BUDDY_COLOR }]}>
+                                            {comparisonStats.user2Stats?.totalWakeups || 0}
+                                        </AppText>
+                                        <AppText style={styles.statCompareUser}>{buddy.name?.split(' ')[0]}</AppText>
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+                    </>
+                )}
 
                 {/* Call Stats */}
                 <AppText style={styles.sectionTitle}>Call Statistics</AppText>

@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Rect } from 'react-native-svg';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { usePopup } from '../../contexts/PopupContext';
@@ -38,6 +39,24 @@ export default function Profile() {
   const recentStreaks = useQuery(
     api.streaks.getRecentStreaks,
     user?.email ? { userEmail: user.email, days: 90 } : "skip"
+  );
+
+  // Get weekly stats for bar chart
+  const weeklyStats = useQuery(
+    api.streaks.getWeeklyStats,
+    user?.email ? { userEmail: user.email } : "skip"
+  );
+
+  // Get monthly stats for chart
+  const monthlyStats = useQuery(
+    api.streaks.getMonthlyStats,
+    user?.email ? { userEmail: user.email } : "skip"
+  );
+
+  // Get profile stats summary
+  const profileStats = useQuery(
+    api.streaks.getProfileStats,
+    user?.email ? { userEmail: user.email } : "skip"
   );
 
   // Get friends list
@@ -202,7 +221,7 @@ export default function Profile() {
           {/* Stats Section */}
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <AppText style={styles.statNumber}>{recentStreaks?.length || 0}</AppText>
+              <AppText style={styles.statNumber}>{profileStats?.totalWakeups || recentStreaks?.length || 0}</AppText>
               <AppText style={styles.statLabel}>Wakeups</AppText>
             </View>
             <View style={styles.statBox}>
@@ -285,6 +304,79 @@ export default function Profile() {
                 );
               });
             })()}
+          </View>
+
+          {/* Bar Charts - Stacked Vertically */}
+          {/* Weekly Bar Chart */}
+          <View style={styles.fullWidthChartCard}>
+            <View style={styles.chartCardHeader}>
+              <AppText style={styles.chartCardTitle}>This Week</AppText>
+              <AppText style={styles.chartCardTotal}>
+                {weeklyStats?.reduce((sum, d) => sum + d.count, 0) || 0} wakeups
+              </AppText>
+            </View>
+            <View style={styles.fullBarContainer}>
+              {weeklyStats?.map((day, index) => {
+                const maxCount = Math.max(...(weeklyStats?.map(d => d.count) || [1]), 1);
+                const barHeight = day.count > 0 ? Math.max((day.count / maxCount) * 60, 8) : 4;
+                const isToday = index === 6;
+                
+                return (
+                  <View key={day.date} style={styles.fullBarColumn}>
+                    <AppText style={styles.barValueLabel}>{day.count > 0 ? day.count : ''}</AppText>
+                    <View style={styles.fullBarTrack}>
+                      <View 
+                        style={[
+                          styles.fullBar,
+                          { height: barHeight },
+                          day.count > 0 && styles.fullBarFilled,
+                          isToday && day.count > 0 && styles.fullBarToday,
+                        ]} 
+                      />
+                    </View>
+                    <AppText style={[styles.fullBarDay, isToday && styles.fullBarDayToday]}>
+                      {day.dayName}
+                    </AppText>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Monthly Bar Chart */}
+          <View style={styles.fullWidthChartCard}>
+            <View style={styles.chartCardHeader}>
+              <AppText style={styles.chartCardTitle}>Last 6 Months</AppText>
+              <AppText style={styles.chartCardTotal}>
+                {monthlyStats?.reduce((sum, m) => sum + m.wakeups, 0) || 0} wakeups
+              </AppText>
+            </View>
+            <View style={styles.fullBarContainer}>
+              {monthlyStats?.map((month, index) => {
+                const maxWakeups = Math.max(...(monthlyStats?.map(m => m.wakeups) || [1]), 1);
+                const barHeight = month.wakeups > 0 ? Math.max((month.wakeups / maxWakeups) * 60, 8) : 4;
+                const isCurrentMonth = index === monthlyStats.length - 1;
+                
+                return (
+                  <View key={month.month} style={styles.fullBarColumn}>
+                    <AppText style={styles.barValueLabel}>{month.wakeups > 0 ? month.wakeups : ''}</AppText>
+                    <View style={styles.fullBarTrack}>
+                      <View 
+                        style={[
+                          styles.fullBar,
+                          { height: barHeight },
+                          month.wakeups > 0 && styles.fullBarFilled,
+                          isCurrentMonth && month.wakeups > 0 && styles.fullBarToday,
+                        ]} 
+                      />
+                    </View>
+                    <AppText style={[styles.fullBarDay, isCurrentMonth && styles.fullBarDayToday]}>
+                      {month.monthName}
+                    </AppText>
+                  </View>
+                );
+              })}
+            </View>
           </View>
 
           {/* Achievements */}

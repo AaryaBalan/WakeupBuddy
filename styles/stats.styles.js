@@ -112,6 +112,116 @@ const statsStyles = StyleSheet.create({
         fontSize: 11,
         marginTop: 3,
     },
+    // Comparison Legend
+    comparisonLegend: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 24,
+        marginBottom: 12,
+    },
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    legendDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+    },
+    legendLabel: {
+        color: GRAY,
+        fontSize: 12,
+    },
+    // Weekly Comparison Chart
+    comparisonChartContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        backgroundColor: '#0a0a0a',
+        borderRadius: 14,
+        padding: 16,
+        paddingTop: 12,
+        marginBottom: 14,
+        borderWidth: 1,
+        borderColor: '#1a1a1a',
+    },
+    comparisonBarColumn: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    comparisonBarsRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        gap: 3,
+        height: 75,
+    },
+    comparisonBarTrack: {
+        width: 14,
+        height: 75,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 4,
+        justifyContent: 'flex-end',
+        overflow: 'hidden',
+    },
+    comparisonBar: {
+        width: '100%',
+        borderRadius: 4,
+    },
+    comparisonDayLabel: {
+        color: GRAY,
+        fontSize: 9,
+        marginTop: 6,
+        fontFamily: 'Montserrat_500Medium',
+    },
+    comparisonDayLabelToday: {
+        color: NEON,
+        fontFamily: 'Montserrat_700Bold',
+    },
+    // Stats Comparison Card
+    statsComparisonCard: {
+        backgroundColor: '#0a0a0a',
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 14,
+        borderWidth: 1,
+        borderColor: '#1a1a1a',
+    },
+    statCompareRow: {
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: '#1a1a1a',
+    },
+    statCompareLabel: {
+        color: GRAY,
+        fontSize: 12,
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    statCompareValues: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    statCompareItem: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    statCompareValue: {
+        fontSize: 28,
+        fontFamily: 'Montserrat_800ExtraBold',
+    },
+    statCompareUser: {
+        color: GRAY,
+        fontSize: 11,
+        marginTop: 2,
+    },
+    statCompareDivider: {
+        width: 1,
+        height: 40,
+        backgroundColor: '#2a2a2a',
+        marginHorizontal: 20,
+    },
     // Call Stats Card
     callStatsCard: {
         backgroundColor: '#0a0a0a',
