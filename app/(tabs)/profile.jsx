@@ -3,9 +3,9 @@ import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -168,8 +168,11 @@ export default function Profile() {
     return '@' + user.email.split('@')[0];
   };
 
+  // Determine if screen is loading
+  const isLoading = user === undefined || profileStats === undefined || weeklyStats === undefined;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper isLoading={isLoading}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll}>
           {/* Header */}
@@ -760,6 +763,6 @@ export default function Profile() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

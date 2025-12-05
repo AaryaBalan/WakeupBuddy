@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import AppText from '../../components/AppText';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -144,19 +144,8 @@ export default function ExploreScreen() {
         </TouchableOpacity>
     );
 
-    if (allUsersIncludingMe === undefined) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#C9E265" />
-                    <AppText style={styles.loadingText}>Finding buddies...</AppText>
-                </View>
-            </SafeAreaView>
-        );
-    }
-
     return (
-        <SafeAreaView style={styles.container}>
+        <ScreenWrapper style={styles.container} isLoading={allUsersIncludingMe === undefined}>
             <FlatList
                 data={filteredUsers}
                 keyExtractor={(item) => item._id}
@@ -244,6 +233,6 @@ export default function ExploreScreen() {
                     </View>
                 }
             />
-        </SafeAreaView>
+        </ScreenWrapper>
     );
 }

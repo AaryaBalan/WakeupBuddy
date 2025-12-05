@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from "expo-router";
 import { useEffect } from 'react';
 import { Image, StatusBar, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import AppText from '../components/AppText';
+import ScreenWrapper from '../components/ScreenWrapper';
 import { useUser } from "../contexts/UserContext";
 import styles from '../styles/index.styles.js';
 
@@ -18,7 +18,7 @@ export default function Index() {
   }, [user, loading]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper isLoading={loading}>
       <StatusBar barStyle="light-content" />
       <View style={styles.content}>
 
@@ -77,6 +77,6 @@ export default function Index() {
           By continuing, you agree to our Terms.
         </AppText>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

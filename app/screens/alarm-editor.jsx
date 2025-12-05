@@ -5,8 +5,8 @@ import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -233,8 +233,11 @@ export default function AlarmEditorScreen() {
 
     const { time, ampm } = getTimeParts(date);
 
+    // Determine if screen is loading
+    const isScreenLoading = user === undefined;
+
     return (
-        <SafeAreaView style={styles.container}>
+        <ScreenWrapper isLoading={isScreenLoading}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
 
                 {/* Header */}
@@ -480,6 +483,6 @@ export default function AlarmEditorScreen() {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-        </SafeAreaView>
+        </ScreenWrapper>
     );
 }

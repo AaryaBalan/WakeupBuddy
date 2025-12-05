@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/myBuddies.styles';
@@ -48,8 +48,11 @@ export default function MyBuddiesScreen() {
         );
     };
 
+    // Determine if screen is loading
+    const isScreenLoading = user === undefined || friends === undefined;
+
     return (
-        <SafeAreaView style={styles.container}>
+        <ScreenWrapper isLoading={isScreenLoading}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -69,37 +72,31 @@ export default function MyBuddiesScreen() {
             )}
 
             {/* Friends List */}
-            {friends === undefined ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#C9E265" />
-                </View>
-            ) : (
-                <FlatList
-                    data={friends}
-                    renderItem={renderFriend}
-                    keyExtractor={item => item.friendshipId}
-                    contentContainerStyle={[
-                        styles.listContent,
-                        friends.length === 0 && styles.emptyListContent
-                    ]}
-                    ListEmptyComponent={
-                        <View style={styles.emptyState}>
-                            <Ionicons name="people-outline" size={80} color="#333" />
-                            <AppText style={styles.emptyTitle}>No Buddies Yet</AppText>
-                            <AppText style={styles.emptySubtitle}>
-                                Find people to connect with and become wake buddies!
-                            </AppText>
-                            <TouchableOpacity
-                                style={styles.exploreButton}
-                                onPress={() => router.push('/(tabs)/rank')}
-                            >
-                                <Ionicons name="search" size={18} color="#000" />
-                                <AppText style={styles.exploreButtonText}>Explore People</AppText>
-                            </TouchableOpacity>
-                        </View>
-                    }
-                />
-            )}
-        </SafeAreaView>
+            <FlatList
+                data={friends || []}
+                renderItem={renderFriend}
+                keyExtractor={item => item.friendshipId}
+                contentContainerStyle={[
+                    styles.listContent,
+                    (!friends || friends.length === 0) && styles.emptyListContent
+                ]}
+                ListEmptyComponent={
+                    <View style={styles.emptyState}>
+                        <Ionicons name="people-outline" size={80} color="#333" />
+                        <AppText style={styles.emptyTitle}>No Buddies Yet</AppText>
+                        <AppText style={styles.emptySubtitle}>
+                            Find people to connect with and become wake buddies!
+                        </AppText>
+                        <TouchableOpacity
+                            style={styles.exploreButton}
+                            onPress={() => router.push('/(tabs)/rank')}
+                        >
+                            <Ionicons name="search" size={18} color="#000" />
+                            <AppText style={styles.exploreButtonText}>Explore People</AppText>
+                        </TouchableOpacity>
+                    </View>
+                }
+            />
+        </ScreenWrapper>
     );
 }
