@@ -26,14 +26,32 @@ export default function NotificationsScreen() {
     const friendRequests = useQuery(api.friends.getAllReceivedRequests, userEmail ? { userEmail } : "skip");
 
     const [processingId, setProcessingId] = useState(null);
+    const [isClearing, setIsClearing] = useState(false);
 
     const createAlarm = useMutation(api.alarms.createAlarm);
     const updateNotificationStatus = useMutation(api.notifications.updateNotificationStatus);
     const acceptBuddyRequest = useMutation(api.notifications.acceptBuddyRequest);
+    const clearAllNotifications = useMutation(api.notifications.clearAllNotifications);
 
     // Friend request mutations
     const acceptFriendRequest = useMutation(api.friends.acceptFriendRequest);
     const rejectFriendRequest = useMutation(api.friends.rejectFriendRequest);
+
+    // Clear all notifications handler
+    const handleClearAll = async () => {
+        if (!userEmail || isClearing) return;
+
+        setIsClearing(true);
+        try {
+            const result = await clearAllNotifications({ userEmail });
+            showPopup(`Cleared ${result.deletedCount} notifications`, '#4CAF50');
+        } catch (error) {
+            console.error('Error clearing notifications:', error);
+            showPopup('Failed to clear notifications', '#FF6B6B');
+        } finally {
+            setIsClearing(false);
+        }
+    };
 
     const handleAccept = async (item) => {
         setProcessingId(item._id);
@@ -391,7 +409,13 @@ export default function NotificationsScreen() {
                     <Ionicons name="chevron-back" size={24} color="#fff" />
                 </TouchableOpacity>
                 <AppText style={styles.headerTitle}>Notifications</AppText>
-                <Ionicons name="checkmark-done-outline" size={24} color="#888" />
+                <TouchableOpacity onPress={handleClearAll} disabled={isClearing}>
+                    {isClearing ? (
+                        <ActivityIndicator size="small" color="#888" />
+                    ) : (
+                        <Ionicons name="checkmark-done-outline" size={24} color="#888" />
+                    )}
+                </TouchableOpacity>
             </View>
 
             {/* Filter Tabs */}

@@ -203,3 +203,25 @@ export const isBuddyAccepted = query({
         return false;
     }
 });
+
+// Clear all notifications for a user (mark as read/delete processed ones)
+export const clearAllNotifications = mutation({
+    args: { userEmail: v.string() },
+    handler: async (ctx, args) => {
+        // Get all notifications where this user is the receiver
+        const notifications = await ctx.db
+            .query("notifications")
+            .withIndex("by_receiver", (q) => q.eq("with_whom", args.userEmail))
+            .collect();
+
+        let deletedCount = 0;
+
+        // Delete all notifications (both pending and processed)
+        for (const notification of notifications) {
+            await ctx.db.delete(notification._id);
+            deletedCount++;
+        }
+
+        return { deletedCount };
+    }
+});
