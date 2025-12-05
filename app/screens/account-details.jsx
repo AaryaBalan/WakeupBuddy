@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
@@ -7,6 +8,7 @@ import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
+import { api } from '../../convex/_generated/api';
 import styles from '../../styles/accountDetails.styles';
 
 const NEON = '#C9E265';
@@ -16,6 +18,7 @@ export default function AccountDetailsScreen() {
     const router = useRouter();
     const { user, updateUser } = useUser();
     const { showPopup } = usePopup();
+    const updateUserMutation = useMutation(api.users.updateUser);
 
     const [changePasswordModal, setChangePasswordModal] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -80,7 +83,12 @@ export default function AccountDetailsScreen() {
 
         setIsChangingPassword(true);
         try {
-            // Update password via context/mutation
+            // Update password in Convex database
+            await updateUserMutation({ 
+                id: user._id, 
+                password: newPassword 
+            });
+            // Also update local state
             await updateUser({ password: newPassword });
             showModalMessage('Password changed successfully!', 'success');
         } catch (error) {
