@@ -445,10 +445,9 @@ export default function Profile() {
           <AppText style={styles.settingsHeader}>Settings</AppText>
           <View style={styles.settingsCard}>
             {[
-              { key: 'account', label: 'Account Details', icon: 'person-outline' },
-              { key: 'wake', label: 'Wake Preferences', icon: 'time-outline', route: '/screens/PermissionsGuide' },
-              { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline' },
-              { key: 'notifications', label: 'Notifications', icon: 'notifications-outline', route: '/screens/PermissionsGuide' },
+              { key: 'account', label: 'Account Details', icon: 'person-outline', route: '/screens/account-details' },
+              { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline', route: '/screens/PermissionsGuide' },
+              { key: 'notifications', label: 'Notifications', icon: 'notifications-outline', route: '/screens/notifications' },
             ].map((item) => (
               <TouchableOpacity
                 key={item.key}
@@ -465,7 +464,7 @@ export default function Profile() {
             ))}
           </View>
 
-          <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7} onPress={() => router.push('/screens/premium')}>
             <View style={styles.settingLeft}>
               <Ionicons name="star" size={20} color={NEON} />
               <AppText style={styles.premiumText}>Manage Premium</AppText>
