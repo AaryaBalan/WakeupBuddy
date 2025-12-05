@@ -245,7 +245,7 @@ export default function PermissionsGuide() {
                 <View style={styles.infoBox}>
                     <Ionicons name="information-circle" size={24} color="#C9E265" />
                     <AppText style={styles.infoText}>
-                        All 6 permissions are essential for WakeBuddy to wake you up reliably and call your buddy, even when the app isn't open.
+                        All 6 permissions are essential for WakeUpBuddy to wake you up reliably and call your buddy, even when the app isn't open.
                     </AppText>
                 </View>
 

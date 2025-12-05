@@ -548,7 +548,7 @@ export default function HomeScreen() {
                         <View style={styles.logoContainer}>
                             <Ionicons name="flash" size={24} color="#000" />
                         </View>
-                        <AppText style={styles.headerTitle}>WakeBuddy</AppText>
+                        <AppText style={styles.headerTitle}>WakeUpBuddy</AppText>
                     </View>
                     <View style={styles.headerRight}>
                         <TouchableOpacity
