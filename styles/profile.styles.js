@@ -640,7 +640,7 @@ const profileStyles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
-        height: '75%',
+        height: '70%',
         borderTopWidth: 1,
         borderColor: '#333',
     },
