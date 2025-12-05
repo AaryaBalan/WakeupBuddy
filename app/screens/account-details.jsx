@@ -84,9 +84,9 @@ export default function AccountDetailsScreen() {
         setIsChangingPassword(true);
         try {
             // Update password in Convex database
-            await updateUserMutation({ 
-                id: user._id, 
-                password: newPassword 
+            await updateUserMutation({
+                id: user._id,
+                password: newPassword
             });
             // Also update local state
             await updateUser({ password: newPassword });
