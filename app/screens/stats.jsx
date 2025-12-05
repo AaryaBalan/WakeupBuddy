@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from '../../styles/stats.styles';
@@ -71,13 +71,21 @@ export default function BuddyStats() {
         return { value: mins.toString(), unit: mins === 1 ? 'minute' : 'minutes' };
     };
 
-    // Determine if screen is loading
-    const isScreenLoading = !buddyStats;
+    if (!buddyStats) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={NEON} />
+                    <AppText style={styles.loadingText}>Loading stats...</AppText>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
-    const totalTime = buddyStats ? formatTotalTime(buddyStats.totalCallTime) : { value: '0', unit: 'minutes' };
+    const totalTime = formatTotalTime(buddyStats.totalCallTime);
 
     return (
-        <ScreenWrapper isLoading={isScreenLoading}>
+        <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scroll}>
                 {/* Header */}
                 <View style={styles.headerRow}>
@@ -363,6 +371,6 @@ export default function BuddyStats() {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

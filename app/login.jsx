@@ -4,7 +4,7 @@ import { useConvex } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
-import ScreenWrapper from '../components/ScreenWrapper';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { usePopup } from "../contexts/PopupContext";
 import { useUser } from "../contexts/UserContext";
 import { api } from "../convex/_generated/api";
@@ -52,7 +52,7 @@ export default function Login() {
     };
 
     return (
-        <ScreenWrapper>
+        <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" />
             <View style={styles.content}>
 
@@ -147,6 +147,6 @@ export default function Login() {
 
 
             </View>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

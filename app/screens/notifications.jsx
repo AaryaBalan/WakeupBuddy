@@ -3,9 +3,9 @@ import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -400,10 +400,10 @@ export default function NotificationsScreen() {
 
     const pendingAlarms = (notifications || []).filter(n => n.status === 0).length;
     const pendingFriends = (friendRequests || []).filter(f => f.status === 0).length;
-    const isScreenLoading = notifications === undefined || friendRequests === undefined;
+    const isLoading = notifications === undefined || friendRequests === undefined;
 
     return (
-        <ScreenWrapper isLoading={isScreenLoading}>
+        <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="chevron-back" size={24} color="#fff" />
@@ -476,22 +476,28 @@ export default function NotificationsScreen() {
                 </AppText>
             </View>
 
-            <FlatList
-                data={getCombinedNotifications()}
-                renderItem={renderItem}
-                keyExtractor={item => item._id || item.friendshipId}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={
-                    (
-                        <View style={styles.emptyState}>
-                            <AppText style={styles.emptyText}>
-                                {activeTab === 'all' ? 'No notifications' :
-                                    activeTab === 'alarms' ? 'No alarm invites' : 'No friend requests'}
-                            </AppText>
-                        </View>
-                    )
-                }
-            />
-        </ScreenWrapper>
+            {isLoading ? (
+                <View style={[styles.listContent, styles.loadingContainer]}>
+                    <ActivityIndicator size="large" color="#C9E265" />
+                </View>
+            ) : (
+                <FlatList
+                    data={getCombinedNotifications()}
+                    renderItem={renderItem}
+                    keyExtractor={item => item._id || item.friendshipId}
+                    contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={
+                        (
+                            <View style={styles.emptyState}>
+                                <AppText style={styles.emptyText}>
+                                    {activeTab === 'all' ? 'No notifications' :
+                                        activeTab === 'alarms' ? 'No alarm invites' : 'No friend requests'}
+                                </AppText>
+                            </View>
+                        )
+                    }
+                />
+            )}
+        </SafeAreaView>
     );
 }

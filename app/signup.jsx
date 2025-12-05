@@ -4,7 +4,7 @@ import { useMutation } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
-import ScreenWrapper from '../components/ScreenWrapper';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { usePopup } from "../contexts/PopupContext";
 import { api } from "../convex/_generated/api";
 import styles from '../styles/signup.styles';
@@ -61,7 +61,7 @@ export default function Signup() {
     };
 
     return (
-        <ScreenWrapper>
+        <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" />
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.content}>
@@ -200,6 +200,6 @@ export default function Signup() {
 
                 </View>
             </ScrollView>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

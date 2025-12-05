@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/request.styles';
 
 const NEON = '#C9E265';
@@ -33,7 +33,7 @@ export default function FriendRequestScreen() {
     };
 
     return (
-        <ScreenWrapper>
+        <SafeAreaView style={styles.container}>
 
             <View style={styles.container}>
                 {/* Header */}
@@ -115,6 +115,6 @@ export default function FriendRequestScreen() {
                     )}
                 </View>
             </View>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

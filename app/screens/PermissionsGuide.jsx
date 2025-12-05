@@ -3,8 +3,8 @@ import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from "../../styles/permissionsGuide.styles";
 import { checkAllPermissions, requestBatteryOptimization, requestCallPhonePermission, requestDrawOverlays, requestExactAlarmPermission } from '../native/AlarmNative';
 
@@ -63,7 +63,7 @@ export default function PermissionsGuide() {
     };
 
     return (
-        <ScreenWrapper isLoading={isLoading}>
+        <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Header */}
                 <View style={styles.header}>
@@ -270,6 +270,6 @@ export default function PermissionsGuide() {
                     </AppText>
                 </View>
             </ScrollView>
-        </ScreenWrapper>
+        </SafeAreaView >
     );
 }

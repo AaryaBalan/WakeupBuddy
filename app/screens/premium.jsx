@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Dimensions, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/premium.styles';
 
 const { width } = Dimensions.get('window');
@@ -12,7 +12,7 @@ export default function PremiumScreen() {
     const router = useRouter();
 
     return (
-        <ScreenWrapper>
+        <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
@@ -82,6 +82,6 @@ export default function PremiumScreen() {
                     </AppText>
                 </View>
             </View>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

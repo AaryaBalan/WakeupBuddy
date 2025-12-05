@@ -3,9 +3,9 @@ import { useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
@@ -99,11 +99,8 @@ export default function AccountDetailsScreen() {
         }
     };
 
-    // Determine if screen is loading
-    const isScreenLoading = user === undefined;
-
     return (
-        <ScreenWrapper isLoading={isScreenLoading}>
+        <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
@@ -336,6 +333,6 @@ export default function AccountDetailsScreen() {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

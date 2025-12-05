@@ -5,9 +5,9 @@ import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -538,11 +538,8 @@ export default function HomeScreen() {
         checkPerms();
     }, []);
 
-    // Determine if screen is loading
-    const isLoading = user === undefined || alarms === undefined || recentStreaks === undefined;
-
     return (
-        <ScreenWrapper isLoading={isLoading}>
+        <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
 
                 {/* Header */}
@@ -913,6 +910,6 @@ export default function HomeScreen() {
                 )}
 
             </ScrollView>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

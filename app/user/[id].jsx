@@ -3,9 +3,9 @@ import { useMutation, useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Dimensions, Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from "../../styles/profile.styles";
@@ -257,11 +257,20 @@ export default function PublicProfile() {
         return null;
     };
 
-    // Determine if screen is loading
-    const isScreenLoading = fetchedUser === undefined;
+    // Show loading state while fetching user data
+    if (fetchedUser === undefined) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <ActivityIndicator size="large" color={NEON} />
+                    <AppText style={{ color: '#666', marginTop: 12 }}>Loading profile...</AppText>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
-        <ScreenWrapper isLoading={isScreenLoading}>
+        <SafeAreaView style={styles.container}>
 
             <View style={styles.container}>
                 <ScrollView contentContainerStyle={styles.scroll}>
@@ -489,6 +498,6 @@ export default function PublicProfile() {
                     </View>
                 </View>
             </Modal>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

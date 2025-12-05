@@ -3,8 +3,8 @@ import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Switch, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
@@ -168,35 +168,38 @@ export default function AlarmsScreen() {
         </TouchableOpacity>
     );
 
-    // Determine if screen is loading
-    const isLoading = user === undefined || alarms === undefined;
-
     return (
-        <ScreenWrapper isLoading={isLoading}>
+        <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <AppText style={styles.headerTitle}>Alarms</AppText>
             </View>
 
-            <FlatList
-                data={alarms || []}
-                renderItem={renderItem}
-                keyExtractor={item => item._id}
-                contentContainerStyle={[styles.listContent, (!alarms || alarms.length === 0) && styles.emptyListContent]}
-                ListEmptyComponent={
-                    <View style={styles.emptyState}>
-                        <Ionicons name="alarm-outline" size={80} color="#C9E265" />
-                        <AppText style={styles.emptyTitle}>No Alarms Set</AppText>
-                        <AppText style={styles.emptySubtitle}>Click add button to set the alarm</AppText>
-                        <AppText style={styles.emptyDescription}>Connect with stranger or set alarm in solo mode</AppText>
-                    </View>
-                }
-            />
+            {alarms === undefined ? (
+                <View style={[styles.listContent, styles.loadingContainer]}>
+                    <ActivityIndicator size="large" color="#C9E265" />
+                </View>
+            ) : (
+                <FlatList
+                    data={alarms}
+                    renderItem={renderItem}
+                    keyExtractor={item => item._id}
+                    contentContainerStyle={[styles.listContent, alarms.length === 0 && styles.emptyListContent]}
+                    ListEmptyComponent={
+                        <View style={styles.emptyState}>
+                            <Ionicons name="alarm-outline" size={80} color="#C9E265" />
+                            <AppText style={styles.emptyTitle}>No Alarms Set</AppText>
+                            <AppText style={styles.emptySubtitle}>Click add button to set the alarm</AppText>
+                            <AppText style={styles.emptyDescription}>Connect with stranger or set alarm in solo mode</AppText>
+                        </View>
+                    }
+                />
+            )}
             <TouchableOpacity
                 style={styles.fab}
                 onPress={() => router.push('/screens/alarm-editor')}
             >
                 <Ionicons name="add" size={32} color="#000" />
             </TouchableOpacity>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }

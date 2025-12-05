@@ -3,9 +3,9 @@ import { useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from '../../styles/rank.styles';
@@ -216,11 +216,8 @@ export default function RankScreen() {
         return recentlyActive ? '+points earned today' : 'Wake up to earn!';
     };
 
-    // Determine if screen is loading
-    const isLoading = user === undefined || leaderboardData === undefined || globalStats === undefined;
-
     return (
-        <ScreenWrapper isLoading={isLoading}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <FlatList
                 data={leaderboardData || []}
                 renderItem={renderItem}
@@ -250,6 +247,6 @@ export default function RankScreen() {
                     <AppText style={styles.footerPercent}>{getUserPercentile()}</AppText>
                 </View>
             </TouchableOpacity>
-        </ScreenWrapper>
+        </SafeAreaView>
     );
 }
