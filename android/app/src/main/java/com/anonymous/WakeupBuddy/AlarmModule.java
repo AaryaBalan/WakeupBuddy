@@ -203,6 +203,10 @@ public class AlarmModule extends ReactContextBaseJavaModule {
                 } else {
                     am.setExact(AlarmManager.RTC_WAKEUP, when, pi);
                 }
+                
+                // Persist alarm to SharedPreferences for recovery after force-stop or reboot
+                saveAlarmToPrefs(ctx, requestCode, when, buddyName, alarmId);
+                
                 promise.resolve(true);
             } else {
                 promise.reject("ERROR", "AlarmManager not available");
@@ -210,6 +214,25 @@ public class AlarmModule extends ReactContextBaseJavaModule {
         } catch (Exception e) {
             promise.reject("ERROR", e.getMessage());
         }
+    }
+    
+    // Save alarm to SharedPreferences for persistence
+    private void saveAlarmToPrefs(Context ctx, int requestCode, long when, String buddyName, String alarmId) {
+        SharedPreferences prefs = ctx.getSharedPreferences("WakeupBuddyAlarms", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = "alarm_" + requestCode;
+        // Store as JSON-like string: timestamp|buddyName|alarmId
+        String value = when + "|" + (buddyName != null ? buddyName : "") + "|" + (alarmId != null ? alarmId : "");
+        editor.putString(key, value);
+        editor.apply();
+    }
+    
+    // Remove alarm from SharedPreferences
+    private void removeAlarmFromPrefs(Context ctx, int requestCode) {
+        SharedPreferences prefs = ctx.getSharedPreferences("WakeupBuddyAlarms", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("alarm_" + requestCode);
+        editor.apply();
     }
 
     @ReactMethod
@@ -222,8 +245,12 @@ public class AlarmModule extends ReactContextBaseJavaModule {
             if (pi != null && am != null) {
                 am.cancel(pi);
                 pi.cancel();
+                // Remove from SharedPreferences
+                removeAlarmFromPrefs(ctx, requestCode);
                 promise.resolve(true);
             } else {
+                // Still try to remove from prefs
+                removeAlarmFromPrefs(ctx, requestCode);
                 promise.resolve(false);
             }
         } catch (Exception e) {

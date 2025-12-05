@@ -20,11 +20,12 @@ const convexClient = new ConvexHttpClient(CONVEX_URL);
 
 export default function HomeScreen() {
     const router = useRouter();
-    const { user, updateUser } = useUser();
+    const { user, loading: userLoading, updateUser } = useUser();
     const { showPopup } = usePopup();
     const callIdRef = useRef(null);
     const lastCalledNumberRef = useRef(null);
     const callInProgressRef = useRef(false);
+    const pendingAlarmRef = useRef(null);
 
     const markAwake = useMutation(api.streaks.markAwake);
     const createCall = useMutation(api.calls.createCall);
@@ -221,6 +222,11 @@ export default function HomeScreen() {
         try {
             // Check if user is authenticated
             if (!user || !user.email) {
+                // If still loading, don't redirect - the pending alarm handler will retry
+                if (userLoading) {
+                    console.log('⏳ User still loading, skipping handleMarkAwake');
+                    return;
+                }
                 showPopup("Please log in first", '#FF6B6B');
                 router.push('/login');
                 return;
@@ -309,12 +315,29 @@ export default function HomeScreen() {
     /**
      * Helper function to handle calling a buddy (either known buddy or stranger match)
      * This fetches the latest alarm data from Convex to handle stranger matching
+     * @param {string} alarmTime - The alarm time (e.g., "5:43")
+     * @param {string} alarmAmpm - The alarm AM/PM (e.g., "PM")
+     * @param {string} alarmIdFromUrl - The alarm ID from URL
+     * @param {string} buddyEmailFromUrl - The buddy email from URL
+     * @param {object} currentUser - The current user object (pass explicitly to avoid stale closure)
      */
-    const handleBuddyCall = async (alarmTime, alarmAmpm, alarmIdFromUrl, buddyEmailFromUrl) => {
-        if (!user || !user.email) {
+    const handleBuddyCall = async (alarmTime, alarmAmpm, alarmIdFromUrl, buddyEmailFromUrl, currentUser = null) => {
+        // Use passed user or fall back to closure user
+        const userToUse = currentUser || user;
+
+        if (!userToUse || !userToUse.email) {
             console.log('❌ No user logged in, cannot handle buddy call');
+            console.log('User from param:', currentUser);
+            console.log('User from closure:', user);
             return;
         }
+
+        console.log('🔄 handleBuddyCall called with:');
+        console.log('  - alarmTime:', alarmTime);
+        console.log('  - alarmAmpm:', alarmAmpm);
+        console.log('  - alarmId:', alarmIdFromUrl);
+        console.log('  - buddyEmail:', buddyEmailFromUrl);
+        console.log('  - userEmail:', userToUse.email);
 
         try {
             let buddyEmail = buddyEmailFromUrl;
@@ -328,7 +351,7 @@ export default function HomeScreen() {
 
                 // Fetch the alarm with buddy details from Convex
                 const alarmData = await convexClient.query(api.alarms.findAlarmByTimeForUser, {
-                    userEmail: user.email,
+                    userEmail: userToUse.email,
                     time: alarmTime,
                     ampm: alarmAmpm
                 });
@@ -364,7 +387,7 @@ export default function HomeScreen() {
                 // For known buddy (not stranger), check if relationship is accepted
                 if (!isStrangerMatch) {
                     const isAccepted = await convexClient.query(api.notifications.isBuddyAccepted, {
-                        userEmail: user.email,
+                        userEmail: userToUse.email,
                         buddyEmail: buddyEmail,
                         alarmTime: alarmTime,
                         alarmAmpm: alarmAmpm
@@ -390,7 +413,7 @@ export default function HomeScreen() {
                     if (!alarmId && alarmTime && alarmAmpm) {
                         console.log('🔍 alarmId not available, looking up from database...');
                         const foundAlarm = await convexClient.query(api.alarms.findAlarmByDetails, {
-                            userEmail: user.email,
+                            userEmail: userToUse.email,
                             buddyEmail: buddyEmail,
                             time: alarmTime,
                             ampm: alarmAmpm
@@ -405,7 +428,7 @@ export default function HomeScreen() {
                     if (alarmId) {
                         try {
                             const callRecord = await createCall({
-                                user1Email: user.email,
+                                user1Email: userToUse.email,
                                 user2Email: buddyEmail,
                                 alarmId: alarmId,
                             });
@@ -433,6 +456,33 @@ export default function HomeScreen() {
         }
     };
 
+    // Process pending alarm after user is loaded
+    useEffect(() => {
+        const processPendingAlarm = async () => {
+            if (user && user.email && pendingAlarmRef.current) {
+                const { alarmTime, alarmAmpm, alarmId, buddyEmail } = pendingAlarmRef.current;
+                console.log('📱 Processing pending alarm deep link now that user is loaded');
+                console.log('📱 User email:', user.email);
+                console.log('📱 Alarm time:', alarmTime, alarmAmpm);
+                console.log('📱 Alarm ID:', alarmId);
+                console.log('📱 Buddy email:', buddyEmail);
+
+                // Handle buddy/stranger call - pass user explicitly to avoid stale closure
+                if (alarmTime || alarmId) {
+                    await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail, user);
+                }
+
+                // Mark awake
+                await handleMarkAwake();
+
+                // Clear the pending alarm
+                pendingAlarmRef.current = null;
+            }
+        };
+
+        processPendingAlarm();
+    }, [user]);
+
     useEffect(() => {
         const handleDeepLink = async (event) => {
             const url = event.url;
@@ -457,7 +507,7 @@ export default function HomeScreen() {
 
                 // Handle buddy/stranger call (this will fetch latest data from Convex)
                 if (user && user.email && (alarmTime || alarmId)) {
-                    await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail);
+                    await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail, user);
                 }
 
                 // Mark awake
@@ -468,7 +518,7 @@ export default function HomeScreen() {
         // Check if app was opened via deep link
         Linking.getInitialURL().then(async (url) => {
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
-                console.log('App opened with alarm deep link, marking awake...');
+                console.log('App opened with alarm deep link...');
                 console.log('Full URL:', url);
 
                 // Extract parameters from URL
@@ -486,13 +536,19 @@ export default function HomeScreen() {
                 console.log('🆔 Alarm ID from URL:', alarmId);
                 console.log('⏰ Time from URL:', alarmTime, alarmAmpm);
 
-                // Handle buddy/stranger call (this will fetch latest data from Convex)
-                if (user && user.email && (alarmTime || alarmId)) {
-                    await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail);
+                // If user is already loaded, process immediately
+                if (user && user.email) {
+                    console.log('✅ User already loaded, processing alarm immediately');
+                    if (alarmTime || alarmId) {
+                        await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail, user);
+                    }
+                    handleMarkAwake();
+                } else {
+                    // User not loaded yet (app was cleared from recents)
+                    // Store the alarm details to process after user loads
+                    console.log('⏳ User not loaded yet, storing alarm for later processing');
+                    pendingAlarmRef.current = { alarmTime, alarmAmpm, alarmId, buddyEmail };
                 }
-
-                // Mark awake
-                handleMarkAwake();
             }
         });
 
@@ -502,7 +558,7 @@ export default function HomeScreen() {
         return () => {
             subscription.remove();
         };
-    }, []);
+    }, [user]);
 
     useEffect(() => {
         // Check permissions when home screen loads
