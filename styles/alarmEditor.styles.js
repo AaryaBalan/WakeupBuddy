@@ -313,6 +313,21 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat_700Bold',
         color: '#000',
     },
+    // Wake Method Button
+    wakeMethodButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#C9E265',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 20,
+        gap: 6,
+    },
+    wakeMethodText: {
+        fontSize: 13,
+        fontFamily: 'Montserrat_700Bold',
+        color: '#000',
+    },
 });
 
 export default styles;

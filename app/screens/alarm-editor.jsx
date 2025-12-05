@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, Switch, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import { usePopup } from '../../contexts/PopupContext';
@@ -282,6 +282,28 @@ export default function AlarmEditorScreen() {
                     </TouchableOpacity>
                 </View>
 
+                {/* Solo Mode Card */}
+                {mode === 'solo' && (
+                    <View style={styles.buddyCard}>
+                        <View style={styles.buddyRow}>
+                            <View style={[styles.buddyIconContainer, { backgroundColor: 'rgba(201, 226, 101, 0.2)' }]}>
+                                <Ionicons name="alarm" size={24} color="#C9E265" />
+                            </View>
+                            <View style={styles.buddyInfo}>
+                                <AppText style={styles.buddyTitle}>Personal Alarm</AppText>
+                                <AppText style={styles.buddySubtitle}>Wake up on your own</AppText>
+                            </View>
+                        </View>
+
+                        <View style={styles.buddyFooter}>
+                            <Ionicons name="information-circle-outline" size={16} color="#888" />
+                            <AppText style={styles.buddyFooterText}>
+                                Solo mode sets a traditional alarm without a buddy. You'll wake up to an alarm sound without voice call or accountability partner.
+                            </AppText>
+                        </View>
+                    </View>
+                )}
+
                 {/* Wake Buddy Card */}
                 {mode === 'buddy' && (
                     <View style={styles.buddyCard}>
@@ -348,31 +370,18 @@ export default function AlarmEditorScreen() {
                 )}
 
                 {/* Wake Method */}
-                <View style={styles.configItem}>
+                <View style={styles.configRow}>
                     <AppText style={styles.configLabel}>Wake Method</AppText>
-                    <View style={styles.difficultyContainer}>
-                        <TouchableOpacity
-                            style={[styles.difficultyButton, styles.difficultyButtonActive]}
-                            onPress={() => { }}
-                        >
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                <Ionicons name="call" size={20} color="#000" />
-                                <AppText style={[styles.difficultyText, styles.difficultyTextActive]}>
-                                    Voice Call
-                                </AppText>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                        style={[styles.wakeMethodButton]}
+                        onPress={() => { }}
+                    >
+                        <Ionicons name={mode === 'solo' ? "alarm" : "call"} size={16} color="#000" />
+                        <AppText style={styles.wakeMethodText}>
+                            {mode === 'solo' ? 'Alarm' : 'Voice Call'}
+                        </AppText>
+                    </TouchableOpacity>
                 </View>
-
-                {/* Sound */}
-                <TouchableOpacity style={styles.configRow}>
-                    <AppText style={styles.configLabel}>Sound</AppText>
-                    <View style={styles.configValueContainer}>
-                        <AppText style={styles.configValue}>Neon Rise</AppText>
-                        <Ionicons name="chevron-forward" size={20} color="#666" />
-                    </View>
-                </TouchableOpacity>
 
                 {/* Label */}
                 <TouchableOpacity style={styles.configRow} onPress={() => setShowLabelModal(true)}>
@@ -382,21 +391,6 @@ export default function AlarmEditorScreen() {
                         <Ionicons name="chevron-forward" size={20} color="#666" />
                     </View>
                 </TouchableOpacity>
-
-                {/* Pre-wake Notification */}
-                <View style={styles.configRow}>
-                    <View>
-                        <AppText style={styles.configLabel}>Pre-wake Notification</AppText>
-                        <AppText style={styles.configSublabel}>Get notified 5 min before to pair</AppText>
-                    </View>
-                    <Switch
-                        trackColor={{ false: "#333", true: "#C9E265" }}
-                        thumbColor={preWake ? "#000" : "#f4f3f4"}
-                        ios_backgroundColor="#3e3e3e"
-                        onValueChange={setPreWake}
-                        value={preWake}
-                    />
-                </View>
 
                 {/* Save Button */}
                 <TouchableOpacity style={styles.saveButton} onPress={onSetTime} disabled={isLoading}>
