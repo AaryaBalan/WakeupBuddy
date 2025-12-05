@@ -502,7 +502,7 @@ export default function Profile() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalForm}>
+            <ScrollView style={styles.modalForm} keyboardShouldPersistTaps="handled">
               <View style={styles.inputGroup}>
                 <AppText style={styles.inputLabel}>Full Name</AppText>
                 <TextInput

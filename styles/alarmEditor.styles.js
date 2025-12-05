@@ -223,6 +223,96 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontFamily: 'Montserrat_700Bold',
     },
+    // Label Modal Styles
+    labelModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        justifyContent: 'flex-end',
+    },
+    labelModalContent: {
+        backgroundColor: '#111',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 24,
+        paddingBottom: 40,
+    },
+    labelModalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    labelModalTitle: {
+        fontSize: 18,
+        fontFamily: 'Montserrat_700Bold',
+        color: '#fff',
+    },
+    defaultLabelsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginBottom: 24,
+    },
+    defaultLabelChip: {
+        paddingVertical: 10,
+        paddingHorizontal: 18,
+        borderRadius: 20,
+        backgroundColor: '#1a1a1a',
+        borderWidth: 1,
+        borderColor: '#333',
+    },
+    defaultLabelChipActive: {
+        backgroundColor: 'rgba(201, 226, 101, 0.2)',
+        borderColor: '#C9E265',
+    },
+    defaultLabelText: {
+        fontSize: 14,
+        fontFamily: 'Montserrat_600SemiBold',
+        color: '#888',
+    },
+    defaultLabelTextActive: {
+        color: '#C9E265',
+    },
+    customLabelContainer: {
+        borderTopWidth: 1,
+        borderTopColor: '#222',
+        paddingTop: 20,
+    },
+    customLabelTitle: {
+        fontSize: 13,
+        fontFamily: 'Montserrat_600SemiBold',
+        color: '#888',
+        marginBottom: 12,
+    },
+    customLabelInputRow: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    customLabelInput: {
+        flex: 1,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        color: '#fff',
+        fontSize: 14,
+        fontFamily: 'Montserrat_500Medium',
+    },
+    customLabelSaveBtn: {
+        backgroundColor: '#C9E265',
+        borderRadius: 12,
+        paddingHorizontal: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    customLabelSaveBtnDisabled: {
+        backgroundColor: '#333',
+    },
+    customLabelSaveBtnText: {
+        fontSize: 14,
+        fontFamily: 'Montserrat_700Bold',
+        color: '#000',
+    },
 });
 
 export default styles;

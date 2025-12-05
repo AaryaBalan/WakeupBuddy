@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, Switch, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, Switch, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import { usePopup } from '../../contexts/PopupContext';
@@ -35,6 +35,11 @@ export default function AlarmEditorScreen() {
     const [alarmId, setAlarmId] = useState(null);
     const [isEnabled, setIsEnabled] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const [label, setLabel] = useState('Work');
+    const [showLabelModal, setShowLabelModal] = useState(false);
+    const [customLabel, setCustomLabel] = useState('');
+
+    const defaultLabels = ['Work', 'Exercise', 'Meeting', 'Study', 'Wake Up'];
 
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
@@ -86,6 +91,11 @@ export default function AlarmEditorScreen() {
                     }
                 }
 
+                // Set Label
+                if (alarm.label) {
+                    setLabel(alarm.label);
+                }
+
             } catch (e) {
                 console.error("Error parsing alarm param", e);
             }
@@ -115,7 +125,7 @@ export default function AlarmEditorScreen() {
             const payload = {
                 time: time,
                 ampm: ampm,
-                label: 'Work', // Hardcoded for now as per UI
+                label: label, // Use selected label
                 days: isKnownBuddy ? [0, 0, 0, 0, 0, 0, 0] : repeatDays.map(day => day ? 1 : 0),
                 user_id: user._id,
                 solo_mode: mode === 'solo',
@@ -365,10 +375,10 @@ export default function AlarmEditorScreen() {
                 </TouchableOpacity>
 
                 {/* Label */}
-                <TouchableOpacity style={styles.configRow}>
+                <TouchableOpacity style={styles.configRow} onPress={() => setShowLabelModal(true)}>
                     <AppText style={styles.configLabel}>Label</AppText>
                     <View style={styles.configValueContainer}>
-                        <AppText style={styles.configValue}>Work</AppText>
+                        <AppText style={styles.configValue}>{label}</AppText>
                         <Ionicons name="chevron-forward" size={20} color="#666" />
                     </View>
                 </TouchableOpacity>
@@ -398,6 +408,84 @@ export default function AlarmEditorScreen() {
                 </TouchableOpacity>
 
             </ScrollView>
+
+            {/* Label Selection Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showLabelModal}
+                onRequestClose={() => setShowLabelModal(false)}
+            >
+                <KeyboardAvoidingView
+                    style={styles.labelModalOverlay}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                >
+                    <View style={styles.labelModalContent}>
+                        <View style={styles.labelModalHeader}>
+                            <AppText style={styles.labelModalTitle}>Select Label</AppText>
+                            <TouchableOpacity onPress={() => setShowLabelModal(false)}>
+                                <Ionicons name="close" size={24} color="#fff" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Default Labels */}
+                        <View style={styles.defaultLabelsContainer}>
+                            {defaultLabels.map((defaultLabel, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[
+                                        styles.defaultLabelChip,
+                                        label === defaultLabel && styles.defaultLabelChipActive
+                                    ]}
+                                    onPress={() => {
+                                        setLabel(defaultLabel);
+                                        setCustomLabel('');
+                                        setShowLabelModal(false);
+                                    }}
+                                >
+                                    <AppText style={[
+                                        styles.defaultLabelText,
+                                        label === defaultLabel && styles.defaultLabelTextActive
+                                    ]}>
+                                        {defaultLabel}
+                                    </AppText>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        {/* Custom Label Input */}
+                        <View style={styles.customLabelContainer}>
+                            <AppText style={styles.customLabelTitle}>Or create custom label</AppText>
+                            <View style={styles.customLabelInputRow}>
+                                <TextInput
+                                    style={styles.customLabelInput}
+                                    placeholder="Enter custom label..."
+                                    placeholderTextColor="#666"
+                                    value={customLabel}
+                                    onChangeText={setCustomLabel}
+                                    maxLength={20}
+                                />
+                                <TouchableOpacity
+                                    style={[
+                                        styles.customLabelSaveBtn,
+                                        !customLabel.trim() && styles.customLabelSaveBtnDisabled
+                                    ]}
+                                    onPress={() => {
+                                        if (customLabel.trim()) {
+                                            setLabel(customLabel.trim());
+                                            setShowLabelModal(false);
+                                            setCustomLabel('');
+                                        }
+                                    }}
+                                    disabled={!customLabel.trim()}
+                                >
+                                    <AppText style={styles.customLabelSaveBtnText}>Save</AppText>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal>
         </SafeAreaView>
     );
 }
