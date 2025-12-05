@@ -552,7 +552,7 @@ const profileStyles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
-        height: '80%',
+        height: '60%',
         borderTopWidth: 1,
         borderColor: '#333',
     },
@@ -568,7 +568,8 @@ const profileStyles = StyleSheet.create({
         fontFamily: 'Montserrat_700Bold',
     },
     modalForm: {
-        flex: 1,
+        flexGrow: 1,
+        marginBottom: "auto"
     },
     inputGroup: {
         marginBottom: 20,
@@ -597,8 +598,8 @@ const profileStyles = StyleSheet.create({
         borderRadius: 30,
         paddingVertical: 16,
         alignItems: 'center',
-        marginTop: 20,
-        marginBottom: 40,
+        marginTop: 'auto',
+        marginBottom: 20,
     },
     saveButtonText: {
         color: '#000',
