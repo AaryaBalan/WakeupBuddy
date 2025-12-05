@@ -82,6 +82,7 @@ export default defineSchema({
         // Metadata
         rank: v.optional(v.number()),       // Computed rank (1 = highest)
         last_updated: v.number(),           // Timestamp of last calculation
+        daily_points: v.optional(v.number()),   // Points earned today
         weekly_points: v.optional(v.number()),  // Points earned this week
         monthly_points: v.optional(v.number()), // Points earned this month
     })
