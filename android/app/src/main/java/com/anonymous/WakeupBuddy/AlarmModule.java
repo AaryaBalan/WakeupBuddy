@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.content.pm.PackageManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
 import android.Manifest;
@@ -266,20 +267,35 @@ public class AlarmModule extends ReactContextBaseJavaModule {
                 return;
             }
 
+            Log.d("AlarmModule", "makePhoneCall called with: " + phoneNumber);
+
             // Check if we have CALL_PHONE permission
             if (ContextCompat.checkSelfPermission(reactContext, Manifest.permission.CALL_PHONE) 
                 != PackageManager.PERMISSION_GRANTED) {
                 
-                // Request permission
-                ActivityCompat.requestPermissions(
-                    getCurrentActivity(),
-                    new String[]{Manifest.permission.CALL_PHONE},
-                    1
-                );
+                Log.d("AlarmModule", "CALL_PHONE permission not granted");
                 
-                promise.reject("PERMISSION_REQUIRED", "CALL_PHONE permission not granted. Please grant permission and try again.");
+                // Try to request permission if activity is available
+                android.app.Activity currentActivity = getCurrentActivity();
+                if (currentActivity != null) {
+                    ActivityCompat.requestPermissions(
+                        currentActivity,
+                        new String[]{Manifest.permission.CALL_PHONE},
+                        1
+                    );
+                }
+                
+                // Fall back to ACTION_DIAL which doesn't require permission
+                Log.d("AlarmModule", "Falling back to ACTION_DIAL");
+                Intent dialIntent = new Intent(Intent.ACTION_DIAL);
+                dialIntent.setData(Uri.parse("tel:" + phoneNumber));
+                dialIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                reactContext.startActivity(dialIntent);
+                promise.resolve(true);
                 return;
             }
+
+            Log.d("AlarmModule", "CALL_PHONE permission granted, making call");
 
             // Store the phone number for later lookup
             lastCalledNumber = phoneNumber.replaceAll("[^0-9]", ""); // Store only digits
@@ -293,8 +309,10 @@ public class AlarmModule extends ReactContextBaseJavaModule {
             callIntent.setData(Uri.parse("tel:" + phoneNumber));
             callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             reactContext.startActivity(callIntent);
+            Log.d("AlarmModule", "Call intent started successfully");
             promise.resolve(true);
         } catch (Exception e) {
+            Log.e("AlarmModule", "Failed to make call", e);
             promise.reject("ERROR", "Failed to make call: " + e.getMessage());
         }
     }

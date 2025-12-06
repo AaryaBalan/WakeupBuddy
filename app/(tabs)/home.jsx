@@ -446,9 +446,24 @@ export default function HomeScreen() {
                     }
 
                     // Make the phone call
-                    await makePhoneCall(buddyUser.phone).catch(err => console.error('Call failed:', err));
+                    console.log('📞 Initiating phone call to:', buddyUser.phone);
+                    try {
+                        await makePhoneCall(buddyUser.phone);
+                        console.log('✅ Phone call initiated successfully');
+                    } catch (err) {
+                        console.error('❌ Call failed:', err);
+                        // Try alternative method using Linking
+                        try {
+                            console.log('🔄 Trying alternative call method...');
+                            await Linking.openURL(`tel:${buddyUser.phone}`);
+                            console.log('✅ Alternative call method succeeded');
+                        } catch (linkErr) {
+                            console.error('❌ Alternative call method also failed:', linkErr);
+                        }
+                    }
                 } else {
                     console.log('❌ Buddy found but no phone number:', buddyEmail);
+                    console.log('Buddy user object:', buddyUser);
                 }
             }
         } catch (error) {
@@ -467,27 +482,31 @@ export default function HomeScreen() {
                 console.log('📱 Alarm ID:', alarmId);
                 console.log('📱 Buddy email:', buddyEmail);
 
+                // Clear the pending alarm FIRST to prevent double processing
+                const pendingData = pendingAlarmRef.current;
+                pendingAlarmRef.current = null;
+
                 // Handle buddy/stranger call - pass user explicitly to avoid stale closure
-                if (alarmTime || alarmId) {
-                    await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail, user);
+                if (pendingData.alarmTime || pendingData.alarmId) {
+                    await handleBuddyCall(pendingData.alarmTime, pendingData.alarmAmpm, pendingData.alarmId, pendingData.buddyEmail, user);
                 }
 
                 // Mark awake
                 await handleMarkAwake();
-
-                // Clear the pending alarm
-                pendingAlarmRef.current = null;
             }
         };
 
         processPendingAlarm();
     }, [user]);
 
+    // Handle deep links - runs only once on mount
     useEffect(() => {
+        let isProcessed = false;
+
         const handleDeepLink = async (event) => {
             const url = event.url;
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
-                console.log('Alarm dismissed via deep link, marking awake...');
+                console.log('Alarm dismissed via deep link (event), marking awake...');
                 console.log('Full URL:', url);
 
                 // Extract parameters from URL
@@ -508,6 +527,10 @@ export default function HomeScreen() {
                 // Handle buddy/stranger call (this will fetch latest data from Convex)
                 if (user && user.email && (alarmTime || alarmId)) {
                     await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail, user);
+                } else if (!user || !user.email) {
+                    // Store for later processing
+                    console.log('⏳ User not loaded, storing alarm for later');
+                    pendingAlarmRef.current = { alarmTime, alarmAmpm, alarmId, buddyEmail };
                 }
 
                 // Mark awake
@@ -515,11 +538,15 @@ export default function HomeScreen() {
             }
         };
 
-        // Check if app was opened via deep link
+        // Check if app was opened via deep link - only process once
         Linking.getInitialURL().then(async (url) => {
+            if (isProcessed) return;
+            isProcessed = true;
+
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
-                console.log('App opened with alarm deep link...');
+                console.log('App opened with alarm deep link (initial)...');
                 console.log('Full URL:', url);
+                console.log('Current user state:', user ? user.email : 'null');
 
                 // Extract parameters from URL
                 const buddyMatch = url.match(/[?&]buddy=([^&]+)/);
@@ -536,18 +563,23 @@ export default function HomeScreen() {
                 console.log('🆔 Alarm ID from URL:', alarmId);
                 console.log('⏰ Time from URL:', alarmTime, alarmAmpm);
 
+                // ALWAYS store the alarm data first, then check if we can process immediately
+                // This ensures we don't lose the data if user loads slowly
+                pendingAlarmRef.current = { alarmTime, alarmAmpm, alarmId, buddyEmail };
+                console.log('💾 Stored alarm data in pendingAlarmRef');
+
                 // If user is already loaded, process immediately
                 if (user && user.email) {
                     console.log('✅ User already loaded, processing alarm immediately');
+                    // Clear pending and process
+                    pendingAlarmRef.current = null;
                     if (alarmTime || alarmId) {
                         await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail, user);
                     }
                     handleMarkAwake();
                 } else {
-                    // User not loaded yet (app was cleared from recents)
-                    // Store the alarm details to process after user loads
-                    console.log('⏳ User not loaded yet, storing alarm for later processing');
-                    pendingAlarmRef.current = { alarmTime, alarmAmpm, alarmId, buddyEmail };
+                    console.log('⏳ User not loaded yet, alarm data stored for later processing');
+                    // The processPendingAlarm useEffect will handle it when user loads
                 }
             }
         });
@@ -558,7 +590,7 @@ export default function HomeScreen() {
         return () => {
             subscription.remove();
         };
-    }, [user]);
+    }, []); // Empty dependency - only run once on mount
 
     useEffect(() => {
         // Check permissions when home screen loads
