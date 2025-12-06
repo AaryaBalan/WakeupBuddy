@@ -75,6 +75,12 @@ export default function PublicProfile() {
         params.id ? { userId: params.id } : 'skip'
     );
 
+    // Get profile stats (includes total wakeups)
+    const profileStats = useQuery(
+        api.streaks.getProfileStatsById,
+        params.id ? { userId: params.id } : 'skip'
+    );
+
     // Generate grid squares from real data
     const gridSquares = useMemo(() => {
         const today = new Date();
@@ -313,7 +319,7 @@ export default function PublicProfile() {
                     {/* Stats Section */}
                     <View style={styles.statsRow}>
                         <View style={styles.statBox}>
-                            <AppText style={styles.statNumber}>{gridSquares.filter(s => s.filled).length}</AppText>
+                            <AppText style={styles.statNumber}>{profileStats?.totalWakeups || recentStreaks?.length || 0}</AppText>
                             <AppText style={styles.statLabel}>Wakeups</AppText>
                         </View>
                         <View style={styles.statBox}>

@@ -577,6 +577,48 @@ export const getProfileStats = query({
     }
 });
 
+// Get profile stats by user ID (for public profiles)
+export const getProfileStatsById = query({
+    args: {
+        userId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db.get(args.userId);
+
+        if (!user) return null;
+
+        // Get all streaks
+        const allStreaks = await ctx.db
+            .query("streaks")
+            .withIndex("by_user", (q) => q.eq("user_id", args.userId))
+            .collect();
+
+        const totalWakeups = allStreaks.reduce((sum, s) => sum + s.count, 0);
+        const totalDaysActive = allStreaks.length;
+
+        // Calculate average wakeups per active day
+        const avgWakeups = totalDaysActive > 0
+            ? (totalWakeups / totalDaysActive).toFixed(1)
+            : "0.0";
+
+        // Get leaderboard entry for rank
+        const leaderboardEntry = await ctx.db
+            .query("leaderboard")
+            .withIndex("by_user", (q) => q.eq("user_id", args.userId))
+            .unique();
+
+        return {
+            totalWakeups,
+            totalDaysActive,
+            avgWakeups,
+            currentStreak: user.streak || 0,
+            maxStreak: user.maxStreak || 0,
+            rank: leaderboardEntry?.rank || '-',
+            points: leaderboardEntry?.total_points || 0,
+        };
+    }
+});
+
 /**
  * Get chart data for different time periods (day, week, month, year)
  */
