@@ -273,13 +273,6 @@ export const getBuddyStats = query({
             _id: call._id,
             call_time: call.call_time,
             call_duration: call.call_duration,
-            formattedDate: new Date(call.call_time).toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            }),
         }));
 
         return {

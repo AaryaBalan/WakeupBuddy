@@ -342,19 +342,30 @@ export default function BuddyStats() {
                     <>
                         <AppText style={styles.sectionTitle}>Recent Wake-ups Together</AppText>
                         <View style={styles.recentCard}>
-                            {buddyStats.recentCalls.map((call, index) => (
-                                <View key={call._id} style={styles.recentRow}>
-                                    <View style={styles.recentIcon}>
-                                        <Ionicons name="call" size={16} color={NEON} />
+                            {buddyStats.recentCalls.map((call, index) => {
+                                const callDate = new Date(call.call_time);
+                                const formattedDate = callDate.toLocaleDateString('en-US', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: '2-digit'
+                                });
+                                
+                                return (
+                                    <View key={call._id} style={styles.recentRow}>
+                                        <View style={styles.recentIcon}>
+                                            <Ionicons name="call" size={16} color={NEON} />
+                                        </View>
+                                        <View style={styles.recentInfo}>
+                                            <AppText style={styles.recentDate}>{formattedDate}</AppText>
+                                            <AppText style={styles.recentDuration}>
+                                                {formatDuration(call.call_duration)}
+                                            </AppText>
+                                        </View>
                                     </View>
-                                    <View style={styles.recentInfo}>
-                                        <AppText style={styles.recentDate}>{call.formattedDate}</AppText>
-                                        <AppText style={styles.recentDuration}>
-                                            {formatDuration(call.call_duration)}
-                                        </AppText>
-                                    </View>
-                                </View>
-                            ))}
+                                );
+                            })}
                         </View>
                     </>
                 )}
