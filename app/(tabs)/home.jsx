@@ -15,6 +15,7 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/home.styles';
 import { checkPendingCall, clearPendingCall, getLastCallDuration, getMostRecentCallDuration, makePhoneCall, requestCallPhonePermission, requestReadCallLogPermission, requestReadPhoneStatePermission, savePendingCall, subscribeToCallState } from '../native/AlarmNative';
+import BannerAds from '../ads/BannerAds';
 
 // Initialize Convex HTTP client for imperative queries
 const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || "";
@@ -1048,6 +1049,7 @@ export default function HomeScreen() {
                 )}
 
             </ScrollView>
+            <BannerAds />
         </SafeAreaView>
     );
 }

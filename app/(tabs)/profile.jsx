@@ -10,6 +10,7 @@ import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/profile.styles';
+import BannerAds from '../ads/BannerAds';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
@@ -761,6 +762,7 @@ export default function Profile() {
           </View>
         </View>
       </Modal>
+      <BannerAds />
     </SafeAreaView>
   );
 }

@@ -9,6 +9,7 @@ import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/explore.styles';
+import BannerAds from '../ads/BannerAds';
 
 export default function ExploreScreen() {
     const router = useRouter();
@@ -244,6 +245,7 @@ export default function ExploreScreen() {
                     </View>
                 }
             />
+            <BannerAds />
         </SafeAreaView>
     );
 }

@@ -9,6 +9,7 @@ import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from "../../styles/profile.styles";
+import BannerAds from '../ads/BannerAds';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
@@ -498,6 +499,7 @@ export default function PublicProfile() {
                     </View>
                 </View>
             </Modal>
+            <BannerAds />
         </SafeAreaView>
     );
 }

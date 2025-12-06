@@ -8,6 +8,7 @@ import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from '../../styles/stats.styles';
+import BannerAds from '../ads/BannerAds';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
@@ -371,6 +372,7 @@ export default function BuddyStats() {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
+            <BannerAds />
         </SafeAreaView>
     );
 }
