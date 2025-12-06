@@ -23,6 +23,12 @@ export default function Signup() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSignup = async () => {
+        // Validate password length
+        if (password.length < 6) {
+            showPopup('Password must be at least 6 characters', '#FF6B6B');
+            return;
+        }
+
         const signupData = {
             fullName,
             email,

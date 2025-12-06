@@ -3,6 +3,7 @@ import { useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
@@ -17,7 +18,7 @@ const DARK_GRAY = '#1A1A1A';
 export default function RankScreen() {
     const router = useRouter();
     const { user } = useUser();
-    const [activeTab, setActiveTab] = useState('global'); // 'global', 'friends', 'weekly'
+    const [activeTab, setActiveTab] = useState('global'); // 'global', 'friends', 'daily'
 
     // Fetch leaderboard data from Convex
     const leaderboardData = useQuery(
@@ -26,7 +27,7 @@ export default function RankScreen() {
             : api.leaderboard.getLeaderboard,
         activeTab === 'friends'
             ? (user?._id ? { userId: user._id, limit: 50 } : 'skip')
-            : { limit: 50, period: activeTab === 'weekly' ? 'weekly' : 'all' }
+            : { limit: 50, period: activeTab === 'daily' ? 'daily' : 'all' }
     );
 
     // Fetch current user's stats
@@ -61,7 +62,7 @@ export default function RankScreen() {
         else rankIcon = <AppText style={styles.rankText}>{rank}</AppText>;
 
         const hasStreak = item.current_streak >= 7;
-        const points = activeTab === 'weekly' ? item.weekly_points : item.total_points;
+        const points = activeTab === 'daily' ? item.daily_points : item.total_points;
 
         // Check if this is the current user
         const isCurrentUser = user?._id === item.user_id;
@@ -139,10 +140,10 @@ export default function RankScreen() {
                     <AppText style={activeTab === 'friends' ? styles.activeTabText : styles.inactiveTabText}>Friends</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'weekly' && styles.activeTab]}
-                    onPress={() => setActiveTab('weekly')}
+                    style={[styles.tab, activeTab === 'daily' && styles.activeTab]}
+                    onPress={() => setActiveTab('daily')}
                 >
-                    <AppText style={activeTab === 'weekly' ? styles.activeTabText : styles.inactiveTabText}>Weekly</AppText>
+                    <AppText style={activeTab === 'daily' ? styles.activeTabText : styles.inactiveTabText}>Daily</AppText>
                 </TouchableOpacity>
             </View>
 
@@ -216,7 +217,7 @@ export default function RankScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <FlatList
                 data={leaderboardData || []}
                 renderItem={renderItem}
@@ -246,6 +247,6 @@ export default function RankScreen() {
                     <AppText style={styles.footerPercent}>{getUserPercentile()}</AppText>
                 </View>
             </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     );
 }

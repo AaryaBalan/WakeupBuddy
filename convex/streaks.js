@@ -71,11 +71,15 @@ function calculatePoints(currentStreak, maxStreak, totalWakeups, totalDaysActive
     };
 }
 
-async function updateLeaderboardForUser(ctx, user) {
+async function updateLeaderboardForUser(ctx, user, userDate = null) {
+    console.log('[Leaderboard] Updating for user:', user.email, 'userDate:', userDate);
+
     const allStreaks = await ctx.db
         .query("streaks")
         .withIndex("by_user", (q) => q.eq("user_id", user._id))
         .collect();
+
+    console.log('[Leaderboard] Found streaks:', allStreaks.length);
 
     const totalWakeups = allStreaks.reduce((sum, s) => sum + s.count, 0);
     const totalDaysActive = allStreaks.length;
@@ -108,6 +112,13 @@ async function updateLeaderboardForUser(ctx, user) {
         recentDaysActive
     );
 
+    // Calculate daily points (wakeups from today only)
+    // Use user's local date if provided, otherwise fallback to UTC
+    const todayStr = userDate || today.toISOString().split('T')[0]; // YYYY-MM-DD
+    const todayStreaks = allStreaks.filter(s => s.date === todayStr);
+    const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
+    const dailyPoints = todayWakeups * POINTS.WAKEUP_BASE * 10; // 20 points per wakeup today
+
     const existingEntry = await ctx.db
         .query("leaderboard")
         .withIndex("by_user", (q) => q.eq("user_id", user._id))
@@ -124,12 +135,22 @@ async function updateLeaderboardForUser(ctx, user) {
         max_streak_points: points.maxStreakPoints,
         consistency_points: points.consistencyPoints,
         wakeup_points: points.wakeupPoints,
+        daily_points: dailyPoints,
         last_updated: Date.now(),
     };
 
+    console.log('[Leaderboard] Data to save:', {
+        total_points: points.totalPoints,
+        daily_points: dailyPoints,
+        todayWakeups,
+        todayStr,
+    });
+
     if (existingEntry) {
+        console.log('[Leaderboard] Patching existing entry:', existingEntry._id);
         await ctx.db.patch(existingEntry._id, leaderboardData);
     } else {
+        console.log('[Leaderboard] Creating new entry');
         await ctx.db.insert("leaderboard", leaderboardData);
     }
 
@@ -182,7 +203,7 @@ export const markAwake = mutation({
             });
 
             // Update leaderboard with new wakeup count
-            const leaderboardPoints = await updateLeaderboardForUser(ctx, user);
+            const leaderboardPoints = await updateLeaderboardForUser(ctx, user, today);
 
             return {
                 status: 'incremented',
@@ -222,7 +243,7 @@ export const markAwake = mutation({
 
         // Update leaderboard with new streak data
         const updatedUser = await ctx.db.get(user._id);
-        const leaderboardPoints = await updateLeaderboardForUser(ctx, updatedUser);
+        const leaderboardPoints = await updateLeaderboardForUser(ctx, updatedUser, today);
 
         // Check and award achievements
         const awardedAchievements = [];

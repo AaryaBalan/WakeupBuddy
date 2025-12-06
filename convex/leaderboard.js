@@ -192,6 +192,12 @@ export const updateUserLeaderboard = mutation({
             recentDaysActive
         );
 
+        // Calculate daily points (wakeups from today only)
+        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+        const todayStreaks = allStreaks.filter(s => s.date === todayStr);
+        const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
+        const dailyPoints = todayWakeups * POINTS.WAKEUP_BASE * 10; // 20 points per wakeup today
+
         // Check if leaderboard entry exists
         const existingEntry = await ctx.db
             .query("leaderboard")
@@ -209,6 +215,7 @@ export const updateUserLeaderboard = mutation({
             max_streak_points: points.maxStreakPoints,
             consistency_points: points.consistencyPoints,
             wakeup_points: points.wakeupPoints,
+            daily_points: dailyPoints,
             last_updated: Date.now(),
         };
 
@@ -255,7 +262,7 @@ export const getLeaderboard = query({
     args: {
         limit: v.optional(v.number()),
         offset: v.optional(v.number()),
-        period: v.optional(v.string()), // 'all', 'weekly', 'monthly'
+        period: v.optional(v.string()), // 'all', 'daily', 'monthly'
     },
     handler: async (ctx, args) => {
         const limit = args.limit || 50;
@@ -269,8 +276,8 @@ export const getLeaderboard = query({
 
         // Sort by appropriate points field based on period
         let sorted;
-        if (period === 'weekly') {
-            sorted = entries.sort((a, b) => (b.weekly_points || 0) - (a.weekly_points || 0));
+        if (period === 'daily') {
+            sorted = entries.sort((a, b) => (b.daily_points || 0) - (a.daily_points || 0));
         } else if (period === 'monthly') {
             sorted = entries.sort((a, b) => (b.monthly_points || 0) - (a.monthly_points || 0));
         } else {
@@ -295,7 +302,7 @@ export const getLeaderboard = query({
                         profile_code: user?.profile_code || user?.email,
                     },
                     total_points: entry.total_points,
-                    weekly_points: entry.weekly_points || 0,
+                    daily_points: entry.daily_points || 0,
                     monthly_points: entry.monthly_points || 0,
                     current_streak: entry.current_streak,
                     max_streak: entry.max_streak,
@@ -551,5 +558,37 @@ export const getLeaderboardStats = query({
             averageStreak: Math.round(totalStreaks / allEntries.length),
             highestStreak,
         };
+    },
+});
+
+/**
+ * Recalculate daily points for all users
+ * Run this to update existing entries with daily_points
+ */
+export const recalculateAllDailyPoints = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // Get all leaderboard entries
+        const allEntries = await ctx.db.query("leaderboard").collect();
+
+        let updated = 0;
+        for (const entry of allEntries) {
+            // Get today's streaks for this user
+            const todayStreaks = await ctx.db
+                .query("streaks")
+                .withIndex("by_user_date", (q) => q.eq("user_id", entry.user_id).eq("date", todayStr))
+                .collect();
+
+            const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
+            const dailyPoints = todayWakeups * POINTS.WAKEUP_BASE * 10; // 20 points per wakeup today
+
+            await ctx.db.patch(entry._id, { daily_points: dailyPoints });
+            updated++;
+        }
+
+        return { updated, date: todayStr };
     },
 });

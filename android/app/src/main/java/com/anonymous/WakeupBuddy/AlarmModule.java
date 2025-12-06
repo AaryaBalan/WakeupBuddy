@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.content.pm.PackageManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
 import android.Manifest;
@@ -203,6 +204,10 @@ public class AlarmModule extends ReactContextBaseJavaModule {
                 } else {
                     am.setExact(AlarmManager.RTC_WAKEUP, when, pi);
                 }
+                
+                // Persist alarm to SharedPreferences for recovery after force-stop or reboot
+                saveAlarmToPrefs(ctx, requestCode, when, buddyName, alarmId);
+                
                 promise.resolve(true);
             } else {
                 promise.reject("ERROR", "AlarmManager not available");
@@ -210,6 +215,25 @@ public class AlarmModule extends ReactContextBaseJavaModule {
         } catch (Exception e) {
             promise.reject("ERROR", e.getMessage());
         }
+    }
+    
+    // Save alarm to SharedPreferences for persistence
+    private void saveAlarmToPrefs(Context ctx, int requestCode, long when, String buddyName, String alarmId) {
+        SharedPreferences prefs = ctx.getSharedPreferences("WakeupBuddyAlarms", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = "alarm_" + requestCode;
+        // Store as JSON-like string: timestamp|buddyName|alarmId
+        String value = when + "|" + (buddyName != null ? buddyName : "") + "|" + (alarmId != null ? alarmId : "");
+        editor.putString(key, value);
+        editor.apply();
+    }
+    
+    // Remove alarm from SharedPreferences
+    private void removeAlarmFromPrefs(Context ctx, int requestCode) {
+        SharedPreferences prefs = ctx.getSharedPreferences("WakeupBuddyAlarms", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("alarm_" + requestCode);
+        editor.apply();
     }
 
     @ReactMethod
@@ -222,8 +246,12 @@ public class AlarmModule extends ReactContextBaseJavaModule {
             if (pi != null && am != null) {
                 am.cancel(pi);
                 pi.cancel();
+                // Remove from SharedPreferences
+                removeAlarmFromPrefs(ctx, requestCode);
                 promise.resolve(true);
             } else {
+                // Still try to remove from prefs
+                removeAlarmFromPrefs(ctx, requestCode);
                 promise.resolve(false);
             }
         } catch (Exception e) {
@@ -239,20 +267,35 @@ public class AlarmModule extends ReactContextBaseJavaModule {
                 return;
             }
 
+            Log.d("AlarmModule", "makePhoneCall called with: " + phoneNumber);
+
             // Check if we have CALL_PHONE permission
             if (ContextCompat.checkSelfPermission(reactContext, Manifest.permission.CALL_PHONE) 
                 != PackageManager.PERMISSION_GRANTED) {
                 
-                // Request permission
-                ActivityCompat.requestPermissions(
-                    getCurrentActivity(),
-                    new String[]{Manifest.permission.CALL_PHONE},
-                    1
-                );
+                Log.d("AlarmModule", "CALL_PHONE permission not granted");
                 
-                promise.reject("PERMISSION_REQUIRED", "CALL_PHONE permission not granted. Please grant permission and try again.");
+                // Try to request permission if activity is available
+                android.app.Activity currentActivity = getCurrentActivity();
+                if (currentActivity != null) {
+                    ActivityCompat.requestPermissions(
+                        currentActivity,
+                        new String[]{Manifest.permission.CALL_PHONE},
+                        1
+                    );
+                }
+                
+                // Fall back to ACTION_DIAL which doesn't require permission
+                Log.d("AlarmModule", "Falling back to ACTION_DIAL");
+                Intent dialIntent = new Intent(Intent.ACTION_DIAL);
+                dialIntent.setData(Uri.parse("tel:" + phoneNumber));
+                dialIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                reactContext.startActivity(dialIntent);
+                promise.resolve(true);
                 return;
             }
+
+            Log.d("AlarmModule", "CALL_PHONE permission granted, making call");
 
             // Store the phone number for later lookup
             lastCalledNumber = phoneNumber.replaceAll("[^0-9]", ""); // Store only digits
@@ -266,8 +309,10 @@ public class AlarmModule extends ReactContextBaseJavaModule {
             callIntent.setData(Uri.parse("tel:" + phoneNumber));
             callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             reactContext.startActivity(callIntent);
+            Log.d("AlarmModule", "Call intent started successfully");
             promise.resolve(true);
         } catch (Exception e) {
+            Log.e("AlarmModule", "Failed to make call", e);
             promise.reject("ERROR", "Failed to make call: " + e.getMessage());
         }
     }

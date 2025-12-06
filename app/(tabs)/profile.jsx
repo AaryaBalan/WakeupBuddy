@@ -15,6 +15,13 @@ const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
 const BG = '#000';
 const GRAY = '#BDBDBD';
+const HEATMAP_COLORS = {
+  base: '#1a1a1a',
+  light: '#1a2a1a',
+  medium: '#2d4a2d',
+  high: '#6a9a3d',
+  neon: '#C9E265',
+};
 
 export default function Profile() {
   const router = useRouter();
@@ -209,7 +216,7 @@ export default function Profile() {
             </View>
             <AppText style={styles.name}>{user?.name || 'User'}</AppText>
             <AppText style={styles.username}>{generateUsername()}</AppText>
-            <AppText style={styles.bio} numberOfLines={3}>{user?.bio || 'Welcome to WakeBuddy! Start your journey to better mornings.'}</AppText>
+            <AppText style={styles.bio} numberOfLines={3}>{user?.bio || 'Welcome to WakeUpBuddy! Start your journey to better mornings.'}</AppText>
 
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.8}>
               <Ionicons name="share-social" size={16} color="#000" style={{ marginRight: 6 }} />
@@ -260,10 +267,11 @@ export default function Profile() {
             </AppText>
             <View style={styles.legend}>
               <AppText style={styles.legendText}>Less</AppText>
-              <View style={styles.legendSquare1} />
-              <View style={styles.legendSquare2} />
-              <View style={styles.legendSquare3} />
-              <View style={styles.legendSquare4} />
+              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.base }]} />
+              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.light }]} />
+              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.medium }]} />
+              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.high }]} />
+              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.neon }]} />
               <AppText style={styles.legendText}>More</AppText>
             </View>
           </View>
@@ -283,24 +291,17 @@ export default function Profile() {
               const streakMap = new Map();
               recentStreaks?.forEach(s => streakMap.set(s.date, s.count));
 
-              // Map to grid boxes with colors
+              // Map to grid boxes with colors (0=none, 1-2 light, 3-4 medium, 5-6 high, 7+ neon)
               return days.map((dateStr, index) => {
                 const count = streakMap.get(dateStr) || 0;
 
-                // Intensity based on count
-                const intensity = count >= 3 ? 4 : count >= 2 ? 3 : count >= 1 ? 2 : 0;
+                const boxStyles = [styles.gridSquare, { backgroundColor: HEATMAP_COLORS.base }];
+                if (count >= 7) boxStyles.push({ backgroundColor: HEATMAP_COLORS.neon });
+                else if (count >= 5) boxStyles.push({ backgroundColor: HEATMAP_COLORS.high });
+                else if (count >= 3) boxStyles.push({ backgroundColor: HEATMAP_COLORS.medium });
+                else if (count >= 1) boxStyles.push({ backgroundColor: HEATMAP_COLORS.light });
 
-                return (
-                  <View
-                    key={index}
-                    style={[
-                      styles.gridSquare,
-                      intensity === 2 && styles.gridSquareLight,
-                      intensity === 3 && styles.gridSquareMedium,
-                      intensity === 4 && styles.gridSquareFilled,
-                    ]}
-                  />
-                );
+                return <View key={index} style={boxStyles} />;
               });
             })()}
           </View>
@@ -445,10 +446,9 @@ export default function Profile() {
           <AppText style={styles.settingsHeader}>Settings</AppText>
           <View style={styles.settingsCard}>
             {[
-              { key: 'account', label: 'Account Details', icon: 'person-outline' },
-              { key: 'wake', label: 'Wake Preferences', icon: 'time-outline', route: '/screens/PermissionsGuide' },
-              { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline' },
-              { key: 'notifications', label: 'Notifications', icon: 'notifications-outline', route: '/screens/PermissionsGuide' },
+              { key: 'account', label: 'Account Details', icon: 'person-outline', route: '/screens/account-details' },
+              { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline', route: '/screens/PermissionsGuide' },
+              { key: 'notifications', label: 'Notifications', icon: 'notifications-outline', route: '/screens/notifications' },
             ].map((item) => (
               <TouchableOpacity
                 key={item.key}
@@ -465,7 +465,7 @@ export default function Profile() {
             ))}
           </View>
 
-          <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7} onPress={() => router.push('/screens/premium')}>
             <View style={styles.settingLeft}>
               <Ionicons name="star" size={20} color={NEON} />
               <AppText style={styles.premiumText}>Manage Premium</AppText>
@@ -478,7 +478,7 @@ export default function Profile() {
             <AppText style={styles.logoutText}>Log Out</AppText>
           </TouchableOpacity>
 
-          <AppText style={styles.versionText}>WakeBuddy v1.0.2</AppText>
+          <AppText style={styles.versionText}>WakeUpBuddy v1.0.2</AppText>
 
           <View style={{ height: 80 }} />
         </ScrollView>
@@ -503,7 +503,7 @@ export default function Profile() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalForm}>
+            <ScrollView style={styles.modalForm} keyboardShouldPersistTaps="handled">
               <View style={styles.inputGroup}>
                 <AppText style={styles.inputLabel}>Full Name</AppText>
                 <TextInput

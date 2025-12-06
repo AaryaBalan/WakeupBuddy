@@ -36,7 +36,7 @@ export default function Index() {
         </View>
 
         {/* Title and Tagline */}
-        <AppText style={styles.title}>WakeBuddy</AppText>
+        <AppText style={styles.title}>WakeUpBuddy</AppText>
         <AppText style={styles.tagline}>
           Find your partner, conquer the alarm, and start your day victorious.
         </AppText>
