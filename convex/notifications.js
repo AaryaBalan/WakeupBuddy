@@ -204,6 +204,42 @@ export const isBuddyAccepted = query({
     }
 });
 
+// Get count of pending notifications (alarm requests with status = 0)
+export const getPendingNotificationsCount = query({
+    args: { userEmail: v.string() },
+    handler: async (ctx, args) => {
+        // Get pending alarm notifications where user is receiver
+        const pendingAlarmNotifications = await ctx.db
+            .query("notifications")
+            .withIndex("by_receiver", (q) => q.eq("with_whom", args.userEmail))
+            .filter((q) => q.eq(q.field("status"), 0))
+            .collect();
+
+        // Get user ID for friend requests
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .first();
+
+        if (!user) {
+            return pendingAlarmNotifications.length;
+        }
+
+        // Get pending friend requests where user is receiver (second in the users array)
+        const allFriendRequests = await ctx.db
+            .query("friends")
+            .filter((q) => q.eq(q.field("status"), 0))
+            .collect();
+
+        // Filter friend requests where this user is the receiver (second user in array)
+        const pendingFriendRequests = allFriendRequests.filter(
+            (fr) => fr.users[1] === user._id
+        );
+
+        return pendingAlarmNotifications.length + pendingFriendRequests.length;
+    }
+});
+
 // Clear all notifications for a user (mark as read/delete processed ones)
 export const clearAllNotifications = mutation({
     args: { userEmail: v.string() },

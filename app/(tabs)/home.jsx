@@ -47,6 +47,12 @@ export default function HomeScreen() {
         user?.email ? { userEmail: user.email } : "skip"
     );
 
+    // Fetch pending notifications count
+    const pendingNotificationsCount = useQuery(
+        api.notifications.getPendingNotificationsCount,
+        user?.email ? { userEmail: user.email } : "skip"
+    );
+
     // Listen for call state changes to detect when call ends
     useEffect(() => {
         const unsubscribe = subscribeToCallState(async (event) => {
@@ -684,9 +690,11 @@ export default function HomeScreen() {
                             onPress={() => router.push('/screens/notifications')}
                         >
                             <Ionicons name="notifications-outline" size={24} color="#fff" />
-                            <View style={styles.badge}>
-                                <AppText style={styles.badgeText}>2</AppText>
-                            </View>
+                            {pendingNotificationsCount > 0 && (
+                                <View style={styles.badge}>
+                                    <AppText style={styles.badgeText}>{pendingNotificationsCount}</AppText>
+                                </View>
+                            )}
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.profileImageContainer}
