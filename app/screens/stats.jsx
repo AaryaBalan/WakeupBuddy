@@ -351,7 +351,7 @@ export default function BuddyStats() {
                                     hour: 'numeric',
                                     minute: '2-digit'
                                 });
-                                
+
                                 return (
                                     <View key={call._id} style={styles.recentRow}>
                                         <View style={styles.recentIcon}>
