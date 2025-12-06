@@ -214,29 +214,10 @@ const profileStyles = StyleSheet.create({
         color: GRAY,
         fontSize: 10,
     },
-    legendSquare1: {
+    legendSquare: {
         width: 12,
         height: 12,
         borderRadius: 2,
-        backgroundColor: '#1a2a1a',
-    },
-    legendSquare2: {
-        width: 12,
-        height: 12,
-        borderRadius: 2,
-        backgroundColor: '#2d4a2d',
-    },
-    legendSquare3: {
-        width: 12,
-        height: 12,
-        borderRadius: 2,
-        backgroundColor: '#6a9a3d',
-    },
-    legendSquare4: {
-        width: 12,
-        height: 12,
-        borderRadius: 2,
-        backgroundColor: NEON,
     },
     achCount: {
         color: GRAY,
