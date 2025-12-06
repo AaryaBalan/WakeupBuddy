@@ -10,6 +10,7 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from "../../styles/profile.styles";
 import BannerAds from '../ads/BannerAds';
+import { showInterstitialAd } from '../ads/InterstitialAds';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
@@ -229,16 +230,7 @@ export default function PublicProfile() {
                 <View style={styles.actionButtons}>
                     <TouchableOpacity
                         style={[styles.primaryBtn, { flexDirection: 'row', gap: 8 }]}
-                        onPress={() => router.push({
-                            pathname: '/screens/stats',
-                            params: {
-                                id: user._id,
-                                name: user.name,
-                                email: user.email,
-                                profile_code: user.profile_code,
-                                username: user.username,
-                            }
-                        })}
+                        onPress={showUserStats}
                         activeOpacity={0.8}
                     >
                         <Ionicons name="stats-chart" size={18} color="#000" />
@@ -268,6 +260,22 @@ export default function PublicProfile() {
                 </View>
             </SafeAreaView>
         );
+    }
+
+    // show stats
+    const showUserStats = () => {
+        showInterstitialAd(() => {
+            router.push({
+                pathname: '/screens/stats',
+                params: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    profile_code: user.profile_code,
+                    username: user.username,
+                }
+            })
+        })
     }
 
     return (

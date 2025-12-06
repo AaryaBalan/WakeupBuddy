@@ -218,11 +218,6 @@ export default function Profile() {
             <AppText style={styles.name}>{user?.name || 'User'}</AppText>
             <AppText style={styles.username}>{generateUsername()}</AppText>
             <AppText style={styles.bio} numberOfLines={3}>{user?.bio || 'Welcome to WakeUpBuddy! Start your journey to better mornings.'}</AppText>
-
-            <TouchableOpacity style={styles.shareButton} activeOpacity={0.8}>
-              <Ionicons name="share-social" size={16} color="#000" style={{ marginRight: 6 }} />
-              <AppText style={styles.shareText}>Share Profile</AppText>
-            </TouchableOpacity>
           </View>
 
           {/* Stats Section */}

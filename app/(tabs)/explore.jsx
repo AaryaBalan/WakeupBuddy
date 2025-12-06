@@ -10,6 +10,7 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/explore.styles';
 import BannerAds from '../ads/BannerAds';
+import { showInterstitialAd } from '../ads/InterstitialAds';
 
 export default function ExploreScreen() {
     const router = useRouter();
@@ -89,6 +90,16 @@ export default function ExploreScreen() {
         });
     };
 
+    // invite buddy
+    const inviteBuddy = (item) => {
+        showInterstitialAd(() => {
+            router.push({
+                pathname: '/screens/alarm-editor',
+                params: { buddyEmail: item.email, buddyName: item.name }
+            })
+        });
+    }
+
     const renderUserCard = ({ item }) => (
         <TouchableOpacity
             style={styles.userCard}
@@ -126,10 +137,7 @@ export default function ExploreScreen() {
                 <View style={styles.actionButtons}>
                     <TouchableOpacity
                         style={styles.inviteButton}
-                        onPress={() => router.push({
-                            pathname: '/screens/alarm-editor',
-                            params: { buddyEmail: item.email, buddyName: item.name }
-                        })}
+                        onPress={() => inviteBuddy(item)}
                     >
                         <Ionicons name="alarm-outline" size={16} color="#000" />
                         <AppText style={styles.inviteButtonText}>Invite</AppText>
