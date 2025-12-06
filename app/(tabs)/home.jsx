@@ -6,6 +6,8 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import RNShare from 'react-native-share';
+import ViewShot from 'react-native-view-shot';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
 import { usePopup } from '../../contexts/PopupContext';
@@ -26,6 +28,7 @@ export default function HomeScreen() {
     const lastCalledNumberRef = useRef(null);
     const callInProgressRef = useRef(false);
     const pendingAlarmRef = useRef(null);
+    const streakCardRef = useRef(null);
 
     const markAwake = useMutation(api.streaks.markAwake);
     const createCall = useMutation(api.calls.createCall);
@@ -626,6 +629,43 @@ export default function HomeScreen() {
         checkPerms();
     }, []);
 
+    // Handle share badge button press
+    const handleShareBadge = async () => {
+        try {
+            if (!streakCardRef.current) {
+                showPopup('Unable to capture streak card', '#FF6B6B');
+                return;
+            }
+
+            // Capture the streak card as an image
+            const uri = await streakCardRef.current.capture();
+            console.log('Captured streak card:', uri);
+
+            // Create caption with streak info
+            const streakCount = user?.streak || 0;
+            const maxStreak = user?.maxStreak || 0;
+            const caption = `🔥 ${streakCount} Day Streak on WakeUpBuddy! 🔥\n\nI'm crushing my wake-up goals! ${maxStreak > streakCount ? `Personal best: ${maxStreak} days!` : 'New personal record!'}\n\nJoin me in building better morning habits! 💪⏰`;
+
+            // Share both image and text using react-native-share
+            const shareOptions = {
+                title: 'My WakeUpBuddy Streak',
+                message: caption,
+                url: `file://${uri}`,
+                type: 'image/png',
+                subject: 'Check out my streak!',
+                failOnCancel: false
+            };
+
+            await RNShare.open(shareOptions);
+
+        } catch (error) {
+            console.error('Error sharing streak card:', error);
+            if (error.message !== 'User did not share') {
+                showPopup('Failed to share streak card', '#FF6B6B');
+            }
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -658,68 +698,70 @@ export default function HomeScreen() {
                 </View>
 
                 {/* Streak Card */}
-                <View style={styles.streakCard}>
-                    <View style={styles.streakHeader}>
-                        <AppText style={styles.streakLabel}>Current Streak</AppText>
-                        <TouchableOpacity style={styles.shareBadge}>
-                            <Ionicons name="share-social-outline" size={16} color="#C9E265" />
-                            <AppText style={styles.shareBadgeText}>Share Badge</AppText>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.streakCountContainer}>
-                        <AppText style={styles.streakCount}>{user?.streak || 0} days</AppText>
-                        <Ionicons name="flame" size={32} color="#FF6B35" style={{ marginLeft: 8 }} />
-                    </View>
-                    <AppText style={styles.streakSubtext}>You're on fire! Keep it up.</AppText>
+                <ViewShot ref={streakCardRef} options={{ format: 'png', quality: 1.0 }}>
+                    <View style={styles.streakCard}>
+                        <View style={styles.streakHeader}>
+                            <AppText style={styles.streakLabel}>Current Streak</AppText>
+                            <TouchableOpacity style={styles.shareBadge} onPress={handleShareBadge}>
+                                <Ionicons name="share-social-outline" size={16} color="#C9E265" />
+                                <AppText style={styles.shareBadgeText}>Share Badge</AppText>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.streakCountContainer}>
+                            <AppText style={styles.streakCount}>{user?.streak || 0} days</AppText>
+                            <Ionicons name="flame" size={32} color="#FF6B35" style={{ marginLeft: 8 }} />
+                        </View>
+                        <AppText style={styles.streakSubtext}>You're on fire! Keep it up.</AppText>
 
-                    {/* Last 10 Days Heatmap */}
-                    <View style={styles.heatmapContainer}>
-                        <AppText style={styles.heatmapTitle}>Last 10 Days Activity</AppText>
-                        <View style={styles.heatmap}>
-                            {(() => {
-                                // Generate last 10 days
-                                const days = [];
-                                for (let i = 9; i >= 0; i--) {
-                                    const date = new Date();
-                                    date.setDate(date.getDate() - i);
-                                    const dateStr = date.toISOString().split('T')[0];
-                                    days.push(dateStr);
-                                }
+                        {/* Last 10 Days Heatmap */}
+                        <View style={styles.heatmapContainer}>
+                            <AppText style={styles.heatmapTitle}>Last 10 Days Activity</AppText>
+                            <View style={styles.heatmap}>
+                                {(() => {
+                                    // Generate last 10 days
+                                    const days = [];
+                                    for (let i = 9; i >= 0; i--) {
+                                        const date = new Date();
+                                        date.setDate(date.getDate() - i);
+                                        const dateStr = date.toISOString().split('T')[0];
+                                        days.push(dateStr);
+                                    }
 
-                                // Map to counts
-                                return days.map((dateStr, index) => {
-                                    const streakData = recentStreaks?.find(s => s.date === dateStr);
-                                    const count = streakData?.count || 0;
+                                    // Map to counts
+                                    return days.map((dateStr, index) => {
+                                        const streakData = recentStreaks?.find(s => s.date === dateStr);
+                                        const count = streakData?.count || 0;
 
-                                    // Color based on count (matching profile page)
-                                    let boxColor = '#1a1a1a'; // Grey/ash for 0
-                                    if (count >= 7) boxColor = '#C9E265'; // Bright neon for 7+
-                                    else if (count >= 5) boxColor = '#6a9a3d'; // Bright green for 5-6
-                                    else if (count >= 3) boxColor = '#2d4a2d'; // Medium green for 3-4
-                                    else if (count >= 1) boxColor = '#1a2a1a'; // Light green for 1-2
+                                        // Color based on count (matching profile page)
+                                        let boxColor = '#1a1a1a'; // Grey/ash for 0
+                                        if (count >= 7) boxColor = '#C9E265'; // Bright neon for 7+
+                                        else if (count >= 5) boxColor = '#6a9a3d'; // Bright green for 5-6
+                                        else if (count >= 3) boxColor = '#2d4a2d'; // Medium green for 3-4
+                                        else if (count >= 1) boxColor = '#1a2a1a'; // Light green for 1-2
 
-                                    return (
-                                        <View key={index} style={styles.heatmapDayContainer}>
-                                            <View style={[styles.heatmapBox, { backgroundColor: boxColor }]}>
-                                                {count > 0 && (
-                                                    <AppText style={styles.heatmapCount}>{count}</AppText>
-                                                )}
+                                        return (
+                                            <View key={index} style={styles.heatmapDayContainer}>
+                                                <View style={[styles.heatmapBox, { backgroundColor: boxColor }]}>
+                                                    {count > 0 && (
+                                                        <AppText style={styles.heatmapCount}>{count}</AppText>
+                                                    )}
+                                                </View>
                                             </View>
-                                        </View>
-                                    );
-                                });
-                            })()}
-                        </View>
-                        <View style={styles.heatmapLegend}>
-                            <AppText style={styles.legendText}>Less</AppText>
-                            <View style={[styles.legendBox, { backgroundColor: '#1a1a1a' }]} />
-                            <View style={[styles.legendBox, { backgroundColor: '#2d4a2d' }]} />
-                            <View style={[styles.legendBox, { backgroundColor: '#6a9a3d' }]} />
-                            <View style={[styles.legendBox, { backgroundColor: '#C9E265' }]} />
-                            <AppText style={styles.legendText}>More</AppText>
+                                        );
+                                    });
+                                })()}
+                            </View>
+                            <View style={styles.heatmapLegend}>
+                                <AppText style={styles.legendText}>Less</AppText>
+                                <View style={[styles.legendBox, { backgroundColor: '#1a1a1a' }]} />
+                                <View style={[styles.legendBox, { backgroundColor: '#2d4a2d' }]} />
+                                <View style={[styles.legendBox, { backgroundColor: '#6a9a3d' }]} />
+                                <View style={[styles.legendBox, { backgroundColor: '#C9E265' }]} />
+                                <AppText style={styles.legendText}>More</AppText>
+                            </View>
                         </View>
                     </View>
-                </View>
+                </ViewShot>
 
                 {/* Up Next */}
                 <View style={styles.sectionHeader}>
