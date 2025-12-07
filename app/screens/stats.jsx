@@ -104,7 +104,7 @@ export default function BuddyStats() {
                             <ProfilePic user={currentUser} size={100} />
                         </View>
                         <View style={styles.heartContainer}>
-                            <Ionicons name="heart" size={24} color={NEON} />
+                            <Ionicons name="heart" size={24} color={BUDDY_COLOR} />
                         </View>
                         <View style={styles.avatarRing}>
                             <ProfilePic user={buddy} size={100} />
