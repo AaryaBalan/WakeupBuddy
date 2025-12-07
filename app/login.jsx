@@ -54,11 +54,11 @@ export default function Login() {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" />
-            <KeyboardAvoidingView 
+            <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
             >
-                <ScrollView 
+                <ScrollView
                     contentContainerStyle={{ flexGrow: 1 }}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
@@ -67,92 +67,92 @@ export default function Login() {
 
                         {/* Header / Back Button */}
                         <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="white" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Logo */}
-                <View style={styles.logoContainer}>
-                    <View style={styles.logoWrapper}>
-                        <Ionicons name="flash" size={40} color="#C9E265" />
-                    </View>
-                </View>
-
-                {/* Title */}
-                <AppText style={styles.title}>Welcome Back</AppText>
-                <AppText style={styles.subtitle}>Sign in to sync your challenges.</AppText>
-
-                {/* Form */}
-                <View style={styles.form}>
-                    <View style={styles.inputGroup}>
-                        <AppText style={styles.label}>Email Address</AppText>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter your email"
-                            placeholderTextColor="#666"
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            value={email}
-                            onChangeText={setEmail}
-                        />
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <AppText style={styles.label}>Password</AppText>
-                        <View style={styles.passwordContainer}>
-                            <TextInput
-                                style={styles.passwordInput}
-                                placeholder="Enter your password"
-                                placeholderTextColor="#666"
-                                secureTextEntry={!passwordVisible}
-                                value={password}
-                                onChangeText={setPassword}
-                            />
-                            <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
-                                <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="#999" />
+                            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                                <Ionicons name="arrow-back" size={24} color="white" />
                             </TouchableOpacity>
                         </View>
-                    </View>
 
-                    <TouchableOpacity style={styles.forgotPassword}>
-                        <AppText style={styles.forgotPasswordText}>Forgot Password?</AppText>
-                    </TouchableOpacity>
+                        {/* Logo */}
+                        <View style={styles.logoContainer}>
+                            <View style={styles.logoWrapper}>
+                                <Ionicons name="flash" size={40} color="#C9E265" />
+                            </View>
+                        </View>
 
-                    <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
-                        {isLoading ? (
-                            <ActivityIndicator color="#000" />
-                        ) : (
-                            <AppText style={styles.loginButtonText}>Log In</AppText>
-                        )}
-                    </TouchableOpacity>
-                </View>
+                        {/* Title */}
+                        <AppText style={styles.title}>Welcome Back</AppText>
+                        <AppText style={styles.subtitle}>Sign in to sync your challenges.</AppText>
 
-                {/* Social Login */}
-                <View style={styles.socialSection}>
-                    <AppText style={styles.orText}>Or continue with</AppText>
-                    <View style={styles.socialIcons}>
-                        <TouchableOpacity style={styles.iconButton}>
-                            <Ionicons name="logo-apple" size={24} color="white" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
-                            <Ionicons name="mail" size={24} color="white" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
-                            <Ionicons name="logo-github" size={24} color="white" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                        {/* Form */}
+                        <View style={styles.form}>
+                            <View style={styles.inputGroup}>
+                                <AppText style={styles.label}>Email Address</AppText>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter your email"
+                                    placeholderTextColor="#666"
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                />
+                            </View>
 
-                {/* Footer */}
-                <View style={styles.footer}>
-                    <AppText style={styles.footerText}>Don't have an account? </AppText>
-                    <Link href="/signup" asChild>
-                        <TouchableOpacity>
-                            <AppText style={styles.footerLink}>Sign Up</AppText>
-                        </TouchableOpacity>
-                    </Link>
-                    </View>
+                            <View style={styles.inputGroup}>
+                                <AppText style={styles.label}>Password</AppText>
+                                <View style={styles.passwordContainer}>
+                                    <TextInput
+                                        style={styles.passwordInput}
+                                        placeholder="Enter your password"
+                                        placeholderTextColor="#666"
+                                        secureTextEntry={!passwordVisible}
+                                        value={password}
+                                        onChangeText={setPassword}
+                                    />
+                                    <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
+                                        <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="#999" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <TouchableOpacity style={styles.forgotPassword}>
+                                <AppText style={styles.forgotPasswordText}>Forgot Password?</AppText>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
+                                {isLoading ? (
+                                    <ActivityIndicator color="#000" />
+                                ) : (
+                                    <AppText style={styles.loginButtonText}>Log In</AppText>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Social Login */}
+                        <View style={styles.socialSection}>
+                            <AppText style={styles.orText}>Or continue with</AppText>
+                            <View style={styles.socialIcons}>
+                                <TouchableOpacity style={styles.iconButton}>
+                                    <Ionicons name="logo-apple" size={24} color="white" />
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.iconButton}>
+                                    <Ionicons name="mail" size={24} color="white" />
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.iconButton}>
+                                    <Ionicons name="logo-github" size={24} color="white" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Footer */}
+                        <View style={styles.footer}>
+                            <AppText style={styles.footerText}>Don't have an account? </AppText>
+                            <Link href="/signup" asChild>
+                                <TouchableOpacity>
+                                    <AppText style={styles.footerLink}>Sign Up</AppText>
+                                </TouchableOpacity>
+                            </Link>
+                        </View>
 
 
                     </View>
