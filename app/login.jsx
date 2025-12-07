@@ -1,6 +1,6 @@
 import AppText from '@/components/AppText';
 import { Ionicons } from '@expo/vector-icons';
-import { useConvex } from "convex/react";
+import { useMutation } from "convex/react";
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
@@ -12,7 +12,7 @@ import styles from '../styles/login.styles.js';
 
 export default function Login() {
     const router = useRouter();
-    const convex = useConvex();
+    const loginUserMutation = useMutation(api.users.loginUser);
     const { login } = useUser();
     const { showPopup } = usePopup();
     const [email, setEmail] = useState('');
@@ -27,24 +27,24 @@ export default function Login() {
         };
         console.log('Login Data:', loginData);
         setIsLoading(true);
+
         try {
-            const user = await convex.query(api.users.getUserByEmail, { email });
-            console.log('Login Response:', user);
-            if (user) {
-                if (user.password === password) {
-                    await login(user);
-                    showPopup('Login Successful!', '#4CAF50')
-                    setTimeout(() => {
-                        router.replace('/(tabs)/home');
-                    }, 2000);
-                } else {
-                    showPopup('Incorrect Password...!', '#FF6B6B')
-                }
+            const result = await loginUserMutation({ email, password });
+            console.log('Login Response:', result);
+
+            if (result.success) {
+                await login(result.user);
+                showPopup('Login Successful!', '#4CAF50')
+                setTimeout(() => {
+                    router.replace('/(tabs)/home');
+                }, 2000);
             } else {
-                showPopup('User Not Found!', '#FF6B6B')
+                // Show specific error message
+                showPopup(result.error, '#FF6B6B');
             }
         } catch (error) {
-            console.error('Login Failed:', error);
+            // Handle unexpected errors
+            console.error('Unexpected error:', error);
             showPopup('Login Failed', '#FF6B6B');
         } finally {
             setIsLoading(false);

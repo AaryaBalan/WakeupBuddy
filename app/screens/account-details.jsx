@@ -19,6 +19,7 @@ export default function AccountDetailsScreen() {
     const { user, updateUser } = useUser();
     const { showPopup } = usePopup();
     const updateUserMutation = useMutation(api.users.updateUser);
+    const changePasswordMutation = useMutation(api.users.changePassword);
 
     const [changePasswordModal, setChangePasswordModal] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -76,21 +77,19 @@ export default function AccountDetailsScreen() {
             return;
         }
 
-        if (currentPassword !== user?.password) {
-            showModalMessage('Current password is incorrect', 'error');
-            return;
-        }
-
         setIsChangingPassword(true);
         try {
-            // Update password in Convex database
-            await updateUserMutation({
-                id: user._id,
-                password: newPassword
+            const result = await changePasswordMutation({
+                userId: user._id,
+                currentPassword: currentPassword,
+                newPassword: newPassword
             });
-            // Also update local state
-            await updateUser({ password: newPassword });
-            showModalMessage('Password changed successfully!', 'success');
+
+            if (result.success) {
+                showModalMessage('Password changed successfully!', 'success');
+            } else {
+                showModalMessage(result.error, 'error');
+            }
         } catch (error) {
             console.error('Error changing password:', error);
             showModalMessage('Failed to change password', 'error');

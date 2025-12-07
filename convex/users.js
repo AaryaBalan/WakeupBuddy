@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
@@ -21,16 +22,65 @@ export const createUser = mutation({
             throw new Error("User already exists");
         }
 
+        // Hash the password before storing (using sync method for Convex compatibility)
+        const hashedPassword = bcrypt.hashSync(args.password, 10);
+
         const userId = await ctx.db.insert("users", {
             name: args.name,
             email: args.email,
-            password: args.password,
+            password: hashedPassword,
             phone: args.phone,
             username: args.email.split("@")[0], // Default username from email
             bio: args.bio || "",
         });
 
         return userId;
+    },
+});
+
+export const loginUser = mutation({
+    args: {
+        email: v.string(),
+        password: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.email))
+            .first();
+
+        if (!user) {
+            return {
+                success: false,
+                error: "User not found"
+            };
+        }
+
+        // Compare password with hashed password (using sync method for Convex compatibility)
+        const isPasswordValid = bcrypt.compareSync(args.password, user.password);
+
+        if (!isPasswordValid) {
+            return {
+                success: false,
+                error: "Incorrect password"
+            };
+        }
+
+        // Return user without password
+        return {
+            success: true,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                username: user.username,
+                bio: user.bio || "",
+                streak: user.streak || 0,
+                maxStreak: user.maxStreak || 0,
+                profile_code: user.profile_code || user.email,
+                phone: user.phone,
+            }
+        };
     },
 });
 
@@ -76,12 +126,52 @@ export const updateUser = mutation({
         bio: v.optional(v.string()),
         phone: v.optional(v.string()),
         profileImage: v.optional(v.string()),
-        password: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const { id, ...updates } = args;
         await ctx.db.patch(id, updates);
         return await ctx.db.get(id);
+    },
+});
+
+export const changePassword = mutation({
+    args: {
+        userId: v.id("users"),
+        currentPassword: v.string(),
+        newPassword: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db.get(args.userId);
+
+        if (!user) {
+            return {
+                success: false,
+                error: "User not found"
+            };
+        }
+
+        // Verify current password
+        const isCurrentPasswordValid = bcrypt.compareSync(args.currentPassword, user.password);
+
+        if (!isCurrentPasswordValid) {
+            return {
+                success: false,
+                error: "Current password is incorrect"
+            };
+        }
+
+        // Hash new password
+        const hashedNewPassword = bcrypt.hashSync(args.newPassword, 10);
+
+        // Update password
+        await ctx.db.patch(args.userId, {
+            password: hashedNewPassword
+        });
+
+        return {
+            success: true,
+            message: "Password changed successfully"
+        };
     },
 });
 
