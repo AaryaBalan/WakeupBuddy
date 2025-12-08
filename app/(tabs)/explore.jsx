@@ -109,7 +109,6 @@ export default function ExploreScreen() {
             <View style={styles.userCardTop}>
                 <View style={styles.userImageContainer}>
                     <ProfilePic user={item} size={60} />
-                    <View style={styles.onlineIndicator} />
                 </View>
                 <View style={styles.userInfo}>
                     <AppText style={styles.userName}>{item.name}</AppText>
