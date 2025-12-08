@@ -202,13 +202,13 @@ export const updateUserLeaderboard = mutation({
         const allCalls = await ctx.db
             .query("calls")
             .collect();
-        
+
         // Filter calls that include this user
         const userCalls = allCalls.filter(call => call.users.includes(user._id));
-        
+
         // Total call time (all-time)
         const totalCallTime = userCalls.reduce((sum, call) => sum + (call.call_duration || 0), 0);
-        
+
         // Today's call time
         const todayCallTime = userCalls
             .filter(call => {
@@ -287,11 +287,11 @@ async function updateAllRanks(ctx) {
     const sortedByDaily = [...allEntries].sort((a, b) => {
         const aWakeups = a.today_wakeups || 0;
         const bWakeups = b.today_wakeups || 0;
-        
+
         if (aWakeups !== bWakeups) {
             return bWakeups - aWakeups; // Higher wakeups first
         }
-        
+
         // If wakeups are equal, sort by call time
         const aCallTime = a.today_call_time || 0;
         const bCallTime = b.today_call_time || 0;
@@ -339,11 +339,11 @@ export const getLeaderboard = query({
             sorted = entries.sort((a, b) => {
                 const aWakeups = a.today_wakeups || 0;
                 const bWakeups = b.today_wakeups || 0;
-                
+
                 if (aWakeups !== bWakeups) {
                     return bWakeups - aWakeups;
                 }
-                
+
                 const aCallTime = a.today_call_time || 0;
                 const bCallTime = b.today_call_time || 0;
                 return bCallTime - aCallTime;
@@ -362,10 +362,10 @@ export const getLeaderboard = query({
         const leaderboard = await Promise.all(
             paginated.map(async (entry, index) => {
                 const user = await ctx.db.get(entry.user_id);
-                
+
                 // Calculate display rank based on period
                 const displayRank = offset + index + 1;
-                
+
                 return {
                     _id: entry._id,
                     user_id: entry.user_id,
@@ -694,10 +694,10 @@ export const migrateCallTimeData = mutation({
         for (const entry of allEntries) {
             // Filter calls that include this user
             const userCalls = allCalls.filter(call => call.users.includes(entry.user_id));
-            
+
             // Total call time (all-time)
             const totalCallTime = userCalls.reduce((sum, call) => sum + (call.call_duration || 0), 0);
-            
+
             // Today's call time
             const todayCallTime = userCalls
                 .filter(call => {
@@ -719,7 +719,7 @@ export const migrateCallTimeData = mutation({
                 today_call_time: todayCallTime,
                 today_wakeups: todayWakeups,
             });
-            
+
             updated++;
         }
 

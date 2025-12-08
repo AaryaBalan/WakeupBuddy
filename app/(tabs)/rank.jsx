@@ -72,10 +72,10 @@ export default function RankScreen() {
         else rankIcon = <AppText style={styles.rankText}>{rank}</AppText>;
 
         const hasStreak = item.current_streak >= 7;
-        
+
         // Determine what to display based on active tab
         let primaryMetric, secondaryMetric;
-        
+
         if (activeTab === 'daily') {
             // Daily tab: Show today's wake-ups and today's call time
             primaryMetric = `${item.today_wakeups || 0} wakeups today`;
@@ -185,11 +185,11 @@ export default function RankScreen() {
             <View style={styles.banner}>
                 <Ionicons name="people-outline" size={18} color={NEON} style={{ marginRight: 8 }} />
                 <AppText style={styles.bannerText}>
-                    {activeTab === 'daily' 
-                        ? 'Today\'s rankings: Wake-ups & call time!' 
+                    {activeTab === 'daily'
+                        ? 'Today\'s rankings: Wake-ups & call time!'
                         : activeTab === 'friends'
-                        ? 'Compete with your buddies!'
-                        : 'All-time rankings: Streaks, wake-ups & calls!'}
+                            ? 'Compete with your buddies!'
+                            : 'All-time rankings: Streaks, wake-ups & calls!'}
                 </AppText>
             </View>
 
