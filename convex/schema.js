@@ -79,8 +79,14 @@ export default defineSchema({
         max_streak_points: v.number(),      // Points from max streak (achievement)
         consistency_points: v.number(),     // Points from daily consistency
         wakeup_points: v.number(),          // Points from total wakeups
+        // Daily tracking for daily leaderboard
+        today_wakeups: v.optional(v.number()),     // Wake-ups today
+        today_call_time: v.optional(v.number()),   // Call duration today (seconds)
+        // Global tracking
+        total_call_time: v.optional(v.number()),   // All-time call duration (seconds)
         // Metadata
         rank: v.optional(v.number()),       // Computed rank (1 = highest)
+        daily_rank: v.optional(v.number()), // Daily leaderboard rank
         last_updated: v.number(),           // Timestamp of last calculation
         daily_points: v.optional(v.number()),   // Points earned today
         weekly_points: v.optional(v.number()),  // Points earned this week
@@ -88,7 +94,8 @@ export default defineSchema({
     })
         .index('by_user', ['user_id'])
         .index('by_points', ['total_points'])
-        .index('by_rank', ['rank']),
+        .index('by_rank', ['rank'])
+        .index('by_daily_rank', ['daily_rank']),
 
     achievements: defineTable({
         user_id: v.id('users'),

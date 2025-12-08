@@ -192,11 +192,31 @@ export const updateUserLeaderboard = mutation({
             recentDaysActive
         );
 
-        // Calculate daily points (wakeups from today only)
+        // Calculate daily metrics (today's activity)
         const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
         const todayStreaks = allStreaks.filter(s => s.date === todayStr);
         const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
         const dailyPoints = todayWakeups * POINTS.WAKEUP_BASE * 10; // 20 points per wakeup today
+
+        // Calculate call time metrics
+        const allCalls = await ctx.db
+            .query("calls")
+            .collect();
+        
+        // Filter calls that include this user
+        const userCalls = allCalls.filter(call => call.users.includes(user._id));
+        
+        // Total call time (all-time)
+        const totalCallTime = userCalls.reduce((sum, call) => sum + (call.call_duration || 0), 0);
+        
+        // Today's call time
+        const todayCallTime = userCalls
+            .filter(call => {
+                const callDate = new Date(call.call_time);
+                const callDateStr = callDate.toISOString().split('T')[0];
+                return callDateStr === todayStr;
+            })
+            .reduce((sum, call) => sum + (call.call_duration || 0), 0);
 
         // Check if leaderboard entry exists
         const existingEntry = await ctx.db
@@ -216,6 +236,9 @@ export const updateUserLeaderboard = mutation({
             consistency_points: points.consistencyPoints,
             wakeup_points: points.wakeupPoints,
             daily_points: dailyPoints,
+            today_wakeups: todayWakeups,
+            today_call_time: todayCallTime,
+            total_call_time: totalCallTime,
             last_updated: Date.now(),
         };
 
@@ -225,7 +248,7 @@ export const updateUserLeaderboard = mutation({
             await ctx.db.insert("leaderboard", leaderboardData);
         }
 
-        // Update all ranks
+        // Update all ranks (both global and daily)
         await updateAllRanks(ctx);
 
         return {
@@ -233,30 +256,65 @@ export const updateUserLeaderboard = mutation({
             currentStreak,
             maxStreak,
             totalWakeups,
-            totalDaysActive
+            totalDaysActive,
+            todayWakeups,
+            todayCallTime,
+            totalCallTime,
         };
     },
 });
 
 /**
  * Internal function to update ranks for all users
+ * Updates both global (total_points) and daily (today_wakeups + today_call_time) rankings
  */
 async function updateAllRanks(ctx) {
     const allEntries = await ctx.db
         .query("leaderboard")
         .collect();
 
-    // Sort by total points descending
-    const sorted = allEntries.sort((a, b) => b.total_points - a.total_points);
+    // Sort by total points descending for global rank
+    const sortedByPoints = [...allEntries].sort((a, b) => b.total_points - a.total_points);
 
-    // Update ranks
-    for (let i = 0; i < sorted.length; i++) {
-        await ctx.db.patch(sorted[i]._id, { rank: i + 1 });
+    // Update global ranks
+    for (let i = 0; i < sortedByPoints.length; i++) {
+        await ctx.db.patch(sortedByPoints[i]._id, { rank: i + 1 });
+    }
+
+    // Sort by daily metrics for daily rank
+    // Primary: today_wakeups (descending)
+    // Secondary: today_call_time (descending)
+    const sortedByDaily = [...allEntries].sort((a, b) => {
+        const aWakeups = a.today_wakeups || 0;
+        const bWakeups = b.today_wakeups || 0;
+        
+        if (aWakeups !== bWakeups) {
+            return bWakeups - aWakeups; // Higher wakeups first
+        }
+        
+        // If wakeups are equal, sort by call time
+        const aCallTime = a.today_call_time || 0;
+        const bCallTime = b.today_call_time || 0;
+        return bCallTime - aCallTime; // Higher call time first
+    });
+
+    // Update daily ranks
+    for (let i = 0; i < sortedByDaily.length; i++) {
+        await ctx.db.patch(sortedByDaily[i]._id, { daily_rank: i + 1 });
     }
 }
 
 /**
  * Get the full leaderboard (top users)
+ * Supports 'daily', 'all', or 'monthly' period
+ * 
+ * Daily Rankings (period='daily'):
+ * - Primary: today_wakeups (descending)
+ * - Secondary: today_call_time (descending)
+ * 
+ * Global Rankings (period='all'):
+ * - Primary: total_points (descending)
+ * - Displays: total_wakeups, current_streak, max_streak, total_call_time
  */
 export const getLeaderboard = query({
     args: {
@@ -274,13 +332,26 @@ export const getLeaderboard = query({
             .query("leaderboard")
             .collect();
 
-        // Sort by appropriate points field based on period
+        // Sort based on period
         let sorted;
         if (period === 'daily') {
-            sorted = entries.sort((a, b) => (b.daily_points || 0) - (a.daily_points || 0));
+            // Daily leaderboard: Sort by today's wakeups (primary) and today's call time (secondary)
+            sorted = entries.sort((a, b) => {
+                const aWakeups = a.today_wakeups || 0;
+                const bWakeups = b.today_wakeups || 0;
+                
+                if (aWakeups !== bWakeups) {
+                    return bWakeups - aWakeups;
+                }
+                
+                const aCallTime = a.today_call_time || 0;
+                const bCallTime = b.today_call_time || 0;
+                return bCallTime - aCallTime;
+            });
         } else if (period === 'monthly') {
             sorted = entries.sort((a, b) => (b.monthly_points || 0) - (a.monthly_points || 0));
         } else {
+            // Global leaderboard: Sort by total points
             sorted = entries.sort((a, b) => b.total_points - a.total_points);
         }
 
@@ -291,22 +362,32 @@ export const getLeaderboard = query({
         const leaderboard = await Promise.all(
             paginated.map(async (entry, index) => {
                 const user = await ctx.db.get(entry.user_id);
+                
+                // Calculate display rank based on period
+                const displayRank = offset + index + 1;
+                
                 return {
                     _id: entry._id,
                     user_id: entry.user_id,
-                    rank: offset + index + 1,
+                    rank: displayRank,
                     user: {
                         name: user?.name || "Unknown",
                         username: user?.username || "unknown",
                         email: user?.email,
                         profile_code: user?.profile_code || user?.email,
                     },
+                    // Global metrics
                     total_points: entry.total_points,
-                    daily_points: entry.daily_points || 0,
-                    monthly_points: entry.monthly_points || 0,
                     current_streak: entry.current_streak,
                     max_streak: entry.max_streak,
                     total_wakeups: entry.total_wakeups,
+                    total_call_time: entry.total_call_time || 0,
+                    // Daily metrics
+                    today_wakeups: entry.today_wakeups || 0,
+                    today_call_time: entry.today_call_time || 0,
+                    daily_points: entry.daily_points || 0,
+                    monthly_points: entry.monthly_points || 0,
+                    // Additional info
                     total_days_active: entry.total_days_active,
                     first_activity_date: entry.first_activity_date,
                     // Point breakdown
@@ -590,5 +671,66 @@ export const recalculateAllDailyPoints = mutation({
         }
 
         return { updated, date: todayStr };
+    },
+});
+
+/**
+ * Migration: Populate call time data for all existing leaderboard entries
+ * Calculates total_call_time and today_call_time for all users
+ */
+export const migrateCallTimeData = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // Get all leaderboard entries
+        const allEntries = await ctx.db.query("leaderboard").collect();
+
+        // Get all calls once
+        const allCalls = await ctx.db.query("calls").collect();
+
+        let updated = 0;
+        for (const entry of allEntries) {
+            // Filter calls that include this user
+            const userCalls = allCalls.filter(call => call.users.includes(entry.user_id));
+            
+            // Total call time (all-time)
+            const totalCallTime = userCalls.reduce((sum, call) => sum + (call.call_duration || 0), 0);
+            
+            // Today's call time
+            const todayCallTime = userCalls
+                .filter(call => {
+                    const callDate = new Date(call.call_time);
+                    const callDateStr = callDate.toISOString().split('T')[0];
+                    return callDateStr === todayStr;
+                })
+                .reduce((sum, call) => sum + (call.call_duration || 0), 0);
+
+            // Get today's wakeups
+            const todayStreaks = await ctx.db
+                .query("streaks")
+                .withIndex("by_user_date", (q) => q.eq("user_id", entry.user_id).eq("date", todayStr))
+                .collect();
+            const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
+
+            await ctx.db.patch(entry._id, {
+                total_call_time: totalCallTime,
+                today_call_time: todayCallTime,
+                today_wakeups: todayWakeups,
+            });
+            
+            updated++;
+        }
+
+        // Update all ranks (both global and daily)
+        await updateAllRanks(ctx);
+
+        return {
+            success: true,
+            updated,
+            date: todayStr,
+            message: `Migrated call time data for ${updated} users and updated rankings`
+        };
     },
 });

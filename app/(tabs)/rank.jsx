@@ -45,6 +45,16 @@ export default function RankScreen() {
         return Math.round(points).toLocaleString();
     };
 
+    // Format call time from seconds to readable format
+    const formatCallTime = (seconds) => {
+        if (!seconds) return '0m';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m`;
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+    };
+
     // Calculate success rate (consistency percentage)
     const getSuccessRate = (item) => {
         if (!item.total_days_active || !item.first_activity_date) return '';
@@ -62,7 +72,19 @@ export default function RankScreen() {
         else rankIcon = <AppText style={styles.rankText}>{rank}</AppText>;
 
         const hasStreak = item.current_streak >= 7;
-        const points = activeTab === 'daily' ? item.daily_points : item.total_points;
+        
+        // Determine what to display based on active tab
+        let primaryMetric, secondaryMetric;
+        
+        if (activeTab === 'daily') {
+            // Daily tab: Show today's wake-ups and today's call time
+            primaryMetric = `${item.today_wakeups || 0} wakeups today`;
+            secondaryMetric = `${formatCallTime(item.today_call_time)} call time`;
+        } else {
+            // Global tab: Show streak and total stats
+            primaryMetric = `${item.current_streak} day streak`;
+            secondaryMetric = `${formatCallTime(item.total_call_time)} total calls`;
+        }
 
         // Check if this is the current user
         const isCurrentUser = user?._id === item.user_id;
@@ -106,13 +128,25 @@ export default function RankScreen() {
                         {hasStreak && <Ionicons name="flame" size={14} color="#FF6B35" style={{ marginLeft: 4 }} />}
                     </View>
                     <AppText style={styles.locationText}>
-                        {item.current_streak} day streak{getSuccessRate(item)}
+                        {primaryMetric}
+                    </AppText>
+                    <AppText style={[styles.locationText, { fontSize: 10, marginTop: 2 }]}>
+                        {secondaryMetric}
                     </AppText>
                 </View>
 
                 <View style={styles.pointsCol}>
-                    <AppText style={styles.pointsText}>{formatPoints(points)}</AppText>
-                    {rank <= 3 && <AppText style={styles.ptsLabel}>pts</AppText>}
+                    {activeTab === 'daily' ? (
+                        <>
+                            <AppText style={styles.pointsText}>{item.today_wakeups || 0}</AppText>
+                            {rank <= 3 && <AppText style={styles.ptsLabel}>wakeups</AppText>}
+                        </>
+                    ) : (
+                        <>
+                            <AppText style={styles.pointsText}>{formatPoints(item.total_points)}</AppText>
+                            {rank <= 3 && <AppText style={styles.ptsLabel}>pts</AppText>}
+                        </>
+                    )}
                 </View>
             </TouchableOpacity>
         );
@@ -150,7 +184,13 @@ export default function RankScreen() {
             {/* Banner */}
             <View style={styles.banner}>
                 <Ionicons name="people-outline" size={18} color={NEON} style={{ marginRight: 8 }} />
-                <AppText style={styles.bannerText}>Earn points by waking up & solving puzzles together!</AppText>
+                <AppText style={styles.bannerText}>
+                    {activeTab === 'daily' 
+                        ? 'Today\'s rankings: Wake-ups & call time!' 
+                        : activeTab === 'friends'
+                        ? 'Compete with your buddies!'
+                        : 'All-time rankings: Streaks, wake-ups & calls!'}
+                </AppText>
             </View>
 
             {/* Stats Banner */}
