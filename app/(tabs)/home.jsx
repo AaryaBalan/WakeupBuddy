@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StatusBar, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RNShare from 'react-native-share';
 import ViewShot from 'react-native-view-shot';
@@ -14,12 +14,14 @@ import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/home.styles';
-import { checkPendingCall, clearPendingCall, getLastCallDuration, getMostRecentCallDuration, makePhoneCall, requestCallPhonePermission, requestReadCallLogPermission, requestReadPhoneStatePermission, savePendingCall, subscribeToCallState } from '../native/AlarmNative';
 import BannerAds from '../ads/BannerAds';
+import { checkPendingCall, clearPendingCall, getLastCallDuration, getMostRecentCallDuration, makePhoneCall, requestCallPhonePermission, requestReadCallLogPermission, requestReadPhoneStatePermission, savePendingCall, subscribeToCallState } from '../native/AlarmNative';
 
 // Initialize Convex HTTP client for imperative queries
 const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || "";
 const convexClient = new ConvexHttpClient(CONVEX_URL);
+
+const NEON = '#C9E265';
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -674,14 +676,15 @@ export default function HomeScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <ScrollView contentContainerStyle={styles.scrollContent}>
 
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
                         <View style={styles.logoContainer}>
-                            <Ionicons name="flash" size={24} color="#000" />
+                            <Ionicons name="flash" size={20} color="#000" />
                         </View>
                         <AppText style={styles.headerTitle}>WakeUpBuddy</AppText>
                     </View>
@@ -701,7 +704,7 @@ export default function HomeScreen() {
                             style={styles.profileImageContainer}
                             onPress={() => router.push('/(tabs)/profile')}
                         >
-                            <ProfilePic user={user} size={35} />
+                            <ProfilePic user={user} size={36} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -712,13 +715,13 @@ export default function HomeScreen() {
                         <View style={styles.streakHeader}>
                             <AppText style={styles.streakLabel}>Current Streak</AppText>
                             <TouchableOpacity style={styles.shareBadge} onPress={handleShareBadge}>
-                                <Ionicons name="share-social-outline" size={16} color="#C9E265" />
-                                <AppText style={styles.shareBadgeText}>Share Badge</AppText>
+                                <Ionicons name="share-social-outline" size={14} color={NEON} />
+                                <AppText style={styles.shareBadgeText}>Share</AppText>
                             </TouchableOpacity>
                         </View>
                         <View style={styles.streakCountContainer}>
-                            <AppText style={styles.streakCount}>{user?.streak || 0} days</AppText>
-                            <Ionicons name="flame" size={32} color="#FF6B35" style={{ marginLeft: 8 }} />
+                            <AppText style={styles.streakCount}>{user?.streak || 0}</AppText>
+                            <Ionicons name="flame" size={32} color="#FF6B35" />
                         </View>
                         <AppText style={styles.streakSubtext}>You're on fire! Keep it up.</AppText>
 
@@ -742,11 +745,11 @@ export default function HomeScreen() {
                                         const count = streakData?.count || 0;
 
                                         // Color based on count (matching profile page)
-                                        let boxColor = '#1a1a1a'; // Grey/ash for 0
-                                        if (count >= 7) boxColor = '#C9E265'; // Bright neon for 7+
-                                        else if (count >= 5) boxColor = '#6a9a3d'; // Bright green for 5-6
-                                        else if (count >= 3) boxColor = '#2d4a2d'; // Medium green for 3-4
-                                        else if (count >= 1) boxColor = '#1a2a1a'; // Light green for 1-2
+                                        let boxColor = '#1A1A1A'; // Grey/ash for 0
+                                        if (count >= 7) boxColor = NEON; // Bright neon for 7+
+                                        else if (count >= 5) boxColor = '#8FB339'; // Bright green for 5-6
+                                        else if (count >= 3) boxColor = '#556B2F'; // Medium green for 3-4
+                                        else if (count >= 1) boxColor = '#2A3318'; // Light green for 1-2
 
                                         return (
                                             <View key={index} style={styles.heatmapDayContainer}>
@@ -762,10 +765,10 @@ export default function HomeScreen() {
                             </View>
                             <View style={styles.heatmapLegend}>
                                 <AppText style={styles.legendText}>Less</AppText>
-                                <View style={[styles.legendBox, { backgroundColor: '#1a1a1a' }]} />
-                                <View style={[styles.legendBox, { backgroundColor: '#2d4a2d' }]} />
-                                <View style={[styles.legendBox, { backgroundColor: '#6a9a3d' }]} />
-                                <View style={[styles.legendBox, { backgroundColor: '#C9E265' }]} />
+                                <View style={[styles.legendBox, { backgroundColor: '#1A1A1A' }]} />
+                                <View style={[styles.legendBox, { backgroundColor: '#556B2F' }]} />
+                                <View style={[styles.legendBox, { backgroundColor: '#8FB339' }]} />
+                                <View style={[styles.legendBox, { backgroundColor: NEON }]} />
                                 <AppText style={styles.legendText}>More</AppText>
                             </View>
                         </View>
@@ -891,7 +894,7 @@ export default function HomeScreen() {
                                         style={[styles.shareBadge, { marginTop: 12 }]}
                                         onPress={() => router.push('/screens/alarm-editor')}
                                     >
-                                        <Ionicons name="add" size={16} color="#C9E265" />
+                                        <Ionicons name="add" size={16} color={NEON} />
                                         <AppText style={styles.shareBadgeText}>Add Alarm</AppText>
                                     </TouchableOpacity>
                                 </View>
@@ -926,12 +929,12 @@ export default function HomeScreen() {
                                     <View style={styles.modeContainer}>
                                         {alarm.solo_mode ? (
                                             <>
-                                                <Ionicons name="person-outline" size={20} color="#888" />
+                                                <Ionicons name="person-outline" size={18} color="#888" />
                                                 <AppText style={[styles.modeText, { color: '#888' }]}>Solo Mode</AppText>
                                             </>
                                         ) : (
                                             <>
-                                                <Ionicons name="people-outline" size={20} color="#C9E265" />
+                                                <Ionicons name="people-outline" size={18} color={NEON} />
                                                 <AppText style={styles.modeText}>
                                                     {alarm.buddy ? `With ${alarm.buddy.split('@')[0]}` : 'Wake Buddy Mode'}
                                                 </AppText>
@@ -951,20 +954,20 @@ export default function HomeScreen() {
                 <AppText style={styles.sectionTitle}>Quick Actions</AppText>
                 <View style={styles.quickActionsContainer}>
                     <TouchableOpacity style={styles.quickActionItem} onPress={() => router.push('/screens/alarm-editor')}>
-                        <View style={[styles.quickActionIcon, { backgroundColor: '#2a2a1a' }]}>
-                            <Ionicons name="alarm-outline" size={24} color="#C9E265" />
+                        <View style={styles.quickActionIcon}>
+                            <Ionicons name="alarm-outline" size={24} color={NEON} />
                         </View>
                         <AppText style={styles.quickActionText}>Add Alarm</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.quickActionItem} onPress={() => router.push('/screens/my-buddies')}>
-                        <View style={[styles.quickActionIcon, { backgroundColor: '#2a2a1a' }]}>
-                            <Ionicons name="people-outline" size={24} color="#C9E265" />
+                        <View style={styles.quickActionIcon}>
+                            <Ionicons name="people-outline" size={24} color={NEON} />
                         </View>
                         <AppText style={styles.quickActionText}>My Buddies</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.quickActionItem} onPress={() => router.push('/screens/PermissionsGuide')}>
-                        <View style={[styles.quickActionIcon, { backgroundColor: '#2a2a1a' }]}>
-                            <Ionicons name="settings-outline" size={24} color="#C9E265" />
+                        <View style={styles.quickActionIcon}>
+                            <Ionicons name="settings-outline" size={24} color={NEON} />
                         </View>
                         <AppText style={styles.quickActionText}>Setup</AppText>
                     </TouchableOpacity>
@@ -1000,7 +1003,7 @@ export default function HomeScreen() {
                             } else if (friend.maxStreak >= 7) {
                                 achievementText = `Best streak: ${friend.maxStreak} days`;
                                 achievementIcon = 'trophy';
-                                iconColor = '#C9E265';
+                                iconColor = NEON;
                             } else if (friend.streak > 0) {
                                 achievementText = `${friend.streak} day streak`;
                             } else {
@@ -1016,13 +1019,13 @@ export default function HomeScreen() {
                                     onPress={() => router.push(`/user/${friend._id}`)}
                                 >
                                     <View style={styles.socialContent}>
-                                        <ProfilePic user={friend} size={40} />
+                                        <ProfilePic user={friend} size={36} />
                                         <View style={styles.socialTextContainer}>
                                             <AppText style={styles.socialTitle}>{friend.name}</AppText>
                                             <AppText style={styles.socialSubtitle}>{achievementText}</AppText>
                                         </View>
                                         <View style={styles.achievementBadge}>
-                                            <Ionicons name={achievementIcon} size={20} color={iconColor} />
+                                            <Ionicons name={achievementIcon} size={18} color={iconColor} />
                                         </View>
                                     </View>
                                 </TouchableOpacity>
@@ -1031,7 +1034,7 @@ export default function HomeScreen() {
                 ) : (
                     <View style={styles.socialCard}>
                         <View style={styles.socialContent}>
-                            <View style={[styles.socialAvatar, { backgroundColor: '#1a1a1a' }]}>
+                            <View style={[styles.socialAvatar, { backgroundColor: '#1A1A1A', justifyContent: 'center', alignItems: 'center' }]}>
                                 <Ionicons name="people-outline" size={20} color="#666" />
                             </View>
                             <View style={styles.socialTextContainer}>
@@ -1042,7 +1045,7 @@ export default function HomeScreen() {
                                 style={styles.thumbsUpButton}
                                 onPress={() => router.push('/(tabs)/rank')}
                             >
-                                <Ionicons name="add" size={20} color="#C9E265" />
+                                <Ionicons name="add" size={20} color={NEON} />
                             </TouchableOpacity>
                         </View>
                     </View>
