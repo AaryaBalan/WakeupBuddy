@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 20,
         marginTop: 10,
+        paddingHorizontal: 10,
     },
     headerTitle: {
         color: "#fff",
@@ -42,6 +43,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         borderWidth: 1,
         borderColor: '#222',
+        marginHorizontal: 10,
     },
     tab: {
         flex: 1,
@@ -72,9 +74,9 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 16,
         borderRadius: 12,
-        marginBottom: 24,
         borderWidth: 1,
         borderColor: "rgba(201, 226, 101, 0.15)",
+        marginHorizontal: 10,
     },
     bannerText: {
         color: "#E0E0E0",
@@ -82,52 +84,106 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat_500Medium',
     },
 
-    /* ---------- Stats Banner ---------- */
-    statsBanner: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        backgroundColor: CARD_BG,
-        paddingVertical: 16,
-        paddingHorizontal: 20,
-        borderRadius: 16,
+
+
+    /* ---------- Podium ---------- */
+    podiumContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
         marginBottom: 30,
-        borderWidth: 1,
-        borderColor: '#222',
+        height: 220,
     },
-    statItem: {
-        alignItems: "center",
-        flex: 1,
+    podiumItem: {
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        width: width / 3.5,
     },
-    statValue: {
-        color: "#fff",
-        fontSize: 18,
+    podiumItemFirst: {
+        marginBottom: 20,
+        zIndex: 10,
+    },
+    podiumAvatarContainer: {
+        marginBottom: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    podiumAvatarRing: {
+        padding: 3,
+        borderRadius: 100,
+        borderWidth: 2,
+    },
+    podiumRankBadge: {
+        position: 'absolute',
+        bottom: -10,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: BG,
+    },
+    podiumRankText: {
+        color: '#000',
+        fontSize: 12,
+        fontFamily: 'Montserrat_700Bold',
+    },
+    podiumName: {
+        color: '#fff',
+        fontSize: 13,
         fontFamily: 'Montserrat_700Bold',
         marginBottom: 4,
+        textAlign: 'center',
     },
-    statLabel: {
-        color: GRAY,
-        fontSize: 11,
-        fontFamily: 'Montserrat_500Medium',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+    podiumPoints: {
+        color: NEON,
+        fontSize: 12,
+        fontFamily: 'Montserrat_600SemiBold',
     },
-    statDivider: {
-        width: 1,
-        height: 30,
-        backgroundColor: "#333",
+    podiumCrown: {
+        position: 'absolute',
+        top: -28,
+        zIndex: 20,
+    },
+    podiumBase: {
+        width: '100%',
+        borderTopLeftRadius: 8,
+        borderTopRightRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        paddingTop: 10,
+    },
+    podiumBaseFirst: {
+        height: 110,
+        backgroundColor: 'rgba(255, 215, 0, 0.15)', // Gold tint
+        borderWidth: 1,
+        borderColor: 'rgba(255, 215, 0, 0.3)',
+    },
+    podiumBaseSecond: {
+        height: 80,
+        backgroundColor: 'rgba(192, 192, 192, 0.15)', // Silver tint
+        borderWidth: 1,
+        borderColor: 'rgba(192, 192, 192, 0.3)',
+    },
+    podiumBaseThird: {
+        height: 60,
+        backgroundColor: 'rgba(205, 127, 50, 0.15)', // Bronze tint
+        borderWidth: 1,
+        borderColor: 'rgba(205, 127, 50, 0.3)',
     },
 
     /* ---------- Leaderboard Item Row ---------- */
     itemRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 12,
+        marginBottom: 8,
         backgroundColor: CARD_BG,
-        padding: 14,
+        padding: 12,
         borderRadius: 16,
         borderWidth: 1,
         borderColor: '#1A1A1A',
+        marginHorizontal: 5,
     },
 
     /* Rank */
@@ -138,7 +194,7 @@ const styles = StyleSheet.create({
     },
     rankText: {
         color: GRAY,
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
     },
 
@@ -172,7 +228,7 @@ const styles = StyleSheet.create({
     },
     pointsText: {
         color: NEON,
-        fontSize: 16,
+        fontSize: 15,
         fontFamily: 'Montserrat_700Bold',
     },
     ptsLabel: {

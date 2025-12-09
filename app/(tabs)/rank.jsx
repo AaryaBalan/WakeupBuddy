@@ -1,3 +1,4 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
@@ -53,61 +54,52 @@ export default function RankScreen() {
         return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
     };
 
+    const handleUserPress = (item) => {
+        const isCurrentUser = user?._id === item.user_id;
+        if (isCurrentUser) {
+            router.push('/(tabs)/profile');
+        } else {
+            router.push({
+                pathname: `/user/${item.user_id}`,
+                params: {
+                    name: item.user?.name,
+                    username: item.user?.username,
+                    email: item.user?.email,
+                    profile_code: item.user?.profile_code,
+                    badge: item.current_streak >= 7 ? 'flame' : '',
+                    streak: item.current_streak,
+                    maxStreak: item.max_streak,
+                }
+            });
+        }
+    };
+
     const renderItem = ({ item, index }) => {
-        const rank = index + 1;
-        let rankIcon;
-        // Distinct styling for top 3
-        if (rank === 1) rankIcon = <Ionicons name="trophy" size={22} color="#FFD700" />; // Gold
-        else if (rank === 2) rankIcon = <Ionicons name="medal" size={22} color="#C0C0C0" />; // Silver
-        else if (rank === 3) rankIcon = <Ionicons name="medal" size={22} color="#CD7F32" />; // Bronze
-        else rankIcon = <AppText style={styles.rankText}>{rank}</AppText>;
+        // Adjust index because top 3 are in podium
+        const rank = index + 4;
 
         const hasStreak = item.current_streak >= 7;
 
         // Determine what to display based on active tab
-        let primaryMetric, secondaryMetric;
+        let primaryMetric;
 
         if (activeTab === 'daily') {
-            // Daily tab: Show today's wake-ups and today's call time
             primaryMetric = `${item.today_wakeups || 0} wakeups today`;
-            secondaryMetric = `${formatCallTime(item.today_call_time)} call time`;
         } else {
-            // Global tab: Show streak and total stats
             primaryMetric = `${item.current_streak} day streak`;
-            secondaryMetric = `${formatCallTime(item.total_call_time)} total calls`;
         }
 
-        // Check if this is the current user
         const isCurrentUser = user?._id === item.user_id;
-
-        const handlePress = () => {
-            if (isCurrentUser) {
-                // Go to own profile tab
-                router.push('/(tabs)/profile');
-            } else {
-                // Go to public profile
-                router.push({
-                    pathname: `/user/${item.user_id}`,
-                    params: {
-                        name: item.user?.name,
-                        username: item.user?.username,
-                        email: item.user?.email,
-                        profile_code: item.user?.profile_code,
-                        badge: hasStreak ? 'flame' : '',
-                        streak: item.current_streak,
-                        maxStreak: item.max_streak,
-                    }
-                });
-            }
-        };
 
         return (
             <TouchableOpacity
                 style={[styles.itemRow, isCurrentUser && { borderColor: 'rgba(201, 226, 101, 0.3)', backgroundColor: 'rgba(201, 226, 101, 0.05)' }]}
                 activeOpacity={0.7}
-                onPress={handlePress}
+                onPress={() => handleUserPress(item)}
             >
-                <View style={styles.rankCol}>{rankIcon}</View>
+                <View style={styles.rankCol}>
+                    <AppText style={styles.rankText}>{rank}</AppText>
+                </View>
 
                 <View style={styles.avatarCol}>
                     <ProfilePic user={item.user} size={42} />
@@ -127,12 +119,10 @@ export default function RankScreen() {
                     {activeTab === 'daily' ? (
                         <>
                             <AppText style={styles.pointsText}>{item.today_wakeups || 0}</AppText>
-                            {rank <= 3 && <AppText style={styles.ptsLabel}>wakeups</AppText>}
                         </>
                     ) : (
                         <>
                             <AppText style={styles.pointsText}>{formatPoints(item.total_points)}</AppText>
-                            {rank <= 3 && <AppText style={styles.ptsLabel}>pts</AppText>}
                         </>
                     )}
                 </View>
@@ -140,68 +130,112 @@ export default function RankScreen() {
         );
     };
 
-    const ListHeader = () => (
-        <View>
-            <View style={styles.headerRow}>
-                <AppText style={styles.headerTitle}>Leaderboard</AppText>
-                {/* Removed info icon for cleaner look */}
-            </View>
+    const Podium = ({ topUsers }) => {
+        if (!topUsers || topUsers.length === 0) return null;
 
-            {/* Tabs */}
-            <View style={styles.tabsContainer}>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'global' && styles.activeTab]}
-                    onPress={() => setActiveTab('global')}
-                >
-                    <AppText style={activeTab === 'global' ? styles.activeTabText : styles.inactiveTabText}>Global</AppText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'friends' && styles.activeTab]}
-                    onPress={() => setActiveTab('friends')}
-                >
-                    <AppText style={activeTab === 'friends' ? styles.activeTabText : styles.inactiveTabText}>Friends</AppText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'daily' && styles.activeTab]}
-                    onPress={() => setActiveTab('daily')}
-                >
-                    <AppText style={activeTab === 'daily' ? styles.activeTabText : styles.inactiveTabText}>Daily</AppText>
-                </TouchableOpacity>
-            </View>
+        const first = topUsers[0];
+        const second = topUsers[1];
+        const third = topUsers[2];
 
-            {/* Banner */}
-            <View style={styles.banner}>
-                <Ionicons name="trophy-outline" size={16} color={NEON} style={{ marginRight: 8 }} />
-                <AppText style={styles.bannerText}>
-                    {activeTab === 'daily'
-                        ? 'Today\'s Top Risers'
-                        : activeTab === 'friends'
-                            ? 'Friend Competitions'
-                            : 'All-Time Legends'}
-                </AppText>
-            </View>
+        const renderPodiumItem = (item, rank) => {
+            if (!item) return <View style={styles.podiumItem} />;
 
-            {/* Stats Banner */}
-            {globalStats && (
-                <View style={styles.statsBanner}>
-                    <View style={styles.statItem}>
-                        <AppText style={styles.statValue}>{globalStats.totalUsers}</AppText>
-                        <AppText style={styles.statLabel}>Players</AppText>
+            const isFirst = rank === 1;
+            const isSecond = rank === 2;
+            const isThird = rank === 3;
+
+            let ringColor = isFirst ? '#FFD700' : isSecond ? '#C0C0C0' : '#CD7F32';
+            let badgeColor = ringColor;
+            let baseStyle = isFirst ? styles.podiumBaseFirst : isSecond ? styles.podiumBaseSecond : styles.podiumBaseThird;
+
+            return (
+                <TouchableOpacity
+                    style={[styles.podiumItem, isFirst && styles.podiumItemFirst]}
+                    activeOpacity={0.8}
+                    onPress={() => handleUserPress(item)}
+                >
+                    {isFirst && (
+                        <View style={styles.podiumCrown}>
+                            <Ionicons name="trophy" size={24} color="#FFD700" />
+                        </View>
+                    )}
+                    <View style={styles.podiumAvatarContainer}>
+                        <View style={[styles.podiumAvatarRing, { borderColor: ringColor }]}>
+                            <ProfilePic user={item.user} size={isFirst ? 64 : 50} />
+                        </View>
+                        <View style={[styles.podiumRankBadge, { backgroundColor: badgeColor }]}>
+                            <AppText style={styles.podiumRankText}>{rank}</AppText>
+                        </View>
                     </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <AppText style={styles.statValue}>{formatPoints(globalStats.totalPoints)}</AppText>
-                        <AppText style={styles.statLabel}>Total Pts</AppText>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <AppText style={styles.statValue}>{globalStats.highestStreak}</AppText>
-                        <AppText style={styles.statLabel}>Top Streak</AppText>
-                    </View>
+                    <AppText style={styles.podiumName} numberOfLines={1}>{item.user?.name?.split(' ')[0] || 'User'}</AppText>
+                    <AppText style={styles.podiumPoints}>
+                        {activeTab === 'daily' ? (item.today_wakeups || 0) : formatPoints(item.total_points)}
+                    </AppText>
+                </TouchableOpacity>
+            );
+        };
+
+        return (
+            <View style={styles.podiumContainer}>
+                {renderPodiumItem(second, 2)}
+                {renderPodiumItem(first, 1)}
+                {renderPodiumItem(third, 3)}
+            </View>
+        );
+    };
+
+    const ListHeader = () => {
+        const top3 = leaderboardData ? leaderboardData.slice(0, 3) : [];
+
+        return (
+            <View>
+                <View style={styles.headerRow}>
+                    <AppText style={styles.headerTitle}>Leaderboard</AppText>
                 </View>
-            )}
-        </View>
-    );
+
+                {/* Tabs */}
+                <View style={styles.tabsContainer}>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === 'global' && styles.activeTab]}
+                        onPress={() => setActiveTab('global')}
+                    >
+                        <AppText style={activeTab === 'global' ? styles.activeTabText : styles.inactiveTabText}>Global</AppText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === 'friends' && styles.activeTab]}
+                        onPress={() => setActiveTab('friends')}
+                    >
+                        <AppText style={activeTab === 'friends' ? styles.activeTabText : styles.inactiveTabText}>Friends</AppText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === 'daily' && styles.activeTab]}
+                        onPress={() => setActiveTab('daily')}
+                    >
+                        <AppText style={activeTab === 'daily' ? styles.activeTabText : styles.inactiveTabText}>Daily</AppText>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Banner */}
+                <View style={styles.banner}>
+                    <Ionicons name="trophy-outline" size={16} color={NEON} style={{ marginRight: 8 }} />
+                    <AppText style={styles.bannerText}>
+                        {activeTab === 'daily'
+                            ? 'Today\'s Top Risers'
+                            : activeTab === 'friends'
+                                ? 'Friend Competitions'
+                                : 'All-Time Legends'}
+                    </AppText>
+                </View>
+
+                {/* Podium */}
+                {leaderboardData && leaderboardData.length > 0 && (
+                    <Podium topUsers={top3} />
+                )}
+
+
+            </View>
+        );
+    };
 
     const ListFooter = () => (
         <View style={{ alignItems: 'center', marginTop: 10 }}>
@@ -238,11 +272,14 @@ export default function RankScreen() {
         return recentlyActive ? '+points earned' : 'Wake up to earn!';
     };
 
+    // Filter out top 3 for the list
+    const listData = leaderboardData ? leaderboardData.slice(3) : [];
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <FlatList
-                data={leaderboardData || []}
+                data={listData}
                 renderItem={renderItem}
                 keyExtractor={(item) => item._id || item.user_id}
                 ListHeaderComponent={ListHeader}
