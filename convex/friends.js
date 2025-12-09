@@ -305,6 +305,7 @@ export const getPendingRequests = query({
                         username: sender.username,
                         bio: sender.bio || "",
                         streak: sender.streak || 0,
+                        profile_code: sender.profile_code || sender.email,
                     } : null,
                 };
             })
@@ -349,6 +350,7 @@ export const getSentRequests = query({
                         email: receiver.email,
                         username: receiver.username,
                         bio: receiver.bio || "",
+                        profile_code: receiver.profile_code || receiver.email,
                     } : null,
                 };
             })
@@ -468,6 +470,7 @@ export const getAllReceivedRequests = query({
                         username: sender.username,
                         bio: sender.bio || "",
                         streak: sender.streak || 0,
+                        profile_code: sender.profile_code || sender.email,
                     } : null,
                 };
             })
