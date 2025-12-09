@@ -35,18 +35,6 @@ export default function PermissionsGuide() {
         return () => clearInterval(interval);
     }, []);
 
-    // Pulse animation for incomplete items
-    useEffect(() => {
-        const pulse = Animated.loop(
-            Animated.sequence([
-                Animated.timing(pulseAnim, { toValue: 1.05, duration: 1000, useNativeDriver: true }),
-                Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-            ])
-        );
-        pulse.start();
-        return () => pulse.stop();
-    }, []);
-
     const handleExactAlarmPress = async () => {
         await requestExactAlarmPermission();
     };
