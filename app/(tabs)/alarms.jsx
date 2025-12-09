@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Switch, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StatusBar, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import { usePopup } from '../../contexts/PopupContext';
@@ -11,6 +11,8 @@ import { api } from "../../convex/_generated/api";
 import styles from '../../styles/alarms.styles';
 
 import { cancelAlarm, generateRequestCode, scheduleAlarm } from '../native/AlarmNative';
+
+const NEON = '#C9E265';
 
 export default function AlarmsScreen() {
     const router = useRouter();
@@ -110,6 +112,7 @@ export default function AlarmsScreen() {
                 pathname: '/screens/alarm-editor',
                 params: { alarm: JSON.stringify(item) }
             })}
+            activeOpacity={0.7}
         >
             <View style={styles.alarmInfo}>
                 <View style={styles.timeContainer}>
@@ -124,9 +127,9 @@ export default function AlarmsScreen() {
                     item.solo_mode ? styles.soloBadge : (item.buddy ? styles.buddyBadge : styles.strangerBadge)
                 ]}>
                     <Ionicons
-                        name={item.solo_mode ? "person" : "people"}
-                        size={10}
-                        color={item.solo_mode ? "#888" : (item.buddy ? "#C9E265" : "#C9E265")}
+                        name={item.solo_mode ? "person-outline" : "people-outline"}
+                        size={12}
+                        color={item.solo_mode ? "#888" : NEON}
                     />
                     <AppText
                         style={[
@@ -139,7 +142,7 @@ export default function AlarmsScreen() {
                         {item.solo_mode
                             ? "Solo Mode"
                             : item.buddy
-                                ? `Buddy: ${item.buddy}`
+                                ? `Buddy: ${item.buddy.split('@')[0]}`
                                 : "Stranger Mode"
                         }
                     </AppText>
@@ -147,8 +150,8 @@ export default function AlarmsScreen() {
             </View>
             <View style={styles.actions}>
                 <Switch
-                    trackColor={{ false: "#333", true: "#C9E265" }}
-                    thumbColor={item.enabled ? "#000" : "#f4f3f4"}
+                    trackColor={{ false: "#222", true: "rgba(201, 226, 101, 0.3)" }}
+                    thumbColor={item.enabled ? NEON : "#444"}
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={() => toggleAlarm(item)}
                     value={item.enabled}
@@ -161,7 +164,7 @@ export default function AlarmsScreen() {
                     {deletingId === item._id ? (
                         <ActivityIndicator size="small" color="#ff4444" />
                     ) : (
-                        <Ionicons name="trash-outline" size={20} color="#ff4444" />
+                        <Ionicons name="trash-outline" size={18} color="#ff4444" />
                     )}
                 </TouchableOpacity>
             </View>
@@ -169,14 +172,15 @@ export default function AlarmsScreen() {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <View style={styles.header}>
                 <AppText style={styles.headerTitle}>Alarms</AppText>
             </View>
 
             {alarms === undefined ? (
                 <View style={[styles.listContent, styles.loadingContainer]}>
-                    <ActivityIndicator size="large" color="#C9E265" />
+                    <ActivityIndicator size="large" color={NEON} />
                 </View>
             ) : (
                 <FlatList
@@ -186,10 +190,10 @@ export default function AlarmsScreen() {
                     contentContainerStyle={[styles.listContent, alarms.length === 0 && styles.emptyListContent]}
                     ListEmptyComponent={
                         <View style={styles.emptyState}>
-                            <Ionicons name="alarm-outline" size={80} color="#C9E265" />
+                            <Ionicons name="alarm-outline" size={64} color="#333" />
                             <AppText style={styles.emptyTitle}>No Alarms Set</AppText>
-                            <AppText style={styles.emptySubtitle}>Click add button to set the alarm</AppText>
-                            <AppText style={styles.emptyDescription}>Connect with stranger or set alarm in solo mode</AppText>
+                            <AppText style={styles.emptySubtitle}>Tap the + button to create your first alarm</AppText>
+                            <AppText style={styles.emptyDescription}>Wake up with a buddy or go solo!</AppText>
                         </View>
                     }
                 />
@@ -197,6 +201,7 @@ export default function AlarmsScreen() {
             <TouchableOpacity
                 style={styles.fab}
                 onPress={() => router.push('/screens/alarm-editor')}
+                activeOpacity={0.8}
             >
                 <Ionicons name="add" size={32} color="#000" />
             </TouchableOpacity>
