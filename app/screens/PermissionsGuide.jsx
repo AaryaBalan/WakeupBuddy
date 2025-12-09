@@ -2,11 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Animated, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import styles from "../../styles/permissionsGuide.styles";
 import { checkAllPermissions, requestBatteryOptimization, requestCallPhonePermission, requestDrawOverlays, requestExactAlarmPermission } from '../native/AlarmNative';
+
+const NEON = '#C9E265';
 
 export default function PermissionsGuide() {
     const router = useRouter();
@@ -18,6 +20,7 @@ export default function PermissionsGuide() {
         allGranted: false
     });
     const [isLoading, setIsLoading] = useState(true);
+    const [pulseAnim] = useState(new Animated.Value(1));
 
     const checkPermissions = async () => {
         setIsLoading(true);
@@ -28,10 +31,20 @@ export default function PermissionsGuide() {
 
     useEffect(() => {
         checkPermissions();
-
-        // Refresh permissions when app comes to foreground
         const interval = setInterval(checkPermissions, 2000);
         return () => clearInterval(interval);
+    }, []);
+
+    // Pulse animation for incomplete items
+    useEffect(() => {
+        const pulse = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 1.05, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+            ])
+        );
+        pulse.start();
+        return () => pulse.stop();
     }, []);
 
     const handleExactAlarmPress = async () => {
@@ -48,7 +61,6 @@ export default function PermissionsGuide() {
 
     const handleCallPhonePress = async () => {
         await requestCallPhonePermission();
-        // Refresh permissions after requesting
         setTimeout(checkPermissions, 500);
     };
 
@@ -62,214 +74,229 @@ export default function PermissionsGuide() {
         }
     };
 
+    const completedCount = (permissions.canScheduleExactAlarms ? 1 : 0) +
+        (permissions.batteryOptimizationDisabled ? 1 : 0) +
+        (permissions.canDrawOverlays ? 1 : 0) +
+        (permissions.hasCallPermission ? 1 : 0);
+
+    const permissionItems = [
+        {
+            step: 1,
+            title: 'Exact Alarms',
+            subtitle: 'Schedule alarms at precise times',
+            icon: 'alarm',
+            granted: permissions.canScheduleExactAlarms,
+            onPress: handleExactAlarmPress,
+            buttonText: 'Enable'
+        },
+        {
+            step: 2,
+            title: 'Battery Optimization',
+            subtitle: 'Keep alarms running in background',
+            icon: 'battery-full',
+            granted: permissions.batteryOptimizationDisabled,
+            onPress: handleBatteryOptPress,
+            buttonText: 'Disable'
+        },
+        {
+            step: 3,
+            title: 'Overlay Permission',
+            subtitle: 'Show alarm over lock screen',
+            icon: 'layers',
+            granted: permissions.canDrawOverlays,
+            onPress: handleOverlayPress,
+            buttonText: 'Allow'
+        },
+        {
+            step: 4,
+            title: 'Phone Calls',
+            subtitle: 'Call your buddy when alarm rings',
+            icon: 'call',
+            granted: permissions.hasCallPermission,
+            onPress: handleCallPhonePress,
+            buttonText: 'Grant'
+        }
+    ];
+
+    const manualItems = [
+        {
+            step: 5,
+            title: 'Notifications',
+            subtitle: 'Receive alarm alerts',
+            icon: 'notifications',
+            buttonText: 'Open Settings',
+            onPress: openAppSettings
+        },
+        {
+            step: 6,
+            title: 'Background Activity',
+            subtitle: 'Allow app to run in background',
+            icon: 'flash',
+            buttonText: 'Open Settings',
+            onPress: openAppSettings
+        }
+    ];
+
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                {/* Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color="white" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Title Section */}
-                <View style={styles.titleSection}>
-                    <View style={styles.iconContainer}>
-                        <Ionicons name="notifications" size={48} color="#C9E265" />
-                    </View>
-                    <AppText style={styles.title}>Setup Alarm Permissions</AppText>
-                    <AppText style={styles.subtitle}>
-                        To ensure your alarms work reliably, we need a couple of permissions.
-                    </AppText>
-                </View>
-
-                {/* Permission Steps */}
-                <View style={styles.permissionsContainer}>
-                    {/* Step 1: Exact Alarms */}
-                    <View style={styles.permissionCard}>
-                        <View style={styles.cardHeader}>
-                            <View style={styles.stepNumber}>
-                                <AppText style={styles.stepNumberText}>1</AppText>
-                            </View>
-                            <View style={styles.cardTitleContainer}>
-                                <AppText style={styles.cardTitle}>Allow Exact Alarms</AppText>
-                                <AppText style={styles.cardSubtitle}>
-                                    Required to schedule alarms at the exact time you set
-                                </AppText>
-                            </View>
-                            {permissions.canScheduleExactAlarms ? (
-                                <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
-                            ) : (
-                                <Ionicons name="ellipse-outline" size={32} color="#666" />
-                            )}
-                        </View>
-                        {!permissions.canScheduleExactAlarms && (
-                            <TouchableOpacity style={styles.actionButton} onPress={handleExactAlarmPress}>
-                                <AppText style={styles.actionButtonText}>Open Settings</AppText>
-                                <Ionicons name="arrow-forward" size={20} color="#000" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-
-                    {/* Step 2: Battery Optimization */}
-                    <View style={styles.permissionCard}>
-                        <View style={styles.cardHeader}>
-                            <View style={styles.stepNumber}>
-                                <AppText style={styles.stepNumberText}>2</AppText>
-                            </View>
-                            <View style={styles.cardTitleContainer}>
-                                <AppText style={styles.cardTitle}>Disable Battery Optimization</AppText>
-                                <AppText style={styles.cardSubtitle}>
-                                    Ensures alarms work even when app is closed
-                                </AppText>
-                            </View>
-                            {permissions.batteryOptimizationDisabled ? (
-                                <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
-                            ) : (
-                                <Ionicons name="ellipse-outline" size={32} color="#666" />
-                            )}
-                        </View>
-                        {!permissions.batteryOptimizationDisabled && (
-                            <TouchableOpacity style={styles.actionButton} onPress={handleBatteryOptPress}>
-                                <AppText style={styles.actionButtonText}>Open Settings</AppText>
-                                <Ionicons name="arrow-forward" size={20} color="#000" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-
-                    {/* Step 3: Display Over Other Apps */}
-                    <View style={styles.permissionCard}>
-                        <View style={styles.cardHeader}>
-                            <View style={styles.stepNumber}>
-                                <AppText style={styles.stepNumberText}>3</AppText>
-                            </View>
-                            <View style={styles.cardTitleContainer}>
-                                <AppText style={styles.cardTitle}>Display Over Other Apps</AppText>
-                                <AppText style={styles.cardSubtitle}>
-                                    Allows alarm screen to appear over lock screen
-                                </AppText>
-                            </View>
-                            {permissions.canDrawOverlays ? (
-                                <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
-                            ) : (
-                                <Ionicons name="ellipse-outline" size={32} color="#666" />
-                            )}
-                        </View>
-                        {!permissions.canDrawOverlays && (
-                            <TouchableOpacity style={styles.actionButton} onPress={handleOverlayPress}>
-                                <AppText style={styles.actionButtonText}>Open Settings</AppText>
-                                <Ionicons name="arrow-forward" size={20} color="#000" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-
-                    {/* Step 4: Call Phone Permission */}
-                    <View style={styles.permissionCard}>
-                        <View style={styles.cardHeader}>
-                            <View style={styles.stepNumber}>
-                                <AppText style={styles.stepNumberText}>4</AppText>
-                            </View>
-                            <View style={styles.cardTitleContainer}>
-                                <AppText style={styles.cardTitle}>Allow Phone Calls</AppText>
-                                <AppText style={styles.cardSubtitle}>
-                                    Required to call your buddy when alarm is dismissed
-                                </AppText>
-                            </View>
-                            {permissions.hasCallPermission ? (
-                                <Ionicons name="checkmark-circle" size={32} color="#C9E265" />
-                            ) : (
-                                <Ionicons name="ellipse-outline" size={32} color="#666" />
-                            )}
-                        </View>
-                        {!permissions.hasCallPermission && (
-                            <TouchableOpacity style={styles.actionButton} onPress={handleCallPhonePress}>
-                                <AppText style={styles.actionButtonText}>Grant Permission</AppText>
-                                <Ionicons name="arrow-forward" size={20} color="#000" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-
-                {/* Manual Steps Section */}
-                <View style={styles.manualSection}>
-                    <View style={styles.manualHeader}>
-                        <Ionicons name="warning" size={24} color="#C9E265" />
-                        <AppText style={styles.manualHeaderText}>Additional Manual Steps Required</AppText>
-                    </View>
-                    <AppText style={styles.manualDescription}>
-                        The following settings must be enabled manually in Android Settings:
-                    </AppText>
-
-                    {/* Step 5: Notifications */}
-                    <View style={styles.manualCard}>
-                        <View style={styles.manualCardHeader}>
-                            <View style={[styles.stepNumber, styles.manualStepNumber]}>
-                                <AppText style={styles.stepNumberText}>5</AppText>
-                            </View>
-                            <View style={styles.cardTitleContainer}>
-                                <AppText style={styles.cardTitle}>Enable Notifications</AppText>
-                                <AppText style={styles.cardSubtitle}>
-                                    Allow notifications so the alarm can alert you
-                                </AppText>
-                            </View>
-                        </View>
-                        <TouchableOpacity style={styles.manualButton} onPress={openAppSettings}>
-                            <Ionicons name="notifications-outline" size={18} color="#000" />
-                            <AppText style={styles.manualButtonText}>Open Notification Settings</AppText>
-                            <Ionicons name="arrow-forward" size={18} color="#000" />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Step 6: Background Activity */}
-                    <View style={styles.manualCard}>
-                        <View style={styles.manualCardHeader}>
-                            <View style={[styles.stepNumber, styles.manualStepNumber]}>
-                                <AppText style={styles.stepNumberText}>6</AppText>
-                            </View>
-                            <View style={styles.cardTitleContainer}>
-                                <AppText style={styles.cardTitle}>Allow Background Activity</AppText>
-                                <AppText style={styles.cardSubtitle}>
-                                    Enable background activity and disable battery optimization
-                                </AppText>
-                            </View>
-                        </View>
-                        <TouchableOpacity style={styles.manualButton} onPress={openAppSettings}>
-                            <Ionicons name="battery-charging" size={18} color="#000" />
-                            <AppText style={styles.manualButtonText}>Open Battery Settings</AppText>
-                            <Ionicons name="arrow-forward" size={18} color="#000" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                {/* Info Box */}
-                <View style={styles.infoBox}>
-                    <Ionicons name="information-circle" size={24} color="#C9E265" />
-                    <AppText style={styles.infoText}>
-                        All 6 permissions are essential for WakeUpBuddy to wake you up reliably and call your buddy, even when the app isn't open.
-                    </AppText>
-                </View>
-
-                {/* Continue Button */}
-                <TouchableOpacity
-                    style={[styles.continueButton, permissions.allGranted && styles.continueButtonActive]}
-                    onPress={handleContinue}
-                    disabled={!permissions.allGranted}
-                >
-                    <AppText style={[styles.continueButtonText, permissions.allGranted && styles.continueButtonTextActive]}>
-                        {permissions.allGranted ? "Continue (Complete steps 5-6 manually)" : "Complete Steps 1-4 First"}
-                    </AppText>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>
+                <AppText style={styles.headerTitle}>Setup Permissions</AppText>
+                <View style={{ width: 40 }} />
+            </View>
 
-                {/* Status Indicator */}
-                <View style={styles.statusContainer}>
-                    <AppText style={styles.statusText}>
-                        {permissions.allGranted
-                            ? "Steps 1-4 complete ✓ Now complete steps 5-6 in Android Settings"
-                            : `${(permissions.canScheduleExactAlarms ? 1 : 0) + (permissions.batteryOptimizationDisabled ? 1 : 0) + (permissions.canDrawOverlays ? 1 : 0) + (permissions.hasCallPermission ? 1 : 0)}/4 automatic permissions granted`
-                        }
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Hero Section */}
+                <View style={styles.heroSection}>
+                    <View style={styles.iconWrapper}>
+                        <View style={styles.iconGlow} />
+                        <View style={styles.iconContainer}>
+                            <Ionicons name="shield-checkmark" size={40} color="#000" />
+                        </View>
+                    </View>
+                    <AppText style={styles.heroTitle}>Almost Ready!</AppText>
+                    <AppText style={styles.heroSubtitle}>
+                        Grant these permissions to ensure your alarms never miss
+                    </AppText>
+
+                    {/* Progress Indicator */}
+                    <View style={styles.progressContainer}>
+                        <View style={styles.progressBar}>
+                            <View style={[styles.progressFill, { width: `${(completedCount / 4) * 100}%` }]} />
+                        </View>
+                        <AppText style={styles.progressText}>{completedCount}/4 Complete</AppText>
+                    </View>
+                </View>
+
+                {/* Required Permissions */}
+                <View style={styles.sectionHeader}>
+                    <View style={styles.sectionBadge}>
+                        <Ionicons name="star" size={12} color="#000" />
+                        <AppText style={styles.sectionBadgeText}>REQUIRED</AppText>
+                    </View>
+                    <AppText style={styles.sectionTitle}>Core Permissions</AppText>
+                </View>
+
+                <View style={styles.permissionsGrid}>
+                    {permissionItems.map((item, index) => (
+                        <Animated.View
+                            key={item.step}
+                            style={[
+                                styles.permissionCard,
+                                item.granted && styles.permissionCardGranted,
+                                !item.granted && { transform: [{ scale: pulseAnim }] }
+                            ]}
+                        >
+                            <View style={styles.cardContent}>
+                                <View style={[
+                                    styles.permissionIcon,
+                                    item.granted && styles.permissionIconGranted
+                                ]}>
+                                    <Ionicons
+                                        name={item.icon}
+                                        size={22}
+                                        color={item.granted ? '#000' : NEON}
+                                    />
+                                </View>
+                                <View style={styles.permissionInfo}>
+                                    <AppText style={styles.permissionTitle}>{item.title}</AppText>
+                                    <AppText style={styles.permissionSubtitle}>{item.subtitle}</AppText>
+                                </View>
+                                {item.granted ? (
+                                    <View style={styles.checkBadge}>
+                                        <Ionicons name="checkmark" size={16} color="#000" />
+                                    </View>
+                                ) : (
+                                    <TouchableOpacity
+                                        style={styles.grantButton}
+                                        onPress={item.onPress}
+                                        activeOpacity={0.8}
+                                    >
+                                        <AppText style={styles.grantButtonText}>{item.buttonText}</AppText>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </Animated.View>
+                    ))}
+                </View>
+
+                {/* Manual Permissions Section */}
+                <View style={styles.sectionHeader}>
+                    <View style={[styles.sectionBadge, styles.sectionBadgeManual]}>
+                        <Ionicons name="hand-left" size={12} color="#000" />
+                        <AppText style={styles.sectionBadgeText}>MANUAL</AppText>
+                    </View>
+                    <AppText style={styles.sectionTitle}>Additional Settings</AppText>
+                </View>
+
+                <View style={styles.manualContainer}>
+                    {manualItems.map((item) => (
+                        <TouchableOpacity
+                            key={item.step}
+                            style={styles.manualCard}
+                            onPress={item.onPress}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.manualIconContainer}>
+                                <Ionicons name={item.icon} size={20} color={NEON} />
+                            </View>
+                            <View style={styles.manualInfo}>
+                                <AppText style={styles.manualTitle}>{item.title}</AppText>
+                                <AppText style={styles.manualSubtitle}>{item.subtitle}</AppText>
+                            </View>
+                            <View style={styles.manualArrow}>
+                                <Ionicons name="chevron-forward" size={18} color="#666" />
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                {/* Info Card */}
+                <View style={styles.infoCard}>
+                    <View style={styles.infoIconContainer}>
+                        <Ionicons name="information-circle" size={20} color={NEON} />
+                    </View>
+                    <AppText style={styles.infoText}>
+                        These permissions are essential for reliable wake-up calls. Your data stays private and secure.
                     </AppText>
                 </View>
+
+                <View style={{ height: 100 }} />
             </ScrollView>
-        </SafeAreaView >
+
+            {/* Bottom CTA */}
+            <View style={styles.bottomCta}>
+                <TouchableOpacity
+                    style={[
+                        styles.continueButton,
+                        permissions.allGranted && styles.continueButtonActive
+                    ]}
+                    onPress={handleContinue}
+                    activeOpacity={0.8}
+                >
+                    <AppText style={[
+                        styles.continueButtonText,
+                        permissions.allGranted && styles.continueButtonTextActive
+                    ]}>
+                        {permissions.allGranted ? 'Continue' : `Complete ${4 - completedCount} More`}
+                    </AppText>
+                    {permissions.allGranted && (
+                        <Ionicons name="arrow-forward" size={20} color="#000" />
+                    )}
+                </TouchableOpacity>
+                <AppText style={styles.footerText}>
+                    {permissions.allGranted
+                        ? '✓ All automatic permissions granted'
+                        : 'Grant all permissions to continue'}
+                </AppText>
+            </View>
+        </SafeAreaView>
     );
 }
