@@ -1,7 +1,8 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, ScrollView, StatusBar, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -12,7 +13,7 @@ import BannerAds from '../ads/BannerAds';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
-const GRAY = '#BDBDBD';
+const GRAY = '#888';
 const BUDDY_COLOR = '#FF6B9D';
 
 export default function BuddyStats() {
@@ -75,6 +76,7 @@ export default function BuddyStats() {
     if (!buddyStats) {
         return (
             <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="light-content" backgroundColor="#050505" />
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={NEON} />
                     <AppText style={styles.loadingText}>Loading stats...</AppText>
@@ -87,6 +89,7 @@ export default function BuddyStats() {
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <ScrollView contentContainerStyle={styles.scroll}>
                 {/* Header */}
                 <View style={styles.headerRow}>
@@ -101,13 +104,13 @@ export default function BuddyStats() {
                 <View style={styles.buddyCard}>
                     <View style={styles.buddyAvatarRow}>
                         <View style={styles.avatarRing}>
-                            <ProfilePic user={currentUser} size={100} />
+                            <ProfilePic user={currentUser} size={80} />
                         </View>
                         <View style={styles.heartContainer}>
-                            <Ionicons name="heart" size={24} color={BUDDY_COLOR} />
+                            <Ionicons name="heart" size={20} color={BUDDY_COLOR} />
                         </View>
                         <View style={styles.avatarRing}>
-                            <ProfilePic user={buddy} size={100} />
+                            <ProfilePic user={buddy} size={80} />
                         </View>
                     </View>
                     <AppText style={styles.buddyNames}>
@@ -120,22 +123,22 @@ export default function BuddyStats() {
                 <AppText style={styles.sectionTitle}>Overview</AppText>
                 <View style={styles.overviewGrid}>
                     <View style={styles.overviewCard}>
-                        <Ionicons name="sunny" size={28} color={NEON} />
+                        <Ionicons name="sunny" size={24} color={NEON} />
                         <AppText style={styles.overviewValue}>{buddyStats.totalWakeups}</AppText>
                         <AppText style={styles.overviewLabel}>Total Wakeups</AppText>
                     </View>
                     <View style={styles.overviewCard}>
-                        <Ionicons name="time" size={28} color={NEON} />
+                        <Ionicons name="time" size={24} color={NEON} />
                         <AppText style={styles.overviewValue}>{totalTime.value}</AppText>
                         <AppText style={styles.overviewLabel}>{totalTime.unit} together</AppText>
                     </View>
                     <View style={styles.overviewCard}>
-                        <Ionicons name="flame" size={28} color={NEON} />
+                        <Ionicons name="flame" size={24} color={NEON} />
                         <AppText style={styles.overviewValue}>{buddyStats.currentStreak}</AppText>
                         <AppText style={styles.overviewLabel}>Current Streak</AppText>
                     </View>
                     <View style={styles.overviewCard}>
-                        <Ionicons name="trophy" size={28} color={NEON} />
+                        <Ionicons name="trophy" size={24} color={NEON} />
                         <AppText style={styles.overviewValue}>{buddyStats.bestStreak}</AppText>
                         <AppText style={styles.overviewLabel}>Best Streak</AppText>
                     </View>
@@ -161,8 +164,8 @@ export default function BuddyStats() {
                                     ...comparisonStats.weeklyComparison.map(d => Math.max(d.user1Count, d.user2Count)),
                                     1
                                 );
-                                const user1Height = day.user1Count > 0 ? Math.max((day.user1Count / maxCount) * 70, 8) : 4;
-                                const user2Height = day.user2Count > 0 ? Math.max((day.user2Count / maxCount) * 70, 8) : 4;
+                                const user1Height = day.user1Count > 0 ? Math.max((day.user1Count / maxCount) * 80, 8) : 12;
+                                const user2Height = day.user2Count > 0 ? Math.max((day.user2Count / maxCount) * 80, 8) : 12;
                                 const isToday = index === 6;
 
                                 return (
@@ -172,7 +175,7 @@ export default function BuddyStats() {
                                                 <View
                                                     style={[
                                                         styles.comparisonBar,
-                                                        { height: user1Height, backgroundColor: day.user1Count > 0 ? NEON : '#1a1a1a' },
+                                                        { height: user1Height, backgroundColor: day.user1Count > 0 ? NEON : '#333' },
                                                     ]}
                                                 />
                                             </View>
@@ -180,7 +183,7 @@ export default function BuddyStats() {
                                                 <View
                                                     style={[
                                                         styles.comparisonBar,
-                                                        { height: user2Height, backgroundColor: day.user2Count > 0 ? BUDDY_COLOR : '#1a1a1a' },
+                                                        { height: user2Height, backgroundColor: day.user2Count > 0 ? BUDDY_COLOR : '#333' },
                                                     ]}
                                                 />
                                             </View>
@@ -297,7 +300,7 @@ export default function BuddyStats() {
                         <AppText style={styles.sectionTitle}>Monthly Breakdown</AppText>
                         <View style={styles.monthlyCard}>
                             {buddyStats.monthlyStats.slice(0, 6).map((month, index) => (
-                                <View key={month.month} style={styles.monthRow}>
+                                <View key={month.month} style={[styles.monthRow, index === buddyStats.monthlyStats.length - 1 && { borderBottomWidth: 0 }]}>
                                     <AppText style={styles.monthLabel}>{month.label}</AppText>
                                     <View style={styles.monthStats}>
                                         <View style={styles.monthStatItem}>
@@ -321,7 +324,7 @@ export default function BuddyStats() {
                         <AppText style={styles.sectionTitle}>Recent Days</AppText>
                         <View style={styles.dailyCard}>
                             {buddyStats.dailyStats.slice(0, 7).map((day, index) => (
-                                <View key={day.date} style={styles.dayRow}>
+                                <View key={day.date} style={[styles.dayRow, index === buddyStats.dailyStats.length - 1 && { borderBottomWidth: 0 }]}>
                                     <AppText style={styles.dayLabel}>{day.label}</AppText>
                                     <View style={styles.dayStats}>
                                         <View style={[styles.dayBadge, day.wakeups > 0 && styles.dayBadgeActive]}>
@@ -353,7 +356,7 @@ export default function BuddyStats() {
                                 });
 
                                 return (
-                                    <View key={call._id} style={styles.recentRow}>
+                                    <View key={call._id} style={[styles.recentRow, index === buddyStats.recentCalls.length - 1 && { borderBottomWidth: 0 }]}>
                                         <View style={styles.recentIcon}>
                                             <Ionicons name="call" size={16} color={NEON} />
                                         </View>

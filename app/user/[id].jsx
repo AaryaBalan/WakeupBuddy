@@ -241,7 +241,7 @@ export default function PublicProfile() {
                         activeOpacity={0.8}
                     >
                         <Ionicons name="stats-chart" size={18} color="#000" />
-                        <AppText style={styles.primaryBtnText}>View Stats</AppText>
+                        <AppText style={styles.primaryBtnText}>Stats</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.secondaryBtn}
