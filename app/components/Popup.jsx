@@ -1,12 +1,20 @@
 import AppText from '@/components/AppText';
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
-import { Animated, Dimensions, StyleSheet, View } from 'react-native';
-
-const { width } = Dimensions.get('window');
+import { Animated, StyleSheet, View } from 'react-native';
 
 const Popup = ({ text, color = '#C9E265', visible, onHide, duration = 3000 }) => {
     const slideAnim = useRef(new Animated.Value(-100)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
+
+    // Determine icon based on color/type
+    const getIconName = () => {
+        const lowerColor = color.toLowerCase();
+        if (lowerColor.includes('4caf50') || lowerColor.includes('c9e265')) return 'checkmark-circle';
+        if (lowerColor.includes('ff6b6b') || lowerColor.includes('ff4444')) return 'alert-circle';
+        if (lowerColor.includes('ffa500')) return 'warning';
+        return 'information-circle';
+    };
 
     useEffect(() => {
         if (visible) {
@@ -60,11 +68,14 @@ const Popup = ({ text, color = '#C9E265', visible, onHide, duration = 3000 }) =>
                 {
                     transform: [{ translateY: slideAnim }],
                     opacity: opacityAnim,
-                    borderColor: color,
+                    borderLeftColor: color,
                 },
             ]}
         >
             <View style={styles.content}>
+                <View style={[styles.iconContainer, { backgroundColor: `${color}20` }]}>
+                    <Ionicons name={getIconName()} size={24} color={color} />
+                </View>
                 <AppText style={styles.text}>{text}</AppText>
             </View>
         </Animated.View>
@@ -78,26 +89,34 @@ const styles = StyleSheet.create({
         left: 20,
         right: 20,
         backgroundColor: '#1a1a1a',
-        borderRadius: 12,
-        borderWidth: 2,
-        paddingVertical: 14,
-        paddingHorizontal: 18,
+        borderLeftWidth: 4,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
         zIndex: 9999,
         elevation: 10,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
     },
     content: {
         flexDirection: 'row',
         alignItems: 'center',
     },
+    iconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
     text: {
         color: '#ffffff',
-        fontSize: 12,
+        fontSize: 14,
         flex: 1,
-        fontWeight: 'medium',
+        fontFamily: 'Montserrat_600SemiBold',
+        lineHeight: 20,
     },
 });
 
