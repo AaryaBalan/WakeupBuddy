@@ -102,12 +102,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgba(201, 226, 101, 0.1)',
-        alignSelf: 'flex-start',
         paddingVertical: 6,
         paddingHorizontal: 12,
         borderRadius: 12,
         marginBottom: 16,
-        marginLeft: 52, // Align with text
         borderWidth: 1,
         borderColor: 'rgba(201, 226, 101, 0.2)',
     },
@@ -122,6 +120,7 @@ const styles = StyleSheet.create({
         color: GRAY,
         fontSize: 12,
         fontFamily: 'Montserrat_500Medium',
+        flex: 1,
     },
 
     // Action Buttons
@@ -242,12 +241,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgba(255, 107, 157, 0.15)',
-        alignSelf: 'flex-start',
         paddingVertical: 6,
         paddingHorizontal: 12,
         borderRadius: 12,
         marginBottom: 16,
-        marginLeft: 52,
         borderWidth: 1,
         borderColor: 'rgba(255, 107, 157, 0.3)',
     },

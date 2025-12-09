@@ -202,9 +202,9 @@ export default function NotificationsScreen() {
                     >
                         <ProfilePic user={item.created_by} size={32} />
                     </TouchableOpacity>
-                    <View>
-                        <AppText style={styles.userNameSmall}>{item.created_by.name}</AppText>
-                        <AppText style={styles.historyText}>
+                    <View style={{ flex: 1 }}>
+                        <AppText style={styles.userNameSmall} numberOfLines={1} ellipsizeMode="tail">{item.created_by.name}</AppText>
+                        <AppText style={styles.historyText} numberOfLines={2} ellipsizeMode="tail">
                             {item.status === 1 ? 'You accepted the request.' : 'You declined the request.'}
                         </AppText>
                     </View>
@@ -234,9 +234,9 @@ export default function NotificationsScreen() {
                     >
                         <ProfilePic user={item.created_by} size={40} />
                     </TouchableOpacity>
-                    <View>
-                        <AppText style={styles.userName}>{item.created_by.name}</AppText>
-                        <AppText style={styles.inviteText}>
+                    <View style={{ flex: 1 }}>
+                        <AppText style={styles.userName} numberOfLines={1} ellipsizeMode="tail">{item.created_by.name}</AppText>
+                        <AppText style={styles.inviteText} numberOfLines={2} ellipsizeMode="tail">
                             Invited you to be their <AppText style={styles.boldText}>Wake Buddy</AppText> for tomorrow's alarm.
                         </AppText>
                     </View>
@@ -247,7 +247,7 @@ export default function NotificationsScreen() {
             <View style={styles.alarmBadge}>
                 <Ionicons name="alarm-outline" size={16} color={NEON} />
                 <AppText style={styles.alarmTime}>{item.alarm_time} {item.ampm}</AppText>
-                <AppText style={styles.puzzleType}>• {item.with_whom || 'Medium Puzzle'}</AppText>
+                <AppText style={styles.puzzleType} numberOfLines={1} ellipsizeMode="tail">• {item.with_whom || 'Medium Puzzle'}</AppText>
             </View>
 
             <View style={styles.actionButtons}>
@@ -282,9 +282,9 @@ export default function NotificationsScreen() {
                             >
                                 <ProfilePic user={item.sender} size={32} />
                             </TouchableOpacity>
-                            <View>
-                                <AppText style={styles.userNameSmall}>{item.sender.name}</AppText>
-                                <AppText style={styles.historyText}>
+                            <View style={{ flex: 1 }}>
+                                <AppText style={styles.userNameSmall} numberOfLines={1} ellipsizeMode="tail">{item.sender.name}</AppText>
+                                <AppText style={styles.historyText} numberOfLines={2} ellipsizeMode="tail">
                                     {item.status === 1 ? 'You are now friends!' : 'You declined the request.'}
                                 </AppText>
                             </View>
@@ -317,8 +317,8 @@ export default function NotificationsScreen() {
                             <ProfilePic user={item.sender} size={40} />
                         </TouchableOpacity>
                         <View style={{ flex: 1 }}>
-                            <AppText style={styles.userName}>{item.sender.name}</AppText>
-                            <AppText style={styles.inviteText}>
+                            <AppText style={styles.userName} numberOfLines={1} ellipsizeMode="tail">{item.sender.name}</AppText>
+                            <AppText style={styles.inviteText} numberOfLines={2} ellipsizeMode="tail">
                                 Wants to be your <AppText style={[styles.boldText, { color: BUDDY_COLOR }]}>Friend</AppText>
                             </AppText>
                         </View>
