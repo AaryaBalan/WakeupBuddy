@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -11,6 +11,8 @@ import { api } from "../../convex/_generated/api";
 import styles from '../../styles/explore.styles';
 import BannerAds from '../ads/BannerAds';
 import { showInterstitialAd } from '../ads/InterstitialAds';
+
+const NEON = '#C9E265';
 
 export default function ExploreScreen() {
     const router = useRouter();
@@ -55,14 +57,12 @@ export default function ExploreScreen() {
                     </View>
                 )}
                 <View style={styles.featuredImageContainer}>
-                    <ProfilePic user={item} size={70} />
+                    <ProfilePic user={item} size={60} />
+                    {isMe && <View style={styles.meRing} />}
                     {item.streak >= 7 && (
                         <View style={[styles.featuredBadge, isMe && styles.featuredBadgeMe]}>
-                            <Ionicons name="flame" size={10} color="#FF6B35" />
+                            <Ionicons name="flame" size={10} color="#fff" />
                         </View>
-                    )}
-                    {isMe && (
-                        <View style={styles.meRing} />
                     )}
                 </View>
                 <AppText style={[styles.featuredName, isMe && styles.featuredNameMe]} numberOfLines={1}>
@@ -108,7 +108,7 @@ export default function ExploreScreen() {
         >
             <View style={styles.userCardTop}>
                 <View style={styles.userImageContainer}>
-                    <ProfilePic user={item} size={60} />
+                    <ProfilePic user={item} size={56} />
                 </View>
                 <View style={styles.userInfo}>
                     <AppText style={styles.userName}>{item.name}</AppText>
@@ -116,7 +116,7 @@ export default function ExploreScreen() {
                     {item.bio ? (
                         <AppText style={styles.userBio} numberOfLines={2}>{item.bio}</AppText>
                     ) : (
-                        <AppText style={[styles.userBio, { fontStyle: 'italic' }]}>No bio yet</AppText>
+                        <AppText style={[styles.userBio, { fontStyle: 'italic', opacity: 0.6 }]}>No bio yet</AppText>
                     )}
                 </View>
             </View>
@@ -138,7 +138,7 @@ export default function ExploreScreen() {
                         style={styles.inviteButton}
                         onPress={() => inviteBuddy(item)}
                     >
-                        <Ionicons name="alarm-outline" size={16} color="#000" />
+                        <Ionicons name="alarm-outline" size={16} color="#fff" />
                         <AppText style={styles.inviteButtonText}>Invite</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -155,6 +155,7 @@ export default function ExploreScreen() {
     if (allUsersIncludingMe === undefined) {
         return (
             <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="light-content" backgroundColor="#050505" />
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#C9E265" />
                     <AppText style={styles.loadingText}>Finding buddies...</AppText>
@@ -164,7 +165,8 @@ export default function ExploreScreen() {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <FlatList
                 data={filteredUsers}
                 keyExtractor={(item) => item._id}
