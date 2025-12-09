@@ -1,43 +1,54 @@
 import { StyleSheet } from 'react-native';
 
+const NEON = '#C9E265';
+const BG = '#050505';
+const CARD_BG = '#121212';
+const GRAY = '#888';
+const BUDDY_COLOR = '#FF6B9D';
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000',
+        backgroundColor: BG,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#1a1a1a',
+        paddingVertical: 16,
+        marginBottom: 10,
     },
     headerTitle: {
-        fontSize: 15,
+        fontSize: 20,
         fontFamily: 'Montserrat_700Bold',
         color: '#fff',
     },
     sectionHeader: {
         paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 8,
+        paddingTop: 20,
+        paddingBottom: 10,
     },
     sectionTitle: {
-        color: '#666',
-        fontSize: 11,
-        fontFamily: 'Montserrat_700Bold',
+        color: GRAY,
+        fontSize: 12,
+        fontFamily: 'Montserrat_600SemiBold',
         letterSpacing: 1,
+        textTransform: 'uppercase',
     },
     listContent: {
         padding: 16,
+        paddingTop: 0,
     },
+
+    // Invite Card
     inviteCard: {
-        backgroundColor: '#111',
-        borderRadius: 14,
+        backgroundColor: CARD_BG,
+        borderRadius: 20,
         padding: 16,
         marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#1A1A1A',
     },
     inviteHeader: {
         flexDirection: 'row',
@@ -51,29 +62,30 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     avatarPlaceholder: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: '#333',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#222',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 10,
+        marginRight: 12,
     },
     avatarText: {
         color: '#fff',
-        fontSize: 15,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
     userName: {
         color: '#fff',
-        fontSize: 15,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
-        marginBottom: 3,
+        marginBottom: 4,
     },
     inviteText: {
-        color: '#888',
+        color: GRAY,
         fontSize: 13,
-        lineHeight: 18,
+        lineHeight: 20,
+        fontFamily: 'Montserrat_500Medium',
     },
     boldText: {
         color: '#fff',
@@ -81,68 +93,90 @@ const styles = StyleSheet.create({
     },
     timeAgo: {
         color: '#666',
-        fontSize: 12,
+        fontSize: 11,
+        fontFamily: 'Montserrat_500Medium',
     },
+
+    // Alarm Badge
     alarmBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1a1a1a',
+        backgroundColor: 'rgba(201, 226, 101, 0.1)',
         alignSelf: 'flex-start',
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 7,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 12,
         marginBottom: 16,
-        marginLeft: 46, // Align with text
+        marginLeft: 52, // Align with text
+        borderWidth: 1,
+        borderColor: 'rgba(201, 226, 101, 0.2)',
     },
     alarmTime: {
-        color: '#C9E265',
+        color: NEON,
         fontFamily: 'Montserrat_700Bold',
         marginLeft: 6,
         marginRight: 6,
+        fontSize: 13,
     },
     puzzleType: {
-        color: '#888',
+        color: GRAY,
         fontSize: 12,
+        fontFamily: 'Montserrat_500Medium',
     },
+
+    // Action Buttons
     actionButtons: {
         flexDirection: 'row',
         gap: 12,
+        marginTop: 4,
     },
     declineButton: {
         flex: 1,
-        backgroundColor: '#1a1a1a',
-        paddingVertical: 10,
+        backgroundColor: '#1A1A1A',
+        paddingVertical: 12,
         alignItems: 'center',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     declineText: {
         color: '#fff',
         fontFamily: 'Montserrat_600SemiBold',
+        fontSize: 14,
     },
     acceptButton: {
         flex: 1,
-        backgroundColor: '#C9E265',
-        paddingVertical: 10,
+        backgroundColor: NEON,
+        paddingVertical: 12,
         alignItems: 'center',
+        borderRadius: 14,
     },
     acceptText: {
         color: '#000',
         fontFamily: 'Montserrat_700Bold',
+        fontSize: 14,
     },
+
+    // Empty State
     emptyState: {
         alignItems: 'center',
-        padding: 40,
+        padding: 60,
     },
     emptyText: {
-        color: '#666',
+        color: GRAY,
         fontSize: 16,
+        fontFamily: 'Montserrat_500Medium',
     },
+
     // History Card Styles
     historyCard: {
-        backgroundColor: '#111',
-        // borderRadius: 14,
-        padding: 12,
+        backgroundColor: CARD_BG,
+        borderRadius: 16,
+        padding: 16,
         marginBottom: 12,
-        opacity: 0.8,
+        borderWidth: 1,
+        borderColor: '#1A1A1A',
+        opacity: 0.7,
     },
     historyHeader: {
         flexDirection: 'row',
@@ -151,125 +185,147 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     avatarPlaceholderSmall: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         backgroundColor: '#222',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 8,
+        marginRight: 10,
     },
     avatarTextSmall: {
         color: '#fff',
-        fontSize: 13,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
     },
     userNameSmall: {
         color: '#fff',
-        fontSize: 13,
+        fontSize: 14,
         fontFamily: 'Montserrat_700Bold',
         marginBottom: 2,
     },
     historyText: {
-        color: '#888',
-        fontSize: 11,
+        color: GRAY,
+        fontSize: 12,
+        fontFamily: 'Montserrat_500Medium',
     },
     historyBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginLeft: 36, // Align with text
-        marginTop: 4,
+        marginLeft: 42, // Align with text
+        marginTop: 6,
     },
     historyStatus: {
         fontSize: 12,
         fontFamily: 'Montserrat_700Bold',
-        marginLeft: 5,
+        marginLeft: 6,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: BG,
     },
+
     // Friend Request Card Styles
     friendRequestCard: {
-        backgroundColor: '#111',
+        backgroundColor: CARD_BG,
+        borderRadius: 20,
         padding: 16,
         marginBottom: 16,
-        borderLeftWidth: 3,
-        borderLeftColor: '#FF6B9D',
+        borderWidth: 1,
+        borderColor: '#1A1A1A',
+        // borderLeftWidth: 3,
+        // borderLeftColor: BUDDY_COLOR,
     },
     friendBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgba(255, 107, 157, 0.15)',
         alignSelf: 'flex-start',
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        borderRadius: 7,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 12,
         marginBottom: 16,
-        marginLeft: 46,
+        marginLeft: 52,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 107, 157, 0.3)',
     },
     friendBadgeText: {
-        color: '#FF6B9D',
+        color: BUDDY_COLOR,
         fontFamily: 'Montserrat_700Bold',
         marginLeft: 6,
+        fontSize: 13,
     },
     friendAcceptButton: {
         flex: 1,
-        backgroundColor: '#FF6B9D',
+        backgroundColor: BUDDY_COLOR,
         paddingVertical: 12,
         alignItems: 'center',
+        borderRadius: 14,
     },
     friendAcceptText: {
         color: '#fff',
         fontFamily: 'Montserrat_700Bold',
+        fontSize: 14,
     },
+
     // Alarm request accent
     alarmRequestCard: {
-        backgroundColor: '#111',
+        backgroundColor: CARD_BG,
+        borderRadius: 20,
         padding: 16,
         marginBottom: 16,
-        borderLeftWidth: 3,
-        borderLeftColor: '#C9E265',
+        borderWidth: 1,
+        borderColor: '#1A1A1A',
+        // borderLeftWidth: 3,
+        // borderLeftColor: NEON,
     },
+
     // Section tabs
     tabsContainer: {
         flexDirection: 'row',
         paddingHorizontal: 16,
-        paddingTop: 12,
-        gap: 8,
+        paddingBottom: 10,
+        gap: 10,
     },
     tab: {
-        paddingVertical: 7,
-        paddingHorizontal: 14,
-        borderRadius: 16,
-        backgroundColor: '#1a1a1a',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        backgroundColor: '#1A1A1A',
+        borderWidth: 1,
+        borderColor: '#333',
     },
     tabActive: {
-        backgroundColor: '#C9E265',
+        backgroundColor: NEON,
+        borderColor: NEON,
     },
     tabText: {
-        color: '#888',
+        color: GRAY,
         fontSize: 13,
         fontFamily: 'Montserrat_600SemiBold',
     },
     tabTextActive: {
         color: '#000',
+        fontFamily: 'Montserrat_700Bold',
     },
     tabBadge: {
         position: 'absolute',
-        top: -4,
-        right: -4,
+        top: -6,
+        right: -6,
         backgroundColor: '#ff4444',
-        borderRadius: 8,
-        minWidth: 16,
-        height: 16,
+        borderRadius: 10,
+        minWidth: 18,
+        height: 18,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 2,
+        borderColor: BG,
     },
     tabBadgeText: {
         color: '#fff',
-        fontSize: 9,
+        fontSize: 10,
         fontFamily: 'Montserrat_700Bold',
     },
 });

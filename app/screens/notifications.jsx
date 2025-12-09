@@ -1,8 +1,9 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StatusBar, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -11,6 +12,9 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/notifications.styles';
 import { generateRequestCode, requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
+
+const NEON = '#C9E265';
+const BUDDY_COLOR = '#FF6B9D';
 
 export default function NotificationsScreen() {
     const router = useRouter();
@@ -211,9 +215,9 @@ export default function NotificationsScreen() {
                 <Ionicons
                     name={item.status === 1 ? "checkmark-circle" : "close-circle"}
                     size={16}
-                    color={item.status === 1 ? "#C9E265" : "#ff4444"}
+                    color={item.status === 1 ? NEON : "#ff4444"}
                 />
-                <AppText style={[styles.historyStatus, { color: item.status === 1 ? "#C9E265" : "#ff4444" }]}>
+                <AppText style={[styles.historyStatus, { color: item.status === 1 ? NEON : "#ff4444" }]}>
                     {item.status === 1 ? 'Accepted' : 'Declined'}
                 </AppText>
             </View>
@@ -241,7 +245,7 @@ export default function NotificationsScreen() {
             </View>
 
             <View style={styles.alarmBadge}>
-                <Ionicons name="alarm-outline" size={16} color="#C9E265" />
+                <Ionicons name="alarm-outline" size={16} color={NEON} />
                 <AppText style={styles.alarmTime}>{item.alarm_time} {item.ampm}</AppText>
                 <AppText style={styles.puzzleType}>• {item.with_whom || 'Medium Puzzle'}</AppText>
             </View>
@@ -269,7 +273,7 @@ export default function NotificationsScreen() {
         // If it's accepted or rejected, show history view
         if (item.status === 1 || item.status === -1) {
             return (
-                <View style={[styles.historyCard, { borderLeftWidth: 4, borderLeftColor: '#FF6B9D' }]}>
+                <View style={[styles.historyCard, { borderColor: item.status === 1 ? 'rgba(255, 107, 157, 0.3)' : '#1A1A1A' }]}>
                     <View style={styles.historyHeader}>
                         <View style={styles.userInfo}>
                             <TouchableOpacity
@@ -291,9 +295,9 @@ export default function NotificationsScreen() {
                         <Ionicons
                             name={item.status === 1 ? "people" : "close-circle"}
                             size={16}
-                            color={item.status === 1 ? "#FF6B9D" : "#ff4444"}
+                            color={item.status === 1 ? BUDDY_COLOR : "#ff4444"}
                         />
-                        <AppText style={[styles.historyStatus, { color: item.status === 1 ? "#FF6B9D" : "#ff4444" }]}>
+                        <AppText style={[styles.historyStatus, { color: item.status === 1 ? BUDDY_COLOR : "#ff4444" }]}>
                             {item.status === 1 ? 'Friends' : 'Declined'}
                         </AppText>
                     </View>
@@ -315,7 +319,7 @@ export default function NotificationsScreen() {
                         <View style={{ flex: 1 }}>
                             <AppText style={styles.userName}>{item.sender.name}</AppText>
                             <AppText style={styles.inviteText}>
-                                Wants to be your <AppText style={[styles.boldText, { color: '#FF6B9D' }]}>Friend</AppText>
+                                Wants to be your <AppText style={[styles.boldText, { color: BUDDY_COLOR }]}>Friend</AppText>
                             </AppText>
                         </View>
                     </View>
@@ -323,7 +327,7 @@ export default function NotificationsScreen() {
                 </View>
 
                 <View style={styles.friendBadge}>
-                    <Ionicons name="people" size={16} color="#FF6B9D" />
+                    <Ionicons name="people" size={16} color={BUDDY_COLOR} />
                     <AppText style={styles.friendBadgeText}>Friend Request</AppText>
                     {item.sender.streak > 0 && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
@@ -404,6 +408,7 @@ export default function NotificationsScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="chevron-back" size={24} color="#fff" />
@@ -478,7 +483,7 @@ export default function NotificationsScreen() {
 
             {isLoading ? (
                 <View style={[styles.listContent, styles.loadingContainer]}>
-                    <ActivityIndicator size="large" color="#C9E265" />
+                    <ActivityIndicator size="large" color={NEON} />
                 </View>
             ) : (
                 <FlatList
