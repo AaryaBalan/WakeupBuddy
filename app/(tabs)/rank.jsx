@@ -118,7 +118,7 @@ export default function RankScreen() {
                 <View style={styles.pointsCol}>
                     {activeTab === 'daily' ? (
                         <>
-                            <AppText style={styles.pointsText}>{item.today_wakeups || 0}</AppText>
+                            <AppText style={styles.pointsText}>{item.daily_points || 0}</AppText>
                         </>
                     ) : (
                         <>
@@ -169,7 +169,7 @@ export default function RankScreen() {
                     </View>
                     <AppText style={styles.podiumName} numberOfLines={1}>{item.user?.name?.split(' ')[0] || 'User'}</AppText>
                     <AppText style={styles.podiumPoints}>
-                        {activeTab === 'daily' ? (item.today_wakeups || 0) : formatPoints(item.total_points)}
+                        {activeTab === 'daily' ? (item.daily_points || 0) : formatPoints(item.total_points)}
                     </AppText>
                 </TouchableOpacity>
             );

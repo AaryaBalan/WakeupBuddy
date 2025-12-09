@@ -45,90 +45,25 @@ import { mutation, query } from "./_generated/server";
 
 // Scoring constants
 const POINTS = {
-    // Current streak
-    STREAK_BASE: 10,
-    STREAK_MULTIPLIER_7: 1.5,
-    STREAK_MULTIPLIER_14: 2,
-    STREAK_MULTIPLIER_30: 3,
-    STREAK_MULTIPLIER_60: 4,
-    STREAK_MULTIPLIER_90: 5,
-
-    // Max streak achievements
-    MAX_STREAK_BASE: 5,
-    ACHIEVEMENT_7_DAYS: 50,
-    ACHIEVEMENT_14_DAYS: 100,
-    ACHIEVEMENT_30_DAYS: 250,
-    ACHIEVEMENT_60_DAYS: 500,
-    ACHIEVEMENT_90_DAYS: 1000,
-
-    // Consistency
-    CONSISTENCY_MAX_BASE: 1000,
-    RECENT_DAY_BONUS: 5,
-
-    // Wakeups
-    WAKEUP_BASE: 2,
-    MAX_DAILY_WAKEUPS_FOR_POINTS: 3,
+    MAX_STREAK_MULTIPLIER: 27,
+    TOTAL_WAKEUPS_MULTIPLIER: 53,
+    DAILY_WAKEUP_MULTIPLIER: 97,
 };
 
 /**
- * Calculate streak multiplier based on current streak length
- */
-function getStreakMultiplier(streak) {
-    if (streak >= 90) return POINTS.STREAK_MULTIPLIER_90;
-    if (streak >= 60) return POINTS.STREAK_MULTIPLIER_60;
-    if (streak >= 30) return POINTS.STREAK_MULTIPLIER_30;
-    if (streak >= 14) return POINTS.STREAK_MULTIPLIER_14;
-    if (streak >= 7) return POINTS.STREAK_MULTIPLIER_7;
-    return 1;
-}
-
-/**
- * Calculate achievement bonuses for max streak
- */
-function getMaxStreakAchievementBonus(maxStreak) {
-    let bonus = 0;
-    if (maxStreak >= 7) bonus += POINTS.ACHIEVEMENT_7_DAYS;
-    if (maxStreak >= 14) bonus += POINTS.ACHIEVEMENT_14_DAYS;
-    if (maxStreak >= 30) bonus += POINTS.ACHIEVEMENT_30_DAYS;
-    if (maxStreak >= 60) bonus += POINTS.ACHIEVEMENT_60_DAYS;
-    if (maxStreak >= 90) bonus += POINTS.ACHIEVEMENT_90_DAYS;
-    return bonus;
-}
-
-/**
  * Calculate all points for a user
+ * Global Score = Max Streak + Total Wakeups
  */
-function calculatePoints(currentStreak, maxStreak, totalWakeups, totalDaysActive, totalDaysSinceStart, recentDaysActive) {
-    // 1. Current Streak Points (with multiplier)
-    const streakMultiplier = getStreakMultiplier(currentStreak);
-    const streakPoints = Math.round(currentStreak * POINTS.STREAK_BASE * streakMultiplier);
-
-    // 2. Max Streak Points (base + achievements)
-    const maxStreakBase = maxStreak * POINTS.MAX_STREAK_BASE;
-    const achievementBonus = getMaxStreakAchievementBonus(maxStreak);
-    const maxStreakPoints = maxStreakBase + achievementBonus;
-
-    // 3. Consistency Points
-    const consistencyRatio = totalDaysSinceStart > 0
-        ? Math.min(totalDaysActive / totalDaysSinceStart, 1)
-        : 0;
-    const consistencyBase = Math.round(POINTS.CONSISTENCY_MAX_BASE * consistencyRatio);
-    const recentBonus = recentDaysActive * POINTS.RECENT_DAY_BONUS;
-    const consistencyPoints = consistencyBase + recentBonus;
-
-    // 4. Wakeup Points (with daily cap)
-    const cappedWakeups = Math.min(totalWakeups, totalDaysActive * POINTS.MAX_DAILY_WAKEUPS_FOR_POINTS);
-    const wakeupPoints = cappedWakeups * POINTS.WAKEUP_BASE;
-
-    // Total
-    const totalPoints = streakPoints + maxStreakPoints + consistencyPoints + wakeupPoints;
+function calculatePoints(currentStreak, maxStreak, totalWakeups) {
+    // Global Score = Max Streak * 5 + Total Wakeups * 3
+    const totalPoints = (maxStreak * POINTS.MAX_STREAK_MULTIPLIER) + (totalWakeups * POINTS.TOTAL_WAKEUPS_MULTIPLIER);
 
     return {
         totalPoints,
-        streakPoints,
-        maxStreakPoints,
-        consistencyPoints,
-        wakeupPoints
+        streakPoints: 0,
+        maxStreakPoints: 0,
+        consistencyPoints: 0,
+        wakeupPoints: 0
     };
 }
 
@@ -161,42 +96,17 @@ export const updateUserLeaderboard = mutation({
         const totalWakeups = allStreaks.reduce((sum, s) => sum + s.count, 0);
         const totalDaysActive = allStreaks.length;
 
-        // Calculate total days since first activity
-        let totalDaysSinceStart = 0;
-        if (allStreaks.length > 0) {
-            const dates = allStreaks.map(s => new Date(s.date));
-            const firstDate = new Date(Math.min(...dates));
-            const today = new Date();
-            totalDaysSinceStart = Math.ceil((today - firstDate) / (1000 * 60 * 60 * 24)) + 1;
-        }
-
-        // Calculate recent activity (last 7 days)
-        const today = new Date();
-        const sevenDaysAgo = new Date(today);
-        sevenDaysAgo.setDate(today.getDate() - 7);
-        const recentDaysActive = allStreaks.filter(s => {
-            const streakDate = new Date(s.date);
-            return streakDate >= sevenDaysAgo;
-        }).length;
-
-        const currentStreak = user.streak || 0;
-        const maxStreak = user.maxStreak || 0;
-
         // Calculate points
         const points = calculatePoints(
             currentStreak,
             maxStreak,
-            totalWakeups,
-            totalDaysActive,
-            totalDaysSinceStart,
-            recentDaysActive
+            totalWakeups
         );
 
         // Calculate daily metrics (today's activity)
         const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
         const todayStreaks = allStreaks.filter(s => s.date === todayStr);
-        const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
-        const dailyPoints = todayWakeups * POINTS.WAKEUP_BASE * 10; // 20 points per wakeup today
+        const dailyPoints = todayWakeups * POINTS.DAILY_WAKEUP_MULTIPLIER; // Daily score = wakeups today * 13
 
         // Calculate call time metrics
         const allCalls = await ctx.db
@@ -548,32 +458,13 @@ export const recalculateAllLeaderboards = mutation({
             const totalWakeups = allStreaks.reduce((sum, s) => sum + s.count, 0);
             const totalDaysActive = allStreaks.length;
 
-            let totalDaysSinceStart = 0;
-            if (allStreaks.length > 0) {
-                const dates = allStreaks.map(s => new Date(s.date));
-                const firstDate = new Date(Math.min(...dates));
-                const today = new Date();
-                totalDaysSinceStart = Math.ceil((today - firstDate) / (1000 * 60 * 60 * 24)) + 1;
-            }
-
-            const today = new Date();
-            const sevenDaysAgo = new Date(today);
-            sevenDaysAgo.setDate(today.getDate() - 7);
-            const recentDaysActive = allStreaks.filter(s => {
-                const streakDate = new Date(s.date);
-                return streakDate >= sevenDaysAgo;
-            }).length;
-
             const currentStreak = user.streak || 0;
             const maxStreak = user.maxStreak || 0;
 
             const points = calculatePoints(
                 currentStreak,
                 maxStreak,
-                totalWakeups,
-                totalDaysActive,
-                totalDaysSinceStart,
-                recentDaysActive
+                totalWakeups
             );
 
             const existingEntry = await ctx.db
@@ -594,6 +485,15 @@ export const recalculateAllLeaderboards = mutation({
                 wakeup_points: points.wakeupPoints,
                 last_updated: Date.now(),
             };
+
+            // Calculate daily metrics (today's activity)
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+            const todayStreaks = allStreaks.filter(s => s.date === todayStr);
+            const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
+
+            leaderboardData.today_wakeups = todayWakeups;
+            leaderboardData.daily_points = todayWakeups * POINTS.DAILY_WAKEUP_MULTIPLIER;
 
             if (existingEntry) {
                 await ctx.db.patch(existingEntry._id, leaderboardData);
@@ -664,9 +564,12 @@ export const recalculateAllDailyPoints = mutation({
                 .collect();
 
             const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
-            const dailyPoints = todayWakeups * POINTS.WAKEUP_BASE * 10; // 20 points per wakeup today
+            const dailyPoints = todayWakeups * POINTS.DAILY_WAKEUP_MULTIPLIER;
 
-            await ctx.db.patch(entry._id, { daily_points: dailyPoints });
+            await ctx.db.patch(entry._id, {
+                daily_points: dailyPoints,
+                today_wakeups: todayWakeups
+            });
             updated++;
         }
 

@@ -7,67 +7,21 @@ import { mutation, query } from "./_generated/server";
  * ============================================================
  */
 const POINTS = {
-    STREAK_BASE: 10,
-    STREAK_MULTIPLIER_7: 1.5,
-    STREAK_MULTIPLIER_14: 2,
-    STREAK_MULTIPLIER_30: 3,
-    STREAK_MULTIPLIER_60: 4,
-    STREAK_MULTIPLIER_90: 5,
-    MAX_STREAK_BASE: 5,
-    ACHIEVEMENT_7_DAYS: 50,
-    ACHIEVEMENT_14_DAYS: 100,
-    ACHIEVEMENT_30_DAYS: 250,
-    ACHIEVEMENT_60_DAYS: 500,
-    ACHIEVEMENT_90_DAYS: 1000,
-    CONSISTENCY_MAX_BASE: 1000,
-    RECENT_DAY_BONUS: 5,
-    WAKEUP_BASE: 2,
-    MAX_DAILY_WAKEUPS_FOR_POINTS: 3,
+    MAX_STREAK_MULTIPLIER: 27,
+    TOTAL_WAKEUPS_MULTIPLIER: 53,
+    DAILY_WAKEUP_MULTIPLIER: 97,
 };
 
-function getStreakMultiplier(streak) {
-    if (streak >= 90) return POINTS.STREAK_MULTIPLIER_90;
-    if (streak >= 60) return POINTS.STREAK_MULTIPLIER_60;
-    if (streak >= 30) return POINTS.STREAK_MULTIPLIER_30;
-    if (streak >= 14) return POINTS.STREAK_MULTIPLIER_14;
-    if (streak >= 7) return POINTS.STREAK_MULTIPLIER_7;
-    return 1;
-}
-
-function getMaxStreakAchievementBonus(maxStreak) {
-    let bonus = 0;
-    if (maxStreak >= 7) bonus += POINTS.ACHIEVEMENT_7_DAYS;
-    if (maxStreak >= 14) bonus += POINTS.ACHIEVEMENT_14_DAYS;
-    if (maxStreak >= 30) bonus += POINTS.ACHIEVEMENT_30_DAYS;
-    if (maxStreak >= 60) bonus += POINTS.ACHIEVEMENT_60_DAYS;
-    if (maxStreak >= 90) bonus += POINTS.ACHIEVEMENT_90_DAYS;
-    return bonus;
-}
-
-function calculatePoints(currentStreak, maxStreak, totalWakeups, totalDaysActive, totalDaysSinceStart, recentDaysActive) {
-    const streakMultiplier = getStreakMultiplier(currentStreak);
-    const streakPoints = Math.round(currentStreak * POINTS.STREAK_BASE * streakMultiplier);
-
-    const maxStreakBase = maxStreak * POINTS.MAX_STREAK_BASE;
-    const achievementBonus = getMaxStreakAchievementBonus(maxStreak);
-    const maxStreakPoints = maxStreakBase + achievementBonus;
-
-    const consistencyRatio = totalDaysSinceStart > 0
-        ? Math.min(totalDaysActive / totalDaysSinceStart, 1)
-        : 0;
-    const consistencyBase = Math.round(POINTS.CONSISTENCY_MAX_BASE * consistencyRatio);
-    const recentBonus = recentDaysActive * POINTS.RECENT_DAY_BONUS;
-    const consistencyPoints = consistencyBase + recentBonus;
-
-    const cappedWakeups = Math.min(totalWakeups, totalDaysActive * POINTS.MAX_DAILY_WAKEUPS_FOR_POINTS);
-    const wakeupPoints = cappedWakeups * POINTS.WAKEUP_BASE;
+function calculatePoints(currentStreak, maxStreak, totalWakeups) {
+    // Global Score = Max Streak * 5 + Total Wakeups * 3
+    const totalPoints = (maxStreak * POINTS.MAX_STREAK_MULTIPLIER) + (totalWakeups * POINTS.TOTAL_WAKEUPS_MULTIPLIER);
 
     return {
-        totalPoints: streakPoints + maxStreakPoints + consistencyPoints + wakeupPoints,
-        streakPoints,
-        maxStreakPoints,
-        consistencyPoints,
-        wakeupPoints
+        totalPoints,
+        streakPoints: 0,
+        maxStreakPoints: 0,
+        consistencyPoints: 0,
+        wakeupPoints: 0
     };
 }
 
@@ -106,10 +60,7 @@ async function updateLeaderboardForUser(ctx, user, userDate = null) {
     const points = calculatePoints(
         currentStreak,
         maxStreak,
-        totalWakeups,
-        totalDaysActive,
-        totalDaysSinceStart,
-        recentDaysActive
+        totalWakeups
     );
 
     // Calculate daily points (wakeups from today only)
@@ -117,7 +68,7 @@ async function updateLeaderboardForUser(ctx, user, userDate = null) {
     const todayStr = userDate || today.toISOString().split('T')[0]; // YYYY-MM-DD
     const todayStreaks = allStreaks.filter(s => s.date === todayStr);
     const todayWakeups = todayStreaks.reduce((sum, s) => sum + s.count, 0);
-    const dailyPoints = todayWakeups * POINTS.WAKEUP_BASE * 10; // 20 points per wakeup today
+    const dailyPoints = todayWakeups * POINTS.DAILY_WAKEUP_MULTIPLIER; // Daily score = wakeups today * 13
 
     const existingEntry = await ctx.db
         .query("leaderboard")
