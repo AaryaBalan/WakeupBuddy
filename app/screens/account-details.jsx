@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from 'convex/react';
+import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
@@ -29,7 +30,8 @@ export default function AccountDetailsScreen() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [modalMessage, setModalMessage] = useState({ text: '', type: '' }); // 'error' or 'success'
+    const [modalMessage, setModalMessage] = useState({ text: '', type: '' });
+    const [focusedInput, setFocusedInput] = useState(null);
 
     // Format date
     const formatDate = (dateString) => {
@@ -37,9 +39,15 @@ export default function AccountDetailsScreen() {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
-            month: 'long',
+            month: 'short',
             day: 'numeric',
         });
+    };
+
+    // Copy to clipboard
+    const copyToClipboard = async (text) => {
+        await Clipboard.setStringAsync(text);
+        showPopup('Copied to clipboard!', 'success');
     };
 
     // Clear modal message after delay
@@ -99,34 +107,58 @@ export default function AccountDetailsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="chevron-back" size={24} color="#fff" />
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>
                 <AppText style={styles.headerTitle}>Account Details</AppText>
-                <View style={{ width: 24 }} />
+                <View style={{ width: 32 }} />
             </View>
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                {/* Profile Section */}
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Profile Hero Section */}
                 <View style={styles.profileSection}>
-                    <ProfilePic user={user} size={80} />
+                    <View style={styles.avatarContainer}>
+                        <View style={styles.avatarRing}>
+                            <ProfilePic user={user} size={80} />
+                        </View>
+                        <View style={styles.verifiedBadge}>
+                            <Ionicons name="checkmark" size={14} color="#000" />
+                        </View>
+                    </View>
                     <AppText style={styles.profileName}>{user?.name || 'User'}</AppText>
+                    <View style={styles.usernameContainer}>
+                        <Ionicons name="at" size={14} color={NEON} />
+                        <AppText style={styles.profileUsername}>{user?.username || 'username'}</AppText>
+                    </View>
                     <AppText style={styles.profileEmail}>{user?.email || 'No email'}</AppText>
+
+                    <View style={styles.memberSinceBadge}>
+                        <Ionicons name="calendar-outline" size={12} color={NEON} />
+                        <AppText style={styles.memberSinceText}>
+                            Member since {formatDate(user?._creationTime)}
+                        </AppText>
+                    </View>
                 </View>
 
                 {/* Account Info Card */}
                 <View style={styles.infoCard}>
-                    <AppText style={styles.cardTitle}>Account Information</AppText>
+                    <View style={styles.cardHeader}>
+                        <AppText style={styles.cardTitle}>Personal Information</AppText>
+                    </View>
 
                     <View style={styles.infoRow}>
                         <View style={styles.infoLeft}>
                             <View style={styles.iconBg}>
                                 <Ionicons name="person-outline" size={18} color={NEON} />
                             </View>
-                            <View>
+                            <View style={styles.infoTextContainer}>
                                 <AppText style={styles.infoLabel}>Full Name</AppText>
                                 <AppText style={styles.infoValue}>{user?.name || 'Not set'}</AppText>
                             </View>
@@ -138,11 +170,19 @@ export default function AccountDetailsScreen() {
                             <View style={styles.iconBg}>
                                 <Ionicons name="mail-outline" size={18} color={NEON} />
                             </View>
-                            <View>
+                            <View style={styles.infoTextContainer}>
                                 <AppText style={styles.infoLabel}>Email Address</AppText>
-                                <AppText style={styles.infoValue}>{user?.email || 'Not set'}</AppText>
+                                <AppText style={[styles.infoValue, styles.infoValueSmall]} numberOfLines={1}>
+                                    {user?.email || 'Not set'}
+                                </AppText>
                             </View>
                         </View>
+                        <TouchableOpacity
+                            style={styles.copyButton}
+                            onPress={() => copyToClipboard(user?.email)}
+                        >
+                            <Ionicons name="copy-outline" size={16} color={NEON} />
+                        </TouchableOpacity>
                     </View>
 
                     <View style={styles.infoRow}>
@@ -150,33 +190,23 @@ export default function AccountDetailsScreen() {
                             <View style={styles.iconBg}>
                                 <Ionicons name="call-outline" size={18} color={NEON} />
                             </View>
-                            <View>
+                            <View style={styles.infoTextContainer}>
                                 <AppText style={styles.infoLabel}>Phone Number</AppText>
                                 <AppText style={styles.infoValue}>{user?.phone || 'Not set'}</AppText>
                             </View>
                         </View>
                     </View>
 
-                    <View style={styles.infoRow}>
+                    <View style={[styles.infoRow, styles.infoRowLast]}>
                         <View style={styles.infoLeft}>
                             <View style={styles.iconBg}>
                                 <Ionicons name="document-text-outline" size={18} color={NEON} />
                             </View>
-                            <View>
+                            <View style={styles.infoTextContainer}>
                                 <AppText style={styles.infoLabel}>Bio</AppText>
-                                <AppText style={styles.infoValue}>{user?.bio || 'No bio added'}</AppText>
-                            </View>
-                        </View>
-                    </View>
-
-                    <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-                        <View style={styles.infoLeft}>
-                            <View style={styles.iconBg}>
-                                <Ionicons name="calendar-outline" size={18} color={NEON} />
-                            </View>
-                            <View>
-                                <AppText style={styles.infoLabel}>Member Since</AppText>
-                                <AppText style={styles.infoValue}>{formatDate(user?._creationTime)}</AppText>
+                                <AppText style={[styles.infoValue, styles.infoValueSmall]}>
+                                    {user?.bio || 'No bio added'}
+                                </AppText>
                             </View>
                         </View>
                     </View>
@@ -184,16 +214,31 @@ export default function AccountDetailsScreen() {
 
                 {/* Profile Code Card */}
                 <View style={styles.infoCard}>
-                    <AppText style={styles.cardTitle}>Profile Code</AppText>
+                    <View style={styles.cardHeader}>
+                        <AppText style={styles.cardTitle}>Profile Code</AppText>
+                        <View style={styles.cardBadge}>
+                            <AppText style={styles.cardBadgeText}>SHARE</AppText>
+                        </View>
+                    </View>
                     <View style={styles.codeContainer}>
-                        <AppText style={styles.codeText}>{user?.profileCode || 'N/A'}</AppText>
+                        <AppText style={styles.codeLabel}>Your unique code</AppText>
+                        <AppText style={styles.codeText}>{user?.profile_code || 'N/A'}</AppText>
                         <AppText style={styles.codeHint}>Share this code with friends to connect</AppText>
+                        <TouchableOpacity
+                            style={styles.codeCopyBtn}
+                            onPress={() => copyToClipboard(user?.profile_code)}
+                        >
+                            <Ionicons name="copy-outline" size={14} color={NEON} />
+                            <AppText style={styles.codeCopyText}>Copy Code</AppText>
+                        </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Security Section */}
-                <View style={styles.infoCard}>
-                    <AppText style={styles.cardTitle}>Security</AppText>
+                <View style={[styles.infoCard, styles.dangerCard]}>
+                    <View style={styles.cardHeader}>
+                        <AppText style={styles.cardTitle}>Security</AppText>
+                    </View>
 
                     <TouchableOpacity
                         style={styles.actionRow}
@@ -201,12 +246,14 @@ export default function AccountDetailsScreen() {
                         activeOpacity={0.7}
                     >
                         <View style={styles.infoLeft}>
-                            <View style={[styles.iconBg, { backgroundColor: 'rgba(255, 107, 107, 0.15)' }]}>
+                            <View style={[styles.iconBg, styles.dangerIconBg]}>
                                 <Ionicons name="lock-closed-outline" size={18} color="#FF6B6B" />
                             </View>
                             <AppText style={styles.actionText}>Change Password</AppText>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color={GRAY} />
+                        <View style={styles.actionChevron}>
+                            <Ionicons name="chevron-forward" size={18} color={GRAY} />
+                        </View>
                     </TouchableOpacity>
                 </View>
 
@@ -225,12 +272,21 @@ export default function AccountDetailsScreen() {
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
                     <View style={styles.modalContent}>
+                        <View style={styles.modalHandle} />
+
                         <View style={styles.modalHeader}>
                             <AppText style={styles.modalTitle}>Change Password</AppText>
-                            <TouchableOpacity onPress={() => setChangePasswordModal(false)}>
+                            <TouchableOpacity
+                                onPress={() => setChangePasswordModal(false)}
+                                style={styles.modalCloseBtn}
+                            >
                                 <Ionicons name="close" size={24} color="#fff" />
                             </TouchableOpacity>
                         </View>
+
+                        <AppText style={styles.modalSubtitle}>
+                            Create a strong password to secure your account
+                        </AppText>
 
                         {/* Message Display */}
                         {modalMessage.text !== '' && (
@@ -255,7 +311,10 @@ export default function AccountDetailsScreen() {
                         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                             <View style={styles.inputGroup}>
                                 <AppText style={styles.inputLabel}>Current Password</AppText>
-                                <View style={styles.passwordInputContainer}>
+                                <View style={[
+                                    styles.passwordInputContainer,
+                                    focusedInput === 'current' && styles.passwordInputFocused
+                                ]}>
                                     <TextInput
                                         style={styles.passwordInput}
                                         value={currentPassword}
@@ -263,8 +322,13 @@ export default function AccountDetailsScreen() {
                                         secureTextEntry={!showCurrentPassword}
                                         placeholderTextColor="#666"
                                         placeholder="Enter current password"
+                                        onFocus={() => setFocusedInput('current')}
+                                        onBlur={() => setFocusedInput(null)}
                                     />
-                                    <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                                    <TouchableOpacity
+                                        onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        style={styles.eyeButton}
+                                    >
                                         <Ionicons
                                             name={showCurrentPassword ? "eye-off-outline" : "eye-outline"}
                                             size={20}
@@ -276,7 +340,10 @@ export default function AccountDetailsScreen() {
 
                             <View style={styles.inputGroup}>
                                 <AppText style={styles.inputLabel}>New Password</AppText>
-                                <View style={styles.passwordInputContainer}>
+                                <View style={[
+                                    styles.passwordInputContainer,
+                                    focusedInput === 'new' && styles.passwordInputFocused
+                                ]}>
                                     <TextInput
                                         style={styles.passwordInput}
                                         value={newPassword}
@@ -284,8 +351,13 @@ export default function AccountDetailsScreen() {
                                         secureTextEntry={!showNewPassword}
                                         placeholderTextColor="#666"
                                         placeholder="Enter new password"
+                                        onFocus={() => setFocusedInput('new')}
+                                        onBlur={() => setFocusedInput(null)}
                                     />
-                                    <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                                    <TouchableOpacity
+                                        onPress={() => setShowNewPassword(!showNewPassword)}
+                                        style={styles.eyeButton}
+                                    >
                                         <Ionicons
                                             name={showNewPassword ? "eye-off-outline" : "eye-outline"}
                                             size={20}
@@ -293,11 +365,15 @@ export default function AccountDetailsScreen() {
                                         />
                                     </TouchableOpacity>
                                 </View>
+                                <AppText style={styles.passwordHint}>Must be at least 6 characters</AppText>
                             </View>
 
                             <View style={styles.inputGroup}>
                                 <AppText style={styles.inputLabel}>Confirm New Password</AppText>
-                                <View style={styles.passwordInputContainer}>
+                                <View style={[
+                                    styles.passwordInputContainer,
+                                    focusedInput === 'confirm' && styles.passwordInputFocused
+                                ]}>
                                     <TextInput
                                         style={styles.passwordInput}
                                         value={confirmPassword}
@@ -305,8 +381,13 @@ export default function AccountDetailsScreen() {
                                         secureTextEntry={!showConfirmPassword}
                                         placeholderTextColor="#666"
                                         placeholder="Confirm new password"
+                                        onFocus={() => setFocusedInput('confirm')}
+                                        onBlur={() => setFocusedInput(null)}
                                     />
-                                    <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                    <TouchableOpacity
+                                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        style={styles.eyeButton}
+                                    >
                                         <Ionicons
                                             name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
                                             size={20}
@@ -317,7 +398,10 @@ export default function AccountDetailsScreen() {
                             </View>
 
                             <TouchableOpacity
-                                style={styles.changePasswordBtn}
+                                style={[
+                                    styles.changePasswordBtn,
+                                    isChangingPassword && styles.changePasswordBtnDisabled
+                                ]}
                                 onPress={handleChangePassword}
                                 disabled={isChangingPassword}
                                 activeOpacity={0.8}

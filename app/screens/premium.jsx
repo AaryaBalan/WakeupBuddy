@@ -261,9 +261,9 @@ export default function PremiumScreen() {
                         {[
                             { feature: 'Stranger Matches', basic: '30/mo', premium: 'Unlimited' },
                             { feature: 'Buddy Requests', basic: '15/mo', premium: 'Unlimited' },
-                            { feature: 'Ad-Free Experience', basic: '✗', premium: '✓' },
-                            { feature: 'Priority Support', basic: '✗', premium: '✓' },
-                            { feature: 'Early Features', basic: '✗', premium: '✓' },
+                            { feature: 'Ad-Free Experience', basic: '-', premium: 'Yes' },
+                            { feature: 'Priority Support', basic: '-', premium: 'Yes' },
+                            { feature: 'Early Features', basic: '-', premium: 'Yes' },
                         ].map((item, index) => (
                             <View key={index}>
                                 <View style={styles.comparisonRow}>
