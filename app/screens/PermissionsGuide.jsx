@@ -75,7 +75,7 @@ export default function PermissionsGuide() {
             icon: 'alarm',
             granted: permissions.canScheduleExactAlarms,
             onPress: handleExactAlarmPress,
-            buttonText: 'Enable'
+            buttonText: 'Allow'
         },
         {
             step: 2,
@@ -84,7 +84,7 @@ export default function PermissionsGuide() {
             icon: 'battery-full',
             granted: permissions.batteryOptimizationDisabled,
             onPress: handleBatteryOptPress,
-            buttonText: 'Disable'
+            buttonText: 'Allow'
         },
         {
             step: 3,
@@ -102,7 +102,7 @@ export default function PermissionsGuide() {
             icon: 'call',
             granted: permissions.hasCallPermission,
             onPress: handleCallPhonePress,
-            buttonText: 'Grant'
+            buttonText: 'Allow'
         }
     ];
 
