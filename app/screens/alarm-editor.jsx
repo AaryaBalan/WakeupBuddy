@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import { usePopup } from '../../contexts/PopupContext';
@@ -12,6 +12,8 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/alarmEditor.styles';
 import { generateRequestCode, requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
+
+const NEON = '#C9E265';
 
 export default function AlarmEditorScreen() {
     const router = useRouter();
@@ -234,7 +236,8 @@ export default function AlarmEditorScreen() {
     const { time, ampm } = getTimeParts(date);
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <ScrollView contentContainerStyle={styles.scrollContent}>
 
                 {/* Header */}
@@ -286,8 +289,8 @@ export default function AlarmEditorScreen() {
                 {mode === 'solo' && (
                     <View style={styles.buddyCard}>
                         <View style={styles.buddyRow}>
-                            <View style={[styles.buddyIconContainer, { backgroundColor: 'rgba(201, 226, 101, 0.2)' }]}>
-                                <Ionicons name="alarm" size={24} color="#C9E265" />
+                            <View style={[styles.buddyIconContainer, { backgroundColor: '#1A1A1A', borderColor: '#333' }]}>
+                                <Ionicons name="alarm-outline" size={20} color="#fff" />
                             </View>
                             <View style={styles.buddyInfo}>
                                 <AppText style={styles.buddyTitle}>Personal Alarm</AppText>
@@ -296,7 +299,7 @@ export default function AlarmEditorScreen() {
                         </View>
 
                         <View style={styles.buddyFooter}>
-                            <Ionicons name="information-circle-outline" size={16} color="#888" />
+                            <Ionicons name="information-circle-outline" size={14} color="#666" />
                             <AppText style={styles.buddyFooterText}>
                                 Solo mode sets a traditional alarm without a buddy. You'll wake up to an alarm sound without voice call or accountability partner.
                             </AppText>
@@ -309,7 +312,7 @@ export default function AlarmEditorScreen() {
                     <View style={styles.buddyCard}>
                         <View style={styles.buddyRow}>
                             <View style={styles.buddyIconContainer}>
-                                <Ionicons name="globe-outline" size={24} color="#fff" />
+                                <Ionicons name="globe-outline" size={20} color="#fff" />
                             </View>
                             <View style={styles.buddyInfo}>
                                 <AppText style={styles.buddyTitle}>
@@ -324,7 +327,7 @@ export default function AlarmEditorScreen() {
                                 onPress={() => setBuddyType(buddyType === 'stranger' ? 'request' : 'stranger')}
                             >
                                 <AppText style={styles.changeButtonText}>Change</AppText>
-                                <Ionicons name="chevron-forward" size={16} color="#C9E265" />
+                                <Ionicons name="chevron-forward" size={12} color={NEON} />
                             </TouchableOpacity>
                         </View>
 
@@ -341,7 +344,7 @@ export default function AlarmEditorScreen() {
                         )}
 
                         <View style={styles.buddyFooter}>
-                            <Ionicons name="information-circle-outline" size={16} color="#888" />
+                            <Ionicons name="information-circle-outline" size={14} color="#666" />
                             <AppText style={styles.buddyFooterText}>
                                 We'll pair you with someone in your timezone. If you oversleep, you break the streak for both!
                             </AppText>
@@ -376,7 +379,7 @@ export default function AlarmEditorScreen() {
                         style={[styles.wakeMethodButton]}
                         onPress={() => { }}
                     >
-                        <Ionicons name={mode === 'solo' ? "alarm" : "call"} size={16} color="#000" />
+                        <Ionicons name={mode === 'solo' ? "alarm-outline" : "call-outline"} size={16} color="#fff" />
                         <AppText style={styles.wakeMethodText}>
                             {mode === 'solo' ? 'Alarm' : 'Voice Call'}
                         </AppText>
@@ -388,7 +391,7 @@ export default function AlarmEditorScreen() {
                     <AppText style={styles.configLabel}>Label</AppText>
                     <View style={styles.configValueContainer}>
                         <AppText style={styles.configValue}>{label}</AppText>
-                        <Ionicons name="chevron-forward" size={20} color="#666" />
+                        <Ionicons name="chevron-forward" size={16} color="#666" />
                     </View>
                 </TouchableOpacity>
 
