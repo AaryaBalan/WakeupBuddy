@@ -2,8 +2,9 @@ import { Dimensions, StyleSheet } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
-const BG = '#000';
-const GRAY = '#BDBDBD';
+const BG = '#050505'; // Slightly lighter than pure black for depth
+const CARD_BG = '#121212';
+const GRAY = '#888';
 
 const styles = StyleSheet.create({
     /* ---------- Container ---------- */
@@ -12,8 +13,9 @@ const styles = StyleSheet.create({
         backgroundColor: BG,
     },
     listContent: {
-        paddingHorizontal: 14,
-        paddingTop: 50,
+        paddingHorizontal: 16,
+        paddingTop: 20,
+        paddingBottom: 100,
     },
 
     /* ---------- Header ---------- */
@@ -21,59 +23,44 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 14,
+        marginBottom: 20,
+        marginTop: 10,
     },
     headerTitle: {
         color: "#fff",
-        fontSize: 24,
+        fontSize: 28,
         fontFamily: 'Montserrat_700Bold',
-    },
-
-    /* ---------- Search Bar ---------- */
-    searchContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#111",
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        marginBottom: 14,
-        height: 42,
-    },
-    searchIcon: {
-        marginRight: 6,
-    },
-    searchInput: {
-        flex: 1,
-        color: "#fff",
-        fontSize: 15,
+        letterSpacing: -0.5,
     },
 
     /* ---------- Tabs ---------- */
     tabsContainer: {
         flexDirection: "row",
-        backgroundColor: "#111",
-        borderRadius: 10,
-        padding: 3,
-        marginBottom: 16,
+        backgroundColor: CARD_BG,
+        borderRadius: 25,
+        padding: 4,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: '#222',
     },
     tab: {
         flex: 1,
-        paddingVertical: 7,
+        paddingVertical: 10,
         alignItems: "center",
-        borderRadius: 7,
+        borderRadius: 22,
     },
     activeTab: {
-        backgroundColor: "#222",
+        backgroundColor: NEON,
     },
     activeTabText: {
-        color: "#fff",
+        color: "#000",
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 14,
+        fontSize: 13,
     },
     inactiveTabText: {
-        color: "#666",
+        color: GRAY,
         fontFamily: 'Montserrat_600SemiBold',
-        fontSize: 14,
+        fontSize: 13,
     },
 
     /* ---------- Banner ---------- */
@@ -81,43 +68,53 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "rgba(200, 255, 0, 0.1)",
-        padding: 8,
-        borderRadius: 7,
-        marginBottom: 12,
+        backgroundColor: "rgba(201, 226, 101, 0.08)",
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: "rgba(201, 226, 101, 0.15)",
     },
     bannerText: {
-        color: "#999",
-        fontSize: 11,
+        color: "#E0E0E0",
+        fontSize: 12,
+        fontFamily: 'Montserrat_500Medium',
     },
 
     /* ---------- Stats Banner ---------- */
     statsBanner: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-around",
-        backgroundColor: "#111",
-        padding: 12,
-        borderRadius: 10,
-        marginBottom: 20,
+        justifyContent: "space-between",
+        backgroundColor: CARD_BG,
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        borderRadius: 16,
+        marginBottom: 30,
+        borderWidth: 1,
+        borderColor: '#222',
     },
     statItem: {
         alignItems: "center",
         flex: 1,
     },
     statValue: {
-        color: NEON,
-        fontSize: 16,
+        color: "#fff",
+        fontSize: 18,
         fontFamily: 'Montserrat_700Bold',
+        marginBottom: 4,
     },
     statLabel: {
-        color: "#666",
-        fontSize: 10,
-        marginTop: 2,
+        color: GRAY,
+        fontSize: 11,
+        fontFamily: 'Montserrat_500Medium',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     statDivider: {
         width: 1,
-        height: 24,
+        height: 30,
         backgroundColor: "#333",
     },
 
@@ -125,86 +122,83 @@ const styles = StyleSheet.create({
     itemRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 20,
+        marginBottom: 12,
+        backgroundColor: CARD_BG,
+        padding: 14,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#1A1A1A',
     },
 
     /* Rank */
     rankCol: {
-        width: 36,
+        width: 32,
         alignItems: "center",
+        justifyContent: 'center',
     },
     rankText: {
-        color: "#666",
-        fontSize: 15,
+        color: GRAY,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
 
     /* Avatar */
     avatarCol: {
-        marginHorizontal: 10,
+        marginHorizontal: 12,
     },
-    avatar: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-    },
-    avatarPlaceholder: {
-        backgroundColor: "#333",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    avatarInitials: {
-        color: "#888",
-        fontFamily: 'Montserrat_700Bold',
-    },
+    // Avatar styles are handled by the component, but we can add container styling if needed
 
     /* Info */
     infoCol: {
         flex: 1,
+        justifyContent: 'center',
     },
     nameText: {
         color: "#fff",
         fontSize: 15,
-        fontFamily: 'Montserrat_700Bold',
-    },
-    badgeText: {
-        fontSize: 13,
+        fontFamily: 'Montserrat_600SemiBold',
+        marginBottom: 2,
     },
     locationText: {
-        color: "#666",
+        color: GRAY,
         fontSize: 11,
-        marginTop: 3,
+        fontFamily: 'Montserrat_500Medium',
     },
 
     /* Points */
     pointsCol: {
         alignItems: "flex-end",
+        minWidth: 60,
     },
     pointsText: {
         color: NEON,
-        fontSize: 15,
+        fontSize: 16,
         fontFamily: 'Montserrat_700Bold',
     },
     ptsLabel: {
-        color: "#666",
-        fontSize: 11,
+        color: GRAY,
+        fontSize: 10,
+        fontFamily: 'Montserrat_500Medium',
+        marginTop: 2,
     },
 
     /* ---------- Invite Button ---------- */
     inviteBtn: {
-        backgroundColor: NEON,
+        backgroundColor: '#1A1A1A',
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        paddingVertical: 12,
-        borderRadius: 10,
-        marginTop: 24,
+        paddingVertical: 14,
+        borderRadius: 14,
+        marginTop: 10,
         width: "100%",
+        borderWidth: 1,
+        borderColor: '#333',
     },
     inviteText: {
-        color: "#000",
-        fontFamily: 'Montserrat_700Bold',
-        fontSize: 15,
+        color: "#fff",
+        fontFamily: 'Montserrat_600SemiBold',
+        fontSize: 14,
     },
 
     /* ---------- Sticky Footer ---------- */
@@ -216,36 +210,35 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        backgroundColor: "#000",
+        backgroundColor: "rgba(18, 18, 18, 0.95)", // slightly transparent
         borderTopWidth: 1,
-        borderTopColor: NEON,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        borderTopColor: '#333',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        paddingBottom: 20, // Extra padding for safe area
     },
 
     footerLeft: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
+        gap: 12,
     },
     footerRank: {
-        color: NEON,
+        color: "#fff",
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 15,
-    },
-    footerAvatar: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        fontSize: 16,
+        width: 30,
+        textAlign: 'center',
     },
     footerName: {
         color: "#fff",
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 13,
+        fontSize: 14,
     },
     footerPoints: {
-        color: "#666",
+        color: NEON,
         fontSize: 11,
+        fontFamily: 'Montserrat_500Medium',
     },
 
     footerRight: {
@@ -254,11 +247,12 @@ const styles = StyleSheet.create({
     footerTotal: {
         color: NEON,
         fontFamily: 'Montserrat_700Bold',
-        fontSize: 15,
+        fontSize: 16,
     },
     footerPercent: {
-        color: "#666",
+        color: GRAY,
         fontSize: 11,
+        fontFamily: 'Montserrat_500Medium',
     },
 });
 

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StatusBar, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -11,9 +11,7 @@ import { api } from '../../convex/_generated/api';
 import styles from '../../styles/rank.styles';
 
 const NEON = '#C9E265';
-const BG = '#000';
-const GRAY = '#BDBDBD';
-const DARK_GRAY = '#1A1A1A';
+const GRAY = '#888';
 
 export default function RankScreen() {
     const router = useRouter();
@@ -55,20 +53,13 @@ export default function RankScreen() {
         return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
     };
 
-    // Calculate success rate (consistency percentage)
-    const getSuccessRate = (item) => {
-        if (!item.total_days_active || !item.first_activity_date) return '';
-        const daysSinceStart = Math.max(1, Math.ceil((Date.now() - item.first_activity_date) / (1000 * 60 * 60 * 24)));
-        const rate = Math.min(100, Math.round((item.total_days_active / daysSinceStart) * 100));
-        return ` • ${rate}% Success`;
-    };
-
     const renderItem = ({ item, index }) => {
         const rank = index + 1;
         let rankIcon;
-        if (rank === 1) rankIcon = <Ionicons name="trophy" size={24} color={NEON} />;
-        else if (rank === 2) rankIcon = <Ionicons name="medal-outline" size={24} color="#C0C0C0" />;
-        else if (rank === 3) rankIcon = <Ionicons name="medal-outline" size={24} color="#CD7F32" />;
+        // Distinct styling for top 3
+        if (rank === 1) rankIcon = <Ionicons name="trophy" size={22} color="#FFD700" />; // Gold
+        else if (rank === 2) rankIcon = <Ionicons name="medal" size={22} color="#C0C0C0" />; // Silver
+        else if (rank === 3) rankIcon = <Ionicons name="medal" size={22} color="#CD7F32" />; // Bronze
         else rankIcon = <AppText style={styles.rankText}>{rank}</AppText>;
 
         const hasStreak = item.current_streak >= 7;
@@ -112,26 +103,23 @@ export default function RankScreen() {
 
         return (
             <TouchableOpacity
-                style={styles.itemRow}
+                style={[styles.itemRow, isCurrentUser && { borderColor: 'rgba(201, 226, 101, 0.3)', backgroundColor: 'rgba(201, 226, 101, 0.05)' }]}
                 activeOpacity={0.7}
                 onPress={handlePress}
             >
                 <View style={styles.rankCol}>{rankIcon}</View>
 
                 <View style={styles.avatarCol}>
-                    <ProfilePic user={item.user} size={44} />
+                    <ProfilePic user={item.user} size={42} />
                 </View>
 
                 <View style={styles.infoCol}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <AppText style={styles.nameText}>{item.user?.name || 'Unknown'}</AppText>
-                        {hasStreak && <Ionicons name="flame" size={14} color="#FF6B35" style={{ marginLeft: 4 }} />}
+                        <AppText style={styles.nameText} numberOfLines={1}>{item.user?.name || 'Unknown'}</AppText>
+                        {hasStreak && <Ionicons name="flame" size={14} color="#FF6B35" style={{ marginLeft: 6 }} />}
                     </View>
                     <AppText style={styles.locationText}>
                         {primaryMetric}
-                    </AppText>
-                    <AppText style={[styles.locationText, { fontSize: 10, marginTop: 2 }]}>
-                        {secondaryMetric}
                     </AppText>
                 </View>
 
@@ -156,7 +144,7 @@ export default function RankScreen() {
         <View>
             <View style={styles.headerRow}>
                 <AppText style={styles.headerTitle}>Leaderboard</AppText>
-                <Ionicons name="information-circle-outline" size={24} color={GRAY} />
+                {/* Removed info icon for cleaner look */}
             </View>
 
             {/* Tabs */}
@@ -183,13 +171,13 @@ export default function RankScreen() {
 
             {/* Banner */}
             <View style={styles.banner}>
-                <Ionicons name="people-outline" size={18} color={NEON} style={{ marginRight: 8 }} />
+                <Ionicons name="trophy-outline" size={16} color={NEON} style={{ marginRight: 8 }} />
                 <AppText style={styles.bannerText}>
                     {activeTab === 'daily'
-                        ? 'Today\'s rankings: Wake-ups & call time!'
+                        ? 'Today\'s Top Risers'
                         : activeTab === 'friends'
-                            ? 'Compete with your buddies!'
-                            : 'All-time rankings: Streaks, wake-ups & calls!'}
+                            ? 'Friend Competitions'
+                            : 'All-Time Legends'}
                 </AppText>
             </View>
 
@@ -208,7 +196,7 @@ export default function RankScreen() {
                     <View style={styles.statDivider} />
                     <View style={styles.statItem}>
                         <AppText style={styles.statValue}>{globalStats.highestStreak}</AppText>
-                        <AppText style={styles.statLabel}>Best Streak</AppText>
+                        <AppText style={styles.statLabel}>Top Streak</AppText>
                     </View>
                 </View>
             )}
@@ -216,7 +204,7 @@ export default function RankScreen() {
     );
 
     const ListFooter = () => (
-        <View style={{ paddingBottom: 100, alignItems: 'center', marginTop: 20 }}>
+        <View style={{ alignItems: 'center', marginTop: 10 }}>
             {leaderboardData === undefined ? (
                 <ActivityIndicator size="large" color={NEON} style={{ marginVertical: 40 }} />
             ) : leaderboardData.length === 0 ? (
@@ -226,17 +214,11 @@ export default function RankScreen() {
                         No leaderboard data yet
                     </AppText>
                 </View>
-            ) : (
-                <>
-                    <View style={{ height: 4, width: 4, backgroundColor: '#333', borderRadius: 2, marginBottom: 4 }} />
-                    <View style={{ height: 4, width: 4, backgroundColor: '#333', borderRadius: 2, marginBottom: 4 }} />
-                    <View style={{ height: 4, width: 4, backgroundColor: '#333', borderRadius: 2 }} />
-                </>
-            )}
+            ) : null}
 
             <TouchableOpacity style={styles.inviteBtn} activeOpacity={0.8}>
-                <Ionicons name="share-social-outline" size={20} color="#000" style={{ marginRight: 8 }} />
-                <AppText style={styles.inviteText}>Invite Friends to Compete</AppText>
+                <Ionicons name="share-social-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                <AppText style={styles.inviteText}>Invite Friends</AppText>
             </TouchableOpacity>
         </View>
     );
@@ -250,14 +232,15 @@ export default function RankScreen() {
 
     // Calculate today's points (approximate based on recent activity)
     const getTodayPoints = () => {
-        if (!userStats) return '+0 pts today';
+        if (!userStats) return '+0 pts';
         // This would need proper tracking, for now show recent activity indicator
         const recentlyActive = userStats.last_updated && (Date.now() - userStats.last_updated < 24 * 60 * 60 * 1000);
-        return recentlyActive ? '+points earned today' : 'Wake up to earn!';
+        return recentlyActive ? '+points earned' : 'Wake up to earn!';
     };
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <FlatList
                 data={leaderboardData || []}
                 renderItem={renderItem}
@@ -271,12 +254,12 @@ export default function RankScreen() {
             {/* Sticky User Footer - Clickable to go to profile */}
             <TouchableOpacity
                 style={styles.stickyFooter}
-                activeOpacity={0.8}
+                activeOpacity={0.9}
                 onPress={() => router.push('/(tabs)/profile')}
             >
                 <View style={styles.footerLeft}>
                     <AppText style={styles.footerRank}>#{userStats?.rank || '-'}</AppText>
-                    <ProfilePic user={user} size={40} />
+                    <ProfilePic user={user} size={36} />
                     <View>
                         <AppText style={styles.footerName}>{user?.name || 'You'}</AppText>
                         <AppText style={styles.footerPoints}>{getTodayPoints()}</AppText>
