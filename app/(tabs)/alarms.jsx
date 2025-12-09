@@ -190,7 +190,7 @@ export default function AlarmsScreen() {
                     contentContainerStyle={[styles.listContent, alarms.length === 0 && styles.emptyListContent]}
                     ListEmptyComponent={
                         <View style={styles.emptyState}>
-                            <Ionicons name="alarm-outline" size={64} color="#333" />
+                            <Ionicons name="alarm-outline" size={96} color={NEON} />
                             <AppText style={styles.emptyTitle}>No Alarms Set</AppText>
                             <AppText style={styles.emptySubtitle}>Tap the + button to create your first alarm</AppText>
                             <AppText style={styles.emptyDescription}>Wake up with a buddy or go solo!</AppText>

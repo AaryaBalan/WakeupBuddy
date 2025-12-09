@@ -716,7 +716,7 @@ export default function HomeScreen() {
                             <AppText style={styles.streakLabel}>Current Streak</AppText>
                             <TouchableOpacity style={styles.shareBadge} onPress={handleShareBadge}>
                                 <Ionicons name="share-social-outline" size={14} color={NEON} />
-                                <AppText style={styles.shareBadgeText}>Share</AppText>
+                                <AppText style={styles.shareBadgeText}>Share Badge</AppText>
                             </TouchableOpacity>
                         </View>
                         <View style={styles.streakCountContainer}>
