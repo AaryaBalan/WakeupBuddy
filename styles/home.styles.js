@@ -12,7 +12,7 @@ const homeStyles = StyleSheet.create({
         backgroundColor: BG,
     },
     scrollContent: {
-        padding: 16,
+        padding: 5,
         paddingBottom: 100,
     },
 

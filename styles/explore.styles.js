@@ -12,7 +12,7 @@ const exploreStyles = StyleSheet.create({
         backgroundColor: BG,
     },
     scrollContent: {
-        padding: 16,
+        padding: 5,
         paddingBottom: 100,
     },
     header: {
@@ -37,7 +37,7 @@ const exploreStyles = StyleSheet.create({
         backgroundColor: CARD_BG,
         borderRadius: 25,
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingVertical: 5,
         marginBottom: 24,
         borderWidth: 1,
         borderColor: '#222',
@@ -90,7 +90,8 @@ const exploreStyles = StyleSheet.create({
     userCard: {
         backgroundColor: CARD_BG,
         borderRadius: 18,
-        padding: 16,
+        paddingVertical: 10,
+        paddingHorizontal: 7,
         marginBottom: 12,
         borderWidth: 1,
         borderColor: '#1A1A1A',
