@@ -1,8 +1,9 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Dimensions, Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Modal, ScrollView, StatusBar, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -14,8 +15,8 @@ import { showInterstitialAd } from '../ads/InterstitialAds';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
-const BG = '#000';
-const GRAY = '#BDBDBD';
+const BG = '#050505';
+const GRAY = '#888';
 
 export default function PublicProfile() {
     const params = useLocalSearchParams();
@@ -247,7 +248,7 @@ export default function PublicProfile() {
                         onPress={handleRemoveFriend}
                         activeOpacity={0.8}
                     >
-                        <AppText style={styles.secondaryBtnText}>Remove Friend</AppText>
+                        <AppText style={styles.secondaryBtnText}>Remove</AppText>
                     </TouchableOpacity>
                 </View>
             );
@@ -286,155 +287,153 @@ export default function PublicProfile() {
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor="#050505" />
+            <ScrollView contentContainerStyle={styles.scroll}>
+                {/* Header */}
+                <View style={styles.headerRow}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                    </TouchableOpacity>
+                    <AppText style={styles.headerTitle}>Profile</AppText>
+                    <View style={{ width: 40 }} />
+                </View>
 
-            <View style={styles.container}>
-                <ScrollView contentContainerStyle={styles.scroll}>
-                    {/* Header */}
-                    <View style={styles.headerRow}>
-                        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-                            <Ionicons name="arrow-back" size={24} color="#fff" />
-                        </TouchableOpacity>
-                        <AppText style={styles.headerTitle}>Profile</AppText>
-                        <View style={{ width: 40 }} />
-                    </View>
-
-                    {/* User Card */}
-                    <View style={styles.card}>
-                        <View style={styles.avatarContainer}>
-                            <View style={styles.avatarRing}>
-                                <ProfilePic user={user} size={80} />
-                            </View>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <AppText style={styles.name}>{user.name}</AppText>
-                            {user.badge ? <AppText style={{ fontSize: 18 }}>{user.badge}</AppText> : null}
-                        </View>
-                        <AppText style={styles.username}>@{user.username}</AppText>
-                        <AppText style={styles.bio}>{user.bio}</AppText>
-
-                        {/* Friend Actions */}
-                        {renderFriendActions()}
-                    </View>
-
-                    {/* Stats Section */}
-                    <View style={styles.statsRow}>
-                        <View style={styles.statBox}>
-                            <AppText style={styles.statNumber}>{profileStats?.totalWakeups || recentStreaks?.length || 0}</AppText>
-                            <AppText style={styles.statLabel}>Wakeups</AppText>
-                        </View>
-                        <View style={styles.statBox}>
-                            <AppText style={styles.statNumber}>{user.streak}</AppText>
-                            <AppText style={styles.statLabel}>Streak</AppText>
-                        </View>
-                        <View style={styles.statBox}>
-                            <AppText style={styles.statNumber}>{user.maxStreak}</AppText>
-                            <AppText style={styles.statLabel}>Best</AppText>
+                {/* User Card */}
+                <View style={styles.card}>
+                    <View style={styles.avatarContainer}>
+                        <View style={styles.avatarRing}>
+                            <ProfilePic user={user} size={88} />
                         </View>
                     </View>
-
-                    {/* Wake History */}
-                    <View style={styles.sectionHeaderRow}>
-                        <AppText style={styles.sectionTitle}>Wake History</AppText>
-                        <TouchableOpacity activeOpacity={0.8}>
-                            <AppText style={styles.viewAllText}>Last 90 days</AppText>
-                        </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <AppText style={styles.name}>{user.name}</AppText>
+                        {user.badge ? <AppText style={{ fontSize: 18 }}>{user.badge}</AppText> : null}
                     </View>
+                    <AppText style={styles.username}>@{user.username}</AppText>
+                    <AppText style={styles.bio}>{user.bio}</AppText>
 
-                    <View style={styles.historySubHeader}>
-                        <AppText style={styles.monthText}>
-                            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </AppText>
-                        <View style={styles.legend}>
-                            <AppText style={styles.legendText}>Less</AppText>
-                            <View style={styles.legendSquare1} />
-                            <View style={styles.legendSquare2} />
-                            <View style={styles.legendSquare3} />
-                            <View style={styles.legendSquare4} />
-                            <AppText style={styles.legendText}>More</AppText>
-                        </View>
+                    {/* Friend Actions */}
+                    {renderFriendActions()}
+                </View>
+
+                {/* Stats Section */}
+                <View style={styles.statsRow}>
+                    <View style={styles.statBox}>
+                        <AppText style={styles.statNumber}>{profileStats?.totalWakeups || recentStreaks?.length || 0}</AppText>
+                        <AppText style={styles.statLabel}>Wakeups</AppText>
                     </View>
-
-                    <View style={styles.gridContainer}>
-                        {gridSquares.map((sq) => (
-                            <View
-                                key={sq.id}
-                                style={[
-                                    styles.gridSquare,
-                                    sq.intensity === 1 && styles.gridSquareLight,
-                                    sq.intensity === 2 && styles.gridSquareMedium,
-                                    sq.intensity === 3 && styles.gridSquareHigh,
-                                    sq.intensity === 4 && styles.gridSquareFilled
-                                ]}
-                            />
-                        ))}
+                    <View style={styles.statBox}>
+                        <AppText style={styles.statNumber}>{user.streak}</AppText>
+                        <AppText style={styles.statLabel}>Streak</AppText>
                     </View>
-
-                    {/* Achievements */}
-                    <View style={styles.sectionHeaderRow}>
-                        <AppText style={styles.sectionTitle}>Achievements</AppText>
-                        <AppText style={styles.achCount}>
-                            {achievementCount ? `${achievementCount.earned}/${achievementCount.total}` : '0/0'} Unlocked
-                        </AppText>
+                    <View style={styles.statBox}>
+                        <AppText style={styles.statNumber}>{user.maxStreak}</AppText>
+                        <AppText style={styles.statLabel}>Best</AppText>
                     </View>
+                </View>
 
-                    <View style={styles.achRow}>
-                        {achievementsWithStatus ? (
-                            <>
-                                {achievementsWithStatus.slice(0, 3).map((achievement) => (
-                                    <View key={achievement.type} style={styles.achItem}>
-                                        <View style={[styles.achCircle, achievement.earned && styles.achievedRing]}>
-                                            <Ionicons
-                                                name={achievement.earned ? achievement.icon : 'lock-closed'}
-                                                size={22}
-                                                color={achievement.earned ? NEON : GRAY}
-                                            />
-                                        </View>
-                                        <AppText style={styles.achLabel} numberOfLines={2}>
-                                            {achievement.earned ? achievement.name : 'Locked'}
-                                        </AppText>
+                {/* Wake History */}
+                <View style={styles.sectionHeaderRow}>
+                    <AppText style={styles.sectionTitle}>Wake History</AppText>
+                    <TouchableOpacity activeOpacity={0.8}>
+                        <AppText style={styles.viewAllText}>Last 90 days</AppText>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.historySubHeader}>
+                    <AppText style={styles.monthText}>
+                        {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </AppText>
+                    <View style={styles.legend}>
+                        <AppText style={styles.legendText}>Less</AppText>
+                        <View style={[styles.legendSquare, { backgroundColor: '#1A1A1A' }]} />
+                        <View style={[styles.legendSquare, { backgroundColor: '#2d4a2d' }]} />
+                        <View style={[styles.legendSquare, { backgroundColor: '#6a9a3d' }]} />
+                        <View style={[styles.legendSquare, { backgroundColor: NEON }]} />
+                        <AppText style={styles.legendText}>More</AppText>
+                    </View>
+                </View>
+
+                <View style={styles.gridContainer}>
+                    {gridSquares.map((sq) => (
+                        <View
+                            key={sq.id}
+                            style={[
+                                styles.gridSquare,
+                                sq.intensity === 1 && styles.gridSquareLight,
+                                sq.intensity === 2 && styles.gridSquareMedium,
+                                sq.intensity === 3 && styles.gridSquareHigh,
+                                sq.intensity === 4 && styles.gridSquareFilled
+                            ]}
+                        />
+                    ))}
+                </View>
+
+                {/* Achievements */}
+                <View style={styles.sectionHeaderRow}>
+                    <AppText style={styles.sectionTitle}>Achievements</AppText>
+                    <AppText style={styles.achCount}>
+                        {achievementCount ? `${achievementCount.earned}/${achievementCount.total}` : '0/0'} Unlocked
+                    </AppText>
+                </View>
+
+                <View style={styles.achRow}>
+                    {achievementsWithStatus ? (
+                        <>
+                            {achievementsWithStatus.slice(0, 3).map((achievement) => (
+                                <View key={achievement.type} style={styles.achItem}>
+                                    <View style={[styles.achCircle, achievement.earned && styles.achievedRing]}>
+                                        <Ionicons
+                                            name={achievement.earned ? achievement.icon : 'lock-closed'}
+                                            size={24}
+                                            color={achievement.earned ? NEON : GRAY}
+                                        />
                                     </View>
-                                ))}
-                                {/* 4th item - Arrow to open modal */}
-                                <TouchableOpacity
-                                    style={styles.achItem}
-                                    onPress={() => setAchievementsModalVisible(true)}
-                                    activeOpacity={0.7}
-                                >
-                                    <View style={styles.achCircleArrow}>
-                                        <Ionicons name="chevron-forward" size={22} color={NEON} />
-                                    </View>
-                                    <AppText style={styles.achLabelMore}>See All</AppText>
-                                </TouchableOpacity>
-                            </>
-                        ) : (
-                            // Default placeholder achievements while loading
-                            <>
-                                {[
-                                    { key: '7day', label: '7 Day Streak', icon: 'flame' },
-                                    { key: 'early', label: 'Early Bird', icon: 'sunny' },
-                                    { key: 'help5', label: 'First Buddy', icon: 'people' },
-                                ].map((a) => (
-                                    <View key={a.key} style={styles.achItem}>
-                                        <View style={styles.achCircle}>
-                                            <Ionicons name={a.icon} size={22} color={GRAY} />
-                                        </View>
-                                        <AppText style={styles.achLabel}>{a.label}</AppText>
-                                    </View>
-                                ))}
-                                {/* 4th item - Arrow placeholder */}
-                                <View style={styles.achItem}>
-                                    <View style={styles.achCircleArrow}>
-                                        <Ionicons name="chevron-forward" size={22} color={NEON} />
-                                    </View>
-                                    <AppText style={styles.achLabelMore}>See All</AppText>
+                                    <AppText style={styles.achLabel} numberOfLines={2}>
+                                        {achievement.earned ? achievement.name : 'Locked'}
+                                    </AppText>
                                 </View>
-                            </>
-                        )}
-                    </View>
+                            ))}
+                            {/* 4th item - Arrow to open modal */}
+                            <TouchableOpacity
+                                style={styles.achItem}
+                                onPress={() => setAchievementsModalVisible(true)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={styles.achCircleArrow}>
+                                    <Ionicons name="chevron-forward" size={24} color={NEON} />
+                                </View>
+                                <AppText style={styles.achLabelMore}>See All</AppText>
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        // Default placeholder achievements while loading
+                        <>
+                            {[
+                                { key: '7day', label: '7 Day Streak', icon: 'flame' },
+                                { key: 'early', label: 'Early Bird', icon: 'sunny' },
+                                { key: 'help5', label: 'First Buddy', icon: 'people' },
+                            ].map((a) => (
+                                <View key={a.key} style={styles.achItem}>
+                                    <View style={styles.achCircle}>
+                                        <Ionicons name={a.icon} size={24} color={GRAY} />
+                                    </View>
+                                    <AppText style={styles.achLabel}>{a.label}</AppText>
+                                </View>
+                            ))}
+                            {/* 4th item - Arrow placeholder */}
+                            <View style={styles.achItem}>
+                                <View style={styles.achCircleArrow}>
+                                    <Ionicons name="chevron-forward" size={24} color={NEON} />
+                                </View>
+                                <AppText style={styles.achLabelMore}>See All</AppText>
+                            </View>
+                        </>
+                    )}
+                </View>
 
-                    <View style={{ height: 40 }} />
-                </ScrollView>
-            </View>
+                <View style={{ height: 40 }} />
+            </ScrollView>
 
             {/* Achievements Modal */}
             <Modal

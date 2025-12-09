@@ -1,8 +1,9 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -14,10 +15,10 @@ import BannerAds from '../ads/BannerAds';
 
 const { width } = Dimensions.get('window');
 const NEON = '#C9E265';
-const BG = '#000';
-const GRAY = '#BDBDBD';
+const BG = '#050505';
+const GRAY = '#888';
 const HEATMAP_COLORS = {
-  base: '#1a1a1a',
+  base: '#1A1A1A',
   light: '#1a2a1a',
   medium: '#2d4a2d',
   high: '#6a9a3d',
@@ -178,307 +179,306 @@ export default function Profile() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scroll}>
-          {/* Header */}
-          <View style={styles.headerRow}>
-            <AppText style={styles.headerTitle}>Profile</AppText>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                activeOpacity={0.7}
-                onPress={() => setModalVisible(true)}
-              >
-                <Ionicons name="pencil" size={24} color={NEON} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.iconButton}
-                activeOpacity={0.7}
-                onPress={() => router.push('/screens/PermissionsGuide')}
-              >
-                <Ionicons name="settings-outline" size={24} color={GRAY} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* User Card */}
-          <View style={styles.card}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatarRing}>
-                <ProfilePic user={user} size={100} />
-              </View>
-              <TouchableOpacity
-                style={styles.badge}
-                activeOpacity={0.7}
-                onPress={openAvatarPicker}
-              >
-                <Ionicons name="camera" size={14} color="#000" />
-              </TouchableOpacity>
-            </View>
-            <AppText style={styles.name}>{user?.name || 'User'}</AppText>
-            <AppText style={styles.username}>{generateUsername()}</AppText>
-            <AppText style={styles.bio} numberOfLines={3}>{user?.bio || 'Welcome to WakeUpBuddy! Start your journey to better mornings.'}</AppText>
-          </View>
-
-          {/* Stats Section */}
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <AppText style={styles.statNumber}>{profileStats?.totalWakeups || recentStreaks?.length || 0}</AppText>
-              <AppText style={styles.statLabel}>Wakeups</AppText>
-            </View>
-            <View style={styles.statBox}>
-              <AppText style={styles.statNumber}>{user?.streak || 0}</AppText>
-              <AppText style={styles.statLabel}>Streak</AppText>
-            </View>
-            <View style={styles.statBox}>
-              <AppText style={styles.statNumber}>{user?.maxStreak || 0}</AppText>
-              <AppText style={styles.statLabel}>Best</AppText>
-            </View>
-          </View>
-
-          {/* My Friends Button */}
-          <TouchableOpacity
-            style={styles.friendsButton}
-            activeOpacity={0.8}
-            onPress={() => setFriendsModalVisible(true)}
-          >
-            <Ionicons name="people" size={20} color="#000" style={{ marginRight: 8 }} />
-            <AppText style={styles.friendsButtonText}>My Buddies</AppText>
-            <View style={styles.friendsCountBadge}>
-              <AppText style={styles.friendsCountText}>{friendCount || 0}</AppText>
-            </View>
-          </TouchableOpacity>
-
-          {/* Wake History */}
-          <View style={styles.sectionHeaderRow}>
-            <AppText style={styles.sectionTitle}>Wake History</AppText>
-            <TouchableOpacity activeOpacity={0.8}>
-              <AppText style={styles.viewAllText}>Last 90 days</AppText>
+      <StatusBar barStyle="light-content" backgroundColor="#050505" />
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Header */}
+        <View style={styles.headerRow}>
+          <AppText style={styles.headerTitle}>Profile</AppText>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              activeOpacity={0.7}
+              onPress={() => setModalVisible(true)}
+            >
+              <Ionicons name="pencil" size={20} color={NEON} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              activeOpacity={0.7}
+              onPress={() => router.push('/screens/PermissionsGuide')}
+            >
+              <Ionicons name="settings-outline" size={20} color={GRAY} />
             </TouchableOpacity>
           </View>
+        </View>
 
-          <View style={styles.historySubHeader}>
-            <AppText style={styles.monthText}>
-              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </AppText>
-            <View style={styles.legend}>
-              <AppText style={styles.legendText}>Less</AppText>
-              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.base }]} />
-              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.light }]} />
-              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.medium }]} />
-              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.high }]} />
-              <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.neon }]} />
-              <AppText style={styles.legendText}>More</AppText>
+        {/* User Card */}
+        <View style={styles.card}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarRing}>
+              <ProfilePic user={user} size={88} />
             </View>
+            <TouchableOpacity
+              style={styles.badge}
+              activeOpacity={0.7}
+              onPress={openAvatarPicker}
+            >
+              <Ionicons name="camera" size={14} color="#000" />
+            </TouchableOpacity>
           </View>
+          <AppText style={styles.name}>{user?.name || 'User'}</AppText>
+          <AppText style={styles.username}>{generateUsername()}</AppText>
+          <AppText style={styles.bio} numberOfLines={3}>{user?.bio || 'Welcome to WakeUpBuddy! Start your journey to better mornings.'}</AppText>
+        </View>
 
-          <View style={styles.gridContainer}>
-            {(() => {
-              // Generate last 90 days (3 months)
-              const days = [];
-              for (let i = 89; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toISOString().split('T')[0];
-                days.push(dateStr);
-              }
-
-              // Create a map for quick lookup
-              const streakMap = new Map();
-              recentStreaks?.forEach(s => streakMap.set(s.date, s.count));
-
-              // Map to grid boxes with colors (0=none, 1-2 light, 3-4 medium, 5-6 high, 7+ neon)
-              return days.map((dateStr, index) => {
-                const count = streakMap.get(dateStr) || 0;
-
-                const boxStyles = [styles.gridSquare, { backgroundColor: HEATMAP_COLORS.base }];
-                if (count >= 7) boxStyles.push({ backgroundColor: HEATMAP_COLORS.neon });
-                else if (count >= 5) boxStyles.push({ backgroundColor: HEATMAP_COLORS.high });
-                else if (count >= 3) boxStyles.push({ backgroundColor: HEATMAP_COLORS.medium });
-                else if (count >= 1) boxStyles.push({ backgroundColor: HEATMAP_COLORS.light });
-
-                return <View key={index} style={boxStyles} />;
-              });
-            })()}
+        {/* Stats Section */}
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <AppText style={styles.statNumber}>{profileStats?.totalWakeups || recentStreaks?.length || 0}</AppText>
+            <AppText style={styles.statLabel}>Wakeups</AppText>
           </View>
-
-          {/* Bar Charts - Stacked Vertically */}
-          {/* Weekly Bar Chart */}
-          <View style={styles.fullWidthChartCard}>
-            <View style={styles.chartCardHeader}>
-              <AppText style={styles.chartCardTitle}>This Week</AppText>
-              <AppText style={styles.chartCardTotal}>
-                {weeklyStats?.reduce((sum, d) => sum + d.count, 0) || 0} wakeups
-              </AppText>
-            </View>
-            <View style={styles.fullBarContainer}>
-              {weeklyStats?.map((day, index) => {
-                const maxCount = Math.max(...(weeklyStats?.map(d => d.count) || [1]), 1);
-                const barHeight = day.count > 0 ? Math.max((day.count / maxCount) * 60, 8) : 4;
-                const isToday = index === 6;
-
-                return (
-                  <View key={day.date} style={styles.fullBarColumn}>
-                    <AppText style={styles.barValueLabel}>{day.count > 0 ? day.count : ''}</AppText>
-                    <View style={styles.fullBarTrack}>
-                      <View
-                        style={[
-                          styles.fullBar,
-                          { height: barHeight },
-                          day.count > 0 && styles.fullBarFilled,
-                          isToday && day.count > 0 && styles.fullBarToday,
-                        ]}
-                      />
-                    </View>
-                    <AppText style={[styles.fullBarDay, isToday && styles.fullBarDayToday]}>
-                      {day.dayName}
-                    </AppText>
-                  </View>
-                );
-              })}
-            </View>
+          <View style={styles.statBox}>
+            <AppText style={styles.statNumber}>{user?.streak || 0}</AppText>
+            <AppText style={styles.statLabel}>Streak</AppText>
           </View>
-
-          {/* Monthly Bar Chart */}
-          <View style={styles.fullWidthChartCard}>
-            <View style={styles.chartCardHeader}>
-              <AppText style={styles.chartCardTitle}>Last 6 Months</AppText>
-              <AppText style={styles.chartCardTotal}>
-                {monthlyStats?.reduce((sum, m) => sum + m.wakeups, 0) || 0} wakeups
-              </AppText>
-            </View>
-            <View style={styles.fullBarContainer}>
-              {monthlyStats?.map((month, index) => {
-                const maxWakeups = Math.max(...(monthlyStats?.map(m => m.wakeups) || [1]), 1);
-                const barHeight = month.wakeups > 0 ? Math.max((month.wakeups / maxWakeups) * 60, 8) : 4;
-                const isCurrentMonth = index === monthlyStats.length - 1;
-
-                return (
-                  <View key={month.month} style={styles.fullBarColumn}>
-                    <AppText style={styles.barValueLabel}>{month.wakeups > 0 ? month.wakeups : ''}</AppText>
-                    <View style={styles.fullBarTrack}>
-                      <View
-                        style={[
-                          styles.fullBar,
-                          { height: barHeight },
-                          month.wakeups > 0 && styles.fullBarFilled,
-                          isCurrentMonth && month.wakeups > 0 && styles.fullBarToday,
-                        ]}
-                      />
-                    </View>
-                    <AppText style={[styles.fullBarDay, isCurrentMonth && styles.fullBarDayToday]}>
-                      {month.monthName}
-                    </AppText>
-                  </View>
-                );
-              })}
-            </View>
+          <View style={styles.statBox}>
+            <AppText style={styles.statNumber}>{user?.maxStreak || 0}</AppText>
+            <AppText style={styles.statLabel}>Best</AppText>
           </View>
+        </View>
 
-          {/* Achievements */}
-          <View style={styles.sectionHeaderRow}>
-            <AppText style={styles.sectionTitle}>Achievements</AppText>
-            <AppText style={styles.achCount}>
-              {achievementCount ? `${achievementCount.earned}/${achievementCount.total}` : '0/0'} Unlocked
+        {/* My Friends Button */}
+        <TouchableOpacity
+          style={styles.friendsButton}
+          activeOpacity={0.8}
+          onPress={() => setFriendsModalVisible(true)}
+        >
+          <Ionicons name="people" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <AppText style={styles.friendsButtonText}>My Buddies</AppText>
+          <View style={styles.friendsCountBadge}>
+            <AppText style={styles.friendsCountText}>{friendCount || 0}</AppText>
+          </View>
+        </TouchableOpacity>
+
+        {/* Wake History */}
+        <View style={styles.sectionHeaderRow}>
+          <AppText style={styles.sectionTitle}>Wake History</AppText>
+          <TouchableOpacity activeOpacity={0.8}>
+            <AppText style={styles.viewAllText}>Last 90 days</AppText>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.historySubHeader}>
+          <AppText style={styles.monthText}>
+            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </AppText>
+          <View style={styles.legend}>
+            <AppText style={styles.legendText}>Less</AppText>
+            <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.base }]} />
+            <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.light }]} />
+            <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.medium }]} />
+            <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.high }]} />
+            <View style={[styles.legendSquare, { backgroundColor: HEATMAP_COLORS.neon }]} />
+            <AppText style={styles.legendText}>More</AppText>
+          </View>
+        </View>
+
+        <View style={styles.gridContainer}>
+          {(() => {
+            // Generate last 90 days (3 months)
+            const days = [];
+            for (let i = 89; i >= 0; i--) {
+              const date = new Date();
+              date.setDate(date.getDate() - i);
+              const dateStr = date.toISOString().split('T')[0];
+              days.push(dateStr);
+            }
+
+            // Create a map for quick lookup
+            const streakMap = new Map();
+            recentStreaks?.forEach(s => streakMap.set(s.date, s.count));
+
+            // Map to grid boxes with colors (0=none, 1-2 light, 3-4 medium, 5-6 high, 7+ neon)
+            return days.map((dateStr, index) => {
+              const count = streakMap.get(dateStr) || 0;
+
+              const boxStyles = [styles.gridSquare, { backgroundColor: HEATMAP_COLORS.base }];
+              if (count >= 7) boxStyles.push({ backgroundColor: HEATMAP_COLORS.neon });
+              else if (count >= 5) boxStyles.push({ backgroundColor: HEATMAP_COLORS.high });
+              else if (count >= 3) boxStyles.push({ backgroundColor: HEATMAP_COLORS.medium });
+              else if (count >= 1) boxStyles.push({ backgroundColor: HEATMAP_COLORS.light });
+
+              return <View key={index} style={boxStyles} />;
+            });
+          })()}
+        </View>
+
+        {/* Bar Charts - Stacked Vertically */}
+        {/* Weekly Bar Chart */}
+        <View style={styles.fullWidthChartCard}>
+          <View style={styles.chartCardHeader}>
+            <AppText style={styles.chartCardTitle}>This Week</AppText>
+            <AppText style={styles.chartCardTotal}>
+              {weeklyStats?.reduce((sum, d) => sum + d.count, 0) || 0} wakeups
             </AppText>
           </View>
+          <View style={styles.fullBarContainer}>
+            {weeklyStats?.map((day, index) => {
+              const maxCount = Math.max(...(weeklyStats?.map(d => d.count) || [1]), 1);
+              const barHeight = day.count > 0 ? Math.max((day.count / maxCount) * 80, 8) : 4;
+              const isToday = index === 6;
 
-          <View style={styles.achRow}>
-            {achievementsWithStatus ? (
-              <>
-                {achievementsWithStatus.slice(0, 3).map((achievement, idx) => (
-                  <View key={achievement.type} style={styles.achItem}>
-                    <View style={[styles.achCircle, achievement.earned && styles.achievedRing]}>
-                      <Ionicons
-                        name={achievement.earned ? achievement.icon : 'lock-closed'}
-                        size={22}
-                        color={achievement.earned ? NEON : GRAY}
-                      />
-                    </View>
-                    <AppText style={styles.achLabel} numberOfLines={2}>
-                      {achievement.earned ? achievement.name : 'Locked'}
-                    </AppText>
+              return (
+                <View key={day.date} style={styles.fullBarColumn}>
+                  <AppText style={styles.barValueLabel}>{day.count > 0 ? day.count : ''}</AppText>
+                  <View style={styles.fullBarTrack}>
+                    <View
+                      style={[
+                        styles.fullBar,
+                        { height: barHeight },
+                        day.count > 0 && styles.fullBarFilled,
+                        isToday && day.count > 0 && styles.fullBarToday,
+                      ]}
+                    />
                   </View>
-                ))}
-                {/* 4th item - Arrow to open modal */}
-                <TouchableOpacity
-                  style={styles.achItem}
-                  onPress={() => setAchievementsModalVisible(true)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.achCircleArrow}>
-                    <Ionicons name="chevron-forward" size={22} color={NEON} />
-                  </View>
-                  <AppText style={styles.achLabelMore}>See All</AppText>
-                </TouchableOpacity>
-              </>
-            ) : (
-              // Default placeholder achievements while loading
-              <>
-                {[
-                  { key: '7day', label: '7 Day Streak', icon: 'flame' },
-                  { key: 'early', label: 'Early Bird', icon: 'sunny' },
-                  { key: 'help5', label: 'First Buddy', icon: 'people' },
-                ].map((a, idx) => (
-                  <View key={a.key} style={styles.achItem}>
-                    <View style={styles.achCircle}>
-                      <Ionicons name={a.icon} size={22} color={GRAY} />
-                    </View>
-                    <AppText style={styles.achLabel}>{a.label}</AppText>
-                  </View>
-                ))}
-                {/* 5th item - Arrow placeholder */}
-                <View style={styles.achItem}>
-                  <View style={styles.achCircleArrow}>
-                    <Ionicons name="chevron-forward" size={22} color={NEON} />
-                  </View>
-                  <AppText style={styles.achLabelMore}>See All</AppText>
+                  <AppText style={[styles.fullBarDay, isToday && styles.fullBarDayToday]}>
+                    {day.dayName}
+                  </AppText>
                 </View>
-              </>
-            )}
+              );
+            })}
           </View>
+        </View>
 
-          {/* Settings */}
-          <AppText style={styles.settingsHeader}>Settings</AppText>
-          <View style={styles.settingsCard}>
-            {[
-              { key: 'account', label: 'Account Details', icon: 'person-outline', route: '/screens/account-details' },
-              { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline', route: '/screens/PermissionsGuide' },
-              { key: 'notifications', label: 'Notifications', icon: 'notifications-outline', route: '/screens/notifications' },
-            ].map((item) => (
+        {/* Monthly Bar Chart */}
+        <View style={styles.fullWidthChartCard}>
+          <View style={styles.chartCardHeader}>
+            <AppText style={styles.chartCardTitle}>Last 6 Months</AppText>
+            <AppText style={styles.chartCardTotal}>
+              {monthlyStats?.reduce((sum, m) => sum + m.wakeups, 0) || 0} wakeups
+            </AppText>
+          </View>
+          <View style={styles.fullBarContainer}>
+            {monthlyStats?.map((month, index) => {
+              const maxWakeups = Math.max(...(monthlyStats?.map(m => m.wakeups) || [1]), 1);
+              const barHeight = month.wakeups > 0 ? Math.max((month.wakeups / maxWakeups) * 80, 8) : 4;
+              const isCurrentMonth = index === monthlyStats.length - 1;
+
+              return (
+                <View key={month.month} style={styles.fullBarColumn}>
+                  <AppText style={styles.barValueLabel}>{month.wakeups > 0 ? month.wakeups : ''}</AppText>
+                  <View style={styles.fullBarTrack}>
+                    <View
+                      style={[
+                        styles.fullBar,
+                        { height: barHeight },
+                        month.wakeups > 0 && styles.fullBarFilled,
+                        isCurrentMonth && month.wakeups > 0 && styles.fullBarToday,
+                      ]}
+                    />
+                  </View>
+                  <AppText style={[styles.fullBarDay, isCurrentMonth && styles.fullBarDayToday]}>
+                    {month.monthName}
+                  </AppText>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Achievements */}
+        <View style={styles.sectionHeaderRow}>
+          <AppText style={styles.sectionTitle}>Achievements</AppText>
+          <AppText style={styles.achCount}>
+            {achievementCount ? `${achievementCount.earned}/${achievementCount.total}` : '0/0'} Unlocked
+          </AppText>
+        </View>
+
+        <View style={styles.achRow}>
+          {achievementsWithStatus ? (
+            <>
+              {achievementsWithStatus.slice(0, 3).map((achievement, idx) => (
+                <View key={achievement.type} style={styles.achItem}>
+                  <View style={[styles.achCircle, achievement.earned && styles.achievedRing]}>
+                    <Ionicons
+                      name={achievement.earned ? achievement.icon : 'lock-closed'}
+                      size={24}
+                      color={achievement.earned ? NEON : GRAY}
+                    />
+                  </View>
+                  <AppText style={styles.achLabel} numberOfLines={2}>
+                    {achievement.earned ? achievement.name : 'Locked'}
+                  </AppText>
+                </View>
+              ))}
+              {/* 4th item - Arrow to open modal */}
               <TouchableOpacity
-                key={item.key}
-                style={styles.settingRow}
+                style={styles.achItem}
+                onPress={() => setAchievementsModalVisible(true)}
                 activeOpacity={0.7}
-                onPress={() => item.route && router.push(item.route)}
               >
-                <View style={styles.settingLeft}>
-                  <Ionicons name={item.icon} size={20} color={GRAY} />
-                  <AppText style={styles.settingLabel}>{item.label}</AppText>
+                <View style={styles.achCircleArrow}>
+                  <Ionicons name="chevron-forward" size={24} color={NEON} />
                 </View>
-                <Ionicons name="chevron-forward" size={20} color={GRAY} />
+                <AppText style={styles.achLabelMore}>See All</AppText>
               </TouchableOpacity>
-            ))}
+            </>
+          ) : (
+            // Default placeholder achievements while loading
+            <>
+              {[
+                { key: '7day', label: '7 Day Streak', icon: 'flame' },
+                { key: 'early', label: 'Early Bird', icon: 'sunny' },
+                { key: 'help5', label: 'First Buddy', icon: 'people' },
+              ].map((a, idx) => (
+                <View key={a.key} style={styles.achItem}>
+                  <View style={styles.achCircle}>
+                    <Ionicons name={a.icon} size={24} color={GRAY} />
+                  </View>
+                  <AppText style={styles.achLabel}>{a.label}</AppText>
+                </View>
+              ))}
+              {/* 5th item - Arrow placeholder */}
+              <View style={styles.achItem}>
+                <View style={styles.achCircleArrow}>
+                  <Ionicons name="chevron-forward" size={24} color={NEON} />
+                </View>
+                <AppText style={styles.achLabelMore}>See All</AppText>
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* Settings */}
+        <AppText style={styles.settingsHeader}>Settings</AppText>
+        <View style={styles.settingsCard}>
+          {[
+            { key: 'account', label: 'Account Details', icon: 'person-outline', route: '/screens/account-details' },
+            { key: 'privacy', label: 'Privacy & Data', icon: 'shield-checkmark-outline', route: '/screens/PermissionsGuide' },
+            { key: 'notifications', label: 'Notifications', icon: 'notifications-outline', route: '/screens/notifications' },
+          ].map((item) => (
+            <TouchableOpacity
+              key={item.key}
+              style={styles.settingRow}
+              activeOpacity={0.7}
+              onPress={() => item.route && router.push(item.route)}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name={item.icon} size={20} color={GRAY} />
+                <AppText style={styles.settingLabel}>{item.label}</AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={GRAY} />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7} onPress={() => router.push('/screens/premium')}>
+          <View style={styles.settingLeft}>
+            <Ionicons name="star" size={20} color={NEON} />
+            <AppText style={styles.premiumText}>Manage Premium</AppText>
           </View>
+          <Ionicons name="chevron-forward" size={20} color={GRAY} />
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.premiumRow} activeOpacity={0.7} onPress={() => router.push('/screens/premium')}>
-            <View style={styles.settingLeft}>
-              <Ionicons name="star" size={20} color={NEON} />
-              <AppText style={styles.premiumText}>Manage Premium</AppText>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={GRAY} />
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <AppText style={styles.logoutText}>Log Out</AppText>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#000" style={{ marginRight: 8 }} />
-            <AppText style={styles.logoutText}>Log Out</AppText>
-          </TouchableOpacity>
+        <AppText style={styles.versionText}>WakeUpBuddy v1.0.2</AppText>
 
-          <AppText style={styles.versionText}>WakeUpBuddy v1.0.2</AppText>
-
-          <View style={{ height: 80 }} />
-        </ScrollView>
-      </View>
+        <View style={{ height: 80 }} />
+      </ScrollView>
 
       {/* Edit Profile Modal */}
       <Modal
@@ -666,7 +666,7 @@ export default function Profile() {
               onPress={() => setAvatarOptions(generateRandomAvatarCodes())}
               disabled={isSavingAvatar}
             >
-              <Ionicons name="refresh" size={20} color="#000" style={{ marginRight: 8 }} />
+              <Ionicons name="refresh" size={20} color="#fff" style={{ marginRight: 8 }} />
               <AppText style={styles.refreshAvatarsText}>Show More Options</AppText>
             </TouchableOpacity>
 
