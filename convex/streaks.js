@@ -330,31 +330,23 @@ export const getRecentStreaks = query({
 
         const numberOfDays = args.days || 10;
 
-        // Calculate date range (last X days from today)
-        const today = new Date();
-        const startDate = new Date(today);
-        startDate.setDate(today.getDate() - (numberOfDays - 1));
-
-        // Format dates as YYYY-MM-DD
-        const endDateStr = today.toISOString().split('T')[0];
-        const startDateStr = startDate.toISOString().split('T')[0];
-
-        // Get all streak entries for this user in date range
+        // Get all streak entries for this user
         const streaks = await ctx.db
             .query("streaks")
-            .withIndex("by_user_date", (q) => q.eq("user_id", user._id))
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
             .collect();
 
-        // Filter by date range and map to return format
-        const filteredStreaks = streaks
-            .filter(s => s.date >= startDateStr && s.date <= endDateStr)
+        // Sort by date descending and take the last N days worth of data
+        const sortedStreaks = streaks
+            .sort((a, b) => b.date.localeCompare(a.date)) // Sort newest first
+            .slice(0, numberOfDays) // Take last N entries
             .map(s => ({
                 date: s.date,
                 count: s.count
             }))
-            .sort((a, b) => a.date.localeCompare(b.date)); // Sort by date ascending
+            .sort((a, b) => a.date.localeCompare(b.date)); // Sort oldest first for display
 
-        return filteredStreaks;
+        return sortedStreaks;
     }
 });
 

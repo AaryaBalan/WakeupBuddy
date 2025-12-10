@@ -224,7 +224,6 @@ const homeStyles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
     },
     alarmDate: {
         color: GRAY,
@@ -245,7 +244,6 @@ const homeStyles = StyleSheet.create({
     timeContainer: {
         flexDirection: 'row',
         alignItems: 'baseline',
-        marginBottom: 16,
     },
     timeText: {
         fontSize: 48,
@@ -263,7 +261,9 @@ const homeStyles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#1A1A1A',
+        backgroundColor: 'rgba(201, 226, 101, 0.08)',
+        borderColor: 'rgba(201, 226, 101, 0.15)',
+        borderWidth: 1,
         marginHorizontal: -18,
         marginBottom: -18,
         marginTop: 10,
