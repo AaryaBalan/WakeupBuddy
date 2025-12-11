@@ -835,6 +835,173 @@ const profileStyles = StyleSheet.create({
         marginTop: 20,
         fontFamily: 'Montserrat_600SemiBold',
     },
+
+    // Report Modal Styles
+    reportModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'flex-end',
+    },
+    reportModalContent: {
+        backgroundColor: '#111',
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        paddingHorizontal: 20,
+        paddingBottom: 40,
+        maxHeight: '85%',
+    },
+    reportModalHeader: {
+        alignItems: 'center',
+        paddingVertical: 12,
+    },
+    reportModalDragHandle: {
+        width: 40,
+        height: 4,
+        backgroundColor: '#333',
+        borderRadius: 2,
+    },
+    reportTitleSection: {
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    reportIconWrapper: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: 'rgba(255, 107, 107, 0.15)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    reportTitle: {
+        fontSize: 22,
+        fontFamily: 'Montserrat_700Bold',
+        color: '#fff',
+        marginBottom: 8,
+    },
+    reportSubtitle: {
+        fontSize: 14,
+        fontFamily: 'Montserrat_500Medium',
+        color: GRAY,
+        textAlign: 'center',
+    },
+    reportOptionsContainer: {
+        gap: 10,
+        marginBottom: 24,
+    },
+    reportOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1a1a1a',
+        borderRadius: 14,
+        padding: 14,
+        borderWidth: 1.5,
+        borderColor: '#222',
+    },
+    reportOptionSelected: {
+        borderColor: NEON,
+        backgroundColor: 'rgba(201, 226, 101, 0.08)',
+    },
+    reportOptionIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#222',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    reportOptionIconSelected: {
+        backgroundColor: NEON,
+    },
+    reportOptionLabel: {
+        flex: 1,
+        fontSize: 15,
+        fontFamily: 'Montserrat_600SemiBold',
+        color: '#ccc',
+    },
+    reportOptionLabelSelected: {
+        color: '#fff',
+    },
+    reportRadio: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: '#444',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    reportRadioSelected: {
+        borderColor: NEON,
+    },
+    reportRadioInner: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: NEON,
+    },
+    reportActions: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    reportCancelBtn: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 14,
+        backgroundColor: NEON,
+        alignItems: 'center',
+    },
+    reportCancelText: {
+        fontSize: 15,
+        fontFamily: 'Montserrat_600SemiBold',
+        color: '#000',
+    },
+    reportSubmitBtn: {
+        flex: 1.5,
+        paddingVertical: 14,
+        borderRadius: 14,
+        backgroundColor: '#FF6B6B',
+        alignItems: 'center',
+    },
+    reportSubmitBtnDisabled: {
+        backgroundColor: '#333',
+    },
+    reportSubmitText: {
+        fontSize: 15,
+        fontFamily: 'Montserrat_700Bold',
+        color: '#fff',
+    },
+    reportSubmitTextDisabled: {
+        color: '#666',
+    },
+    reportFooterNote: {
+        fontSize: 12,
+        fontFamily: 'Montserrat_500Medium',
+        color: '#555',
+        textAlign: 'center',
+        marginTop: 16,
+    },
+    reportSuccessContainer: {
+        alignItems: 'center',
+        paddingVertical: 40,
+    },
+    reportSuccessIcon: {
+        marginBottom: 16,
+    },
+    reportSuccessTitle: {
+        fontSize: 20,
+        fontFamily: 'Montserrat_700Bold',
+        color: '#fff',
+        marginBottom: 8,
+    },
+    reportSuccessText: {
+        fontSize: 14,
+        fontFamily: 'Montserrat_500Medium',
+        color: GRAY,
+        textAlign: 'center',
+        paddingHorizontal: 20,
+    },
 });
 
 export default profileStyles;

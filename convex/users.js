@@ -218,3 +218,92 @@ export const updateProfileCode = mutation({
         return await ctx.db.get(args.id);
     },
 });
+
+/**
+ * Report a user
+ */
+export const reportUser = mutation({
+    args: {
+        reporterEmail: v.string(),
+        reportedUserId: v.id("users"),
+        reason: v.string(),
+        description: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        // Get reporter user
+        const reporter = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.reporterEmail))
+            .first();
+
+        if (!reporter) {
+            throw new Error("Reporter not found");
+        }
+
+        // Get reported user
+        const reportedUser = await ctx.db.get(args.reportedUserId);
+        if (!reportedUser) {
+            throw new Error("User to report not found");
+        }
+
+        // Prevent self-reporting
+        if (reporter._id === args.reportedUserId) {
+            throw new Error("Cannot report yourself");
+        }
+
+        // Check if user already reported this person (optional: prevent spam reports)
+        const existingReport = await ctx.db
+            .query("reports")
+            .withIndex("by_reporter", (q) => q.eq("reporterId", reporter._id))
+            .filter((q) => q.eq(q.field("reportedUserId"), args.reportedUserId))
+            .first();
+
+        if (existingReport) {
+            throw new Error("You have already reported this user");
+        }
+
+        // Create the report
+        await ctx.db.insert("reports", {
+            reporterId: reporter._id,
+            reportedUserId: args.reportedUserId,
+            reason: args.reason,
+            description: args.description,
+            createdAt: Date.now(),
+            status: "pending",
+        });
+
+        // Increment report count on user
+        const currentReportCount = reportedUser.reportCount || 0;
+        await ctx.db.patch(args.reportedUserId, {
+            reportCount: currentReportCount + 1,
+        });
+
+        return { success: true, message: "Report submitted successfully" };
+    },
+});
+
+/**
+ * Check if current user has reported another user
+ */
+export const hasReportedUser = query({
+    args: {
+        reporterEmail: v.string(),
+        reportedUserId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+        const reporter = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.reporterEmail))
+            .first();
+
+        if (!reporter) return false;
+
+        const existingReport = await ctx.db
+            .query("reports")
+            .withIndex("by_reporter", (q) => q.eq("reporterId", reporter._id))
+            .filter((q) => q.eq(q.field("reportedUserId"), args.reportedUserId))
+            .first();
+
+        return !!existingReport;
+    },
+});

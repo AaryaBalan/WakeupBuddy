@@ -12,7 +12,20 @@ export default defineSchema({
         streak: v.optional(v.number()),
         maxStreak: v.optional(v.number()),
         profile_code: v.optional(v.string()), // Used for avatar generation, defaults to email
+        reportCount: v.optional(v.number()), // Number of times user has been reported
     }).index('by_email', ['email']),
+
+    reports: defineTable({
+        reporterId: v.id('users'),        // User who is reporting
+        reportedUserId: v.id('users'),    // User being reported
+        reason: v.string(),               // Reason for report
+        description: v.optional(v.string()), // Optional additional details
+        createdAt: v.number(),            // Timestamp
+        status: v.optional(v.string()),   // 'pending', 'reviewed', 'resolved'
+    })
+        .index('by_reporter', ['reporterId'])
+        .index('by_reported', ['reportedUserId'])
+        .index('by_status', ['status']),
 
     alarms: defineTable({
         time: v.string(),

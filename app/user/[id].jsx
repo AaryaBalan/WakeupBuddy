@@ -18,12 +18,24 @@ const NEON = '#C9E265';
 const BG = '#050505';
 const GRAY = '#888';
 
+const REPORT_REASONS = [
+    { id: 'inappropriate', label: 'Inappropriate Content', icon: 'warning' },
+    { id: 'harassment', label: 'Harassment or Bullying', icon: 'sad' },
+    { id: 'spam', label: 'Spam or Scam', icon: 'mail-unread' },
+    { id: 'fake', label: 'Fake Profile', icon: 'person-remove' },
+    { id: 'other', label: 'Other', icon: 'ellipsis-horizontal' },
+];
+
 export default function PublicProfile() {
     const params = useLocalSearchParams();
     const router = useRouter();
     const { user: currentUser } = useUser();
     const [isLoading, setIsLoading] = useState(false);
     const [achievementsModalVisible, setAchievementsModalVisible] = useState(false);
+    const [reportModalVisible, setReportModalVisible] = useState(false);
+    const [selectedReason, setSelectedReason] = useState(null);
+    const [reportSubmitting, setReportSubmitting] = useState(false);
+    const [reportSuccess, setReportSuccess] = useState(false);
 
     // Fetch user data from Convex by ID
     const fetchedUser = useQuery(
@@ -49,6 +61,15 @@ export default function PublicProfile() {
     const acceptFriendRequest = useMutation(api.friends.acceptFriendRequest);
     const rejectFriendRequest = useMutation(api.friends.rejectFriendRequest);
     const removeFriend = useMutation(api.friends.removeFriend);
+    const reportUser = useMutation(api.users.reportUser);
+
+    // Check if already reported
+    const hasReported = useQuery(
+        api.users.hasReportedUser,
+        currentUser?.email && params.id
+            ? { reporterEmail: currentUser.email, reportedUserId: params.id }
+            : 'skip'
+    );
 
     // Get friendship status
     const friendshipStatus = useQuery(
@@ -174,6 +195,37 @@ export default function PublicProfile() {
         }
     };
 
+    const handleReportUser = async () => {
+        if (!currentUser?.email || !params.id || !selectedReason) return;
+        setReportSubmitting(true);
+        try {
+            await reportUser({
+                reporterEmail: currentUser.email,
+                reportedUserId: params.id,
+                reason: selectedReason,
+            });
+            setReportSuccess(true);
+            setTimeout(() => {
+                setReportModalVisible(false);
+                setSelectedReason(null);
+                setReportSuccess(false);
+            }, 1500);
+        } catch (error) {
+            console.error('Failed to report user:', error);
+            alert(error.message || 'Failed to submit report');
+        } finally {
+            setReportSubmitting(false);
+        }
+    };
+
+    const openReportModal = () => {
+        if (hasReported) {
+            alert('You have already reported this user');
+            return;
+        }
+        setReportModalVisible(true);
+    };
+
     const renderFriendActions = () => {
         if (isLoading) {
             return (
@@ -295,7 +347,17 @@ export default function PublicProfile() {
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
                     <AppText style={styles.headerTitle}>Profile</AppText>
-                    <View style={{ width: 40 }} />
+                    <TouchableOpacity
+                        onPress={openReportModal}
+                        style={styles.iconButton}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name="flag-outline"
+                            size={22}
+                            color={hasReported ? '#666' : '#fff'}
+                        />
+                    </TouchableOpacity>
                 </View>
 
                 {/* User Card */}
@@ -509,6 +571,131 @@ export default function PublicProfile() {
                                 </View>
                             )}
                         </ScrollView>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Report Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={reportModalVisible}
+                onRequestClose={() => {
+                    setReportModalVisible(false);
+                    setSelectedReason(null);
+                }}
+            >
+                <View style={styles.reportModalOverlay}>
+                    <View style={styles.reportModalContent}>
+                        {/* Modal Header */}
+                        <View style={styles.reportModalHeader}>
+                            <View style={styles.reportModalDragHandle} />
+                        </View>
+
+                        {reportSuccess ? (
+                            // Success State
+                            <View style={styles.reportSuccessContainer}>
+                                <View style={styles.reportSuccessIcon}>
+                                    <Ionicons name="checkmark-circle" size={60} color={NEON} />
+                                </View>
+                                <AppText style={styles.reportSuccessTitle}>Report Submitted</AppText>
+                                <AppText style={styles.reportSuccessText}>
+                                    Thank you for helping keep our community safe.
+                                </AppText>
+                            </View>
+                        ) : (
+                            <>
+                                {/* Title Section */}
+                                <View style={styles.reportTitleSection}>
+                                    <View style={styles.reportIconWrapper}>
+                                        <Ionicons name="flag" size={24} color="#FF6B6B" />
+                                    </View>
+                                    <AppText style={styles.reportTitle}>Report User</AppText>
+                                    <AppText style={styles.reportSubtitle}>
+                                        Why are you reporting {user.name}?
+                                    </AppText>
+                                </View>
+
+                                {/* Reason Options */}
+                                <View style={styles.reportOptionsContainer}>
+                                    {REPORT_REASONS.map((reason) => (
+                                        <TouchableOpacity
+                                            key={reason.id}
+                                            style={[
+                                                styles.reportOption,
+                                                selectedReason === reason.id && styles.reportOptionSelected
+                                            ]}
+                                            onPress={() => setSelectedReason(reason.id)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <View style={[
+                                                styles.reportOptionIcon,
+                                                selectedReason === reason.id && styles.reportOptionIconSelected
+                                            ]}>
+                                                <Ionicons
+                                                    name={reason.icon}
+                                                    size={20}
+                                                    color={selectedReason === reason.id ? '#000' : '#888'}
+                                                />
+                                            </View>
+                                            <AppText style={[
+                                                styles.reportOptionLabel,
+                                                selectedReason === reason.id && styles.reportOptionLabelSelected
+                                            ]}>
+                                                {reason.label}
+                                            </AppText>
+                                            <View style={[
+                                                styles.reportRadio,
+                                                selectedReason === reason.id && styles.reportRadioSelected
+                                            ]}>
+                                                {selectedReason === reason.id && (
+                                                    <View style={styles.reportRadioInner} />
+                                                )}
+                                            </View>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+
+                                {/* Action Buttons */}
+                                <View style={styles.reportActions}>
+                                    <TouchableOpacity
+                                        style={styles.reportCancelBtn}
+                                        onPress={() => {
+                                            setReportModalVisible(false);
+                                            setSelectedReason(null);
+                                        }}
+                                        activeOpacity={0.7}
+                                    >
+                                        <AppText style={styles.reportCancelText}>Cancel</AppText>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.reportSubmitBtn,
+                                            !selectedReason && styles.reportSubmitBtnDisabled
+                                        ]}
+                                        onPress={handleReportUser}
+                                        disabled={!selectedReason || reportSubmitting}
+                                        activeOpacity={0.8}
+                                    >
+                                        {reportSubmitting ? (
+                                            <ActivityIndicator color="#fff" size="small" />
+                                        ) : (
+                                            <AppText style={[
+                                                styles.reportSubmitText,
+                                                !selectedReason && styles.reportSubmitTextDisabled
+                                            ]}>
+                                                Submit Report
+                                            </AppText>
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* Footer Note */}
+                                <AppText style={styles.reportFooterNote}>
+                                    Reports are anonymous and reviewed by our team
+                                </AppText>
+                            </>
+                        )}
                     </View>
                 </View>
             </Modal>
