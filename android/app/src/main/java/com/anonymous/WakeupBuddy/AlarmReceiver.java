@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.util.Log;
@@ -44,17 +45,34 @@ public class AlarmReceiver extends BroadcastReceiver {
                 context.startService(serviceIntent);
             }
 
-            // 2. Start Full-Screen Activity
-            Intent fullScreenIntent = new Intent(context, AlarmActivity.class);
-            fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            fullScreenIntent.putExtra("alarmTime", alarmTime);
-            if (buddyName != null) {
-                fullScreenIntent.putExtra("buddyName", buddyName);
+            // 2. Launch React Native app directly with alarm screen
+            // This ensures the React listener for buddy dismissal is active
+            String deepLinkUrl = "wakeupbuddy://(tabs)/home?alarm=ringing";
+            
+            if (buddyName != null && !buddyName.isEmpty()) {
+                deepLinkUrl += "&buddy=" + Uri.encode(buddyName);
             }
-            if (alarmId != null) {
-                fullScreenIntent.putExtra("alarmId", alarmId);
+            
+            if (alarmId != null && !alarmId.isEmpty()) {
+                deepLinkUrl += "&alarmId=" + Uri.encode(alarmId);
             }
-            context.startActivity(fullScreenIntent);
+            
+            if (alarmTime > 0) {
+                java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("h:mm", java.util.Locale.US);
+                java.text.SimpleDateFormat ampmFormat = new java.text.SimpleDateFormat("a", java.util.Locale.US);
+                java.util.Date date = new java.util.Date(alarmTime);
+                
+                String timeStr = timeFormat.format(date);
+                String ampmStr = ampmFormat.format(date);
+                
+                deepLinkUrl += "&time=" + Uri.encode(timeStr) + "&ampm=" + Uri.encode(ampmStr);
+            }
+            
+            Log.i(TAG, "Launching React Native app with alarm screen: " + deepLinkUrl);
+            Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUrl));
+            appIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            context.startActivity(appIntent);
+            
             
         } catch (Exception e) {
             Log.e(TAG, "Error in AlarmReceiver", e);

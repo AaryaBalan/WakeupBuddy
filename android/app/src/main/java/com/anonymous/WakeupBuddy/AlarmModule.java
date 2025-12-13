@@ -260,6 +260,21 @@ public class AlarmModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void stopAlarmService(Promise promise) {
+        try {
+            Context ctx = getReactApplicationContext();
+            Intent stopIntent = new Intent(ctx, AlarmService.class);
+            stopIntent.setAction("STOP");
+            ctx.stopService(stopIntent);
+            Log.d("AlarmModule", "AlarmService stop signal sent");
+            promise.resolve(true);
+        } catch (Exception e) {
+            Log.e("AlarmModule", "Failed to stop AlarmService", e);
+            promise.reject("ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
     public void makePhoneCall(String phoneNumber, Promise promise) {
         try {
             if (phoneNumber == null || phoneNumber.isEmpty()) {

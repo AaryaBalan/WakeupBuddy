@@ -6,14 +6,16 @@ import AppText from '../../components/AppText';
 import { useUser } from '../../contexts/UserContext';
 import { api } from '../../convex/_generated/api';
 import styles from '../../styles/alarmScreen.styles';
-import { cancelAlarm, subscribeToCallState } from '../native/AlarmNative';
+import { cancelAlarm, stopAlarmService, subscribeToCallState } from '../native/AlarmNative';
 
 export default function AlarmScreen() {
     const { user } = useUser();
     const markAwake = useMutation(api.streaks.markAwake);
     const createCall = useMutation(api.calls.createCall);
     const updateCallDuration = useMutation(api.calls.updateCallDuration);
+    const recordDismissal = useMutation(api.alarmDismissals.recordDismissal);
     const callIdRef = useRef(null);
+    const alarmStoppedRef = useRef(false);
 
     // Listen for call state changes to update duration
     useEffect(() => {
@@ -46,6 +48,22 @@ export default function AlarmScreen() {
     // Fetch buddy details if we found an alarm with a buddy
     const buddy = useQuery(api.users.getUserByEmail, activeBuddyAlarm ? { email: activeBuddyAlarm.buddy } : "skip");
 
+    // Check if buddy has dismissed their alarm (real-time listener)
+    const shouldStop = useQuery(
+        api.alarmDismissals.shouldStopAlarm,
+        user ? { userEmail: user.email } : "skip"
+    );
+
+    // Auto-stop alarm when buddy dismisses
+    useEffect(() => {
+        if (shouldStop?.shouldStop && !alarmStoppedRef.current) {
+            alarmStoppedRef.current = true;
+            console.log('🔔 Buddy dismissed alarm - stopping local alarm');
+            stopAlarmService().catch(err => console.error('Failed to stop alarm service:', err));
+            cancelAlarm(1001).catch(err => console.error('Failed to cancel alarm:', err));
+        }
+    }, [shouldStop]);
+
     const handleImAwake = async () => {
         try {
             // Debug logging
@@ -55,9 +73,25 @@ export default function AlarmScreen() {
             console.log('Active buddy alarm:', activeBuddyAlarm);
             console.log('Buddy details:', buddy);
 
-            // Cancel the alarm first
+            // Step 1: Record dismissal in database to signal buddy to stop their alarm
+            if (activeBuddyAlarm && user?.email) {
+                try {
+                    const dismissalResult = await recordDismissal({
+                        alarmId: activeBuddyAlarm._id,
+                        userEmail: user.email,
+                    });
+                    console.log('✅ Dismissal recorded - buddy will be signaled:', dismissalResult);
+                } catch (err) {
+                    console.error('Failed to record dismissal:', err);
+                }
+            }
+
+            // Step 2: Stop the alarm service (sound + vibration)
+            alarmStoppedRef.current = true;
+            await stopAlarmService();
+            console.log('🔕 Alarm service stopped (sound + vibration)');
             await cancelAlarm(1001);
-            console.log('Alarm cancelled successfully');
+            console.log('🔕 Scheduled alarm cancelled');
 
             // Mark awake if user is logged in
             if (user && user.email) {
@@ -81,9 +115,12 @@ export default function AlarmScreen() {
                 console.warn('User not logged in, skipping streak update');
             }
 
-            // Call buddy if available
+            // Step 4: Call buddy if available (after brief delay to let buddy's alarm stop)
             if (buddy && buddy.phone) {
-                console.log(`✅ CALLING BUDDY: ${buddy.name} at ${buddy.phone}`);
+                console.log(`📞 Preparing to call buddy: ${buddy.name} at ${buddy.phone}`);
+
+                // Wait 1.5 seconds to give buddy's phone time to stop alarm
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
                 // Record the call in database
                 try {
@@ -99,6 +136,7 @@ export default function AlarmScreen() {
                     console.error('Failed to create call record:', callError);
                 }
 
+                console.log('✅ CALLING BUDDY NOW');
                 Linking.openURL(`tel:${buddy.phone}`);
             } else if (activeBuddyAlarm) {
                 console.log('❌ Buddy alarm found but buddy has no phone number');

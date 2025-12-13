@@ -128,4 +128,13 @@ export default defineSchema({
         .index('by_type', ['achievement_type'])
         .index('by_user_type', ['user_id', 'achievement_type']),
 
+    alarmDismissals: defineTable({
+        alarm_id: v.id('alarms'),           // The alarm that was dismissed
+        dismissed_by: v.id('users'),        // User who pressed "I'm Awake"
+        dismissed_at: v.number(),           // Timestamp of dismissal
+        buddy_email: v.optional(v.string()), // Buddy's email (if applicable)
+    })
+        .index('by_alarm', ['alarm_id'])
+        .index('by_buddy', ['buddy_email', 'dismissed_at']),
+
 })

@@ -409,6 +409,24 @@ export async function cancelAlarm(requestCode = 1001) {
     }
 }
 
+export async function stopAlarmService() {
+    if (Platform.OS !== 'android') {
+        throw new Error('Android only');
+    }
+    if (!AlarmModule) {
+        throw new Error('AlarmModule not available');
+    }
+
+    try {
+        console.log('Stopping AlarmService (sound + vibration)');
+        await AlarmModule.stopAlarmService();
+        return true;
+    } catch (error) {
+        console.error('Error stopping alarm service:', error);
+        throw error;
+    }
+}
+
 /**
  * Make a phone call directly without user prompts
  * @param {string} phoneNumber - Phone number to call
@@ -513,6 +531,7 @@ export default {
     checkAllPermissions,
     scheduleAlarm,
     cancelAlarm,
+    stopAlarmService,
     makePhoneCall,
     subscribeToCallState,
     generateRequestCode

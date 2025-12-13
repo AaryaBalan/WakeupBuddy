@@ -3,7 +3,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, StatusBar, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RNShare from 'react-native-share';
@@ -15,6 +15,7 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/home.styles';
 import BannerAds from '../ads/BannerAds';
+import AlarmScreen from '../components/AlarmScreen';
 import { checkPendingCall, clearPendingCall, getLastCallDuration, getMostRecentCallDuration, makePhoneCall, requestCallPhonePermission, requestReadCallLogPermission, requestReadPhoneStatePermission, savePendingCall, subscribeToCallState } from '../native/AlarmNative';
 
 // Initialize Convex HTTP client for imperative queries
@@ -32,6 +33,7 @@ export default function HomeScreen() {
     const callInProgressRef = useRef(false);
     const pendingAlarmRef = useRef(null);
     const streakCardRef = useRef(null);
+    const [showAlarmScreen, setShowAlarmScreen] = useState(false);
 
     const markAwake = useMutation(api.streaks.markAwake);
     const createCall = useMutation(api.calls.createCall);
@@ -517,6 +519,14 @@ export default function HomeScreen() {
 
         const handleDeepLink = async (event) => {
             const url = event.url;
+
+            // Check if alarm is ringing
+            if (url && url.includes('alarm=ringing')) {
+                console.log('🚨 Alarm ringing - showing AlarmScreen overlay');
+                setShowAlarmScreen(true);
+                return;
+            }
+
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
                 console.log('Alarm dismissed via deep link (event), marking awake...');
                 console.log('Full URL:', url);
@@ -554,6 +564,13 @@ export default function HomeScreen() {
         Linking.getInitialURL().then(async (url) => {
             if (isProcessed) return;
             isProcessed = true;
+
+            // Check if alarm is ringing
+            if (url && url.includes('alarm=ringing')) {
+                console.log('🚨 Alarm ringing - showing AlarmScreen overlay');
+                setShowAlarmScreen(true);
+                return;
+            }
 
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
                 console.log('App opened with alarm deep link (initial)...');
@@ -686,7 +703,7 @@ export default function HomeScreen() {
                         <View style={styles.logoContainer}>
                             <Ionicons name="flash" size={20} color="#000" />
                         </View>
-                        <AppText style={styles.headerTitle}>WakeUpBuddy</AppText>
+                        <AppText style={styles.headerTitle}>WakeUpBuddy...</AppText>
                     </View>
                     <View style={styles.headerRight}>
                         <TouchableOpacity
@@ -1053,6 +1070,9 @@ export default function HomeScreen() {
 
             </ScrollView>
             <BannerAds />
+
+            {/* Alarm Screen Overlay - shown when alarm is ringing */}
+            {showAlarmScreen && <AlarmScreen />}
         </SafeAreaView>
     );
 }

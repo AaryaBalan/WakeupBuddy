@@ -15,6 +15,8 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
@@ -24,6 +26,8 @@ public class AlarmService extends Service {
     private MediaPlayer mediaPlayer;
     private Vibrator vibrator;
     private PowerManager.WakeLock wakeLock;
+    private TelephonyManager telephonyManager;
+    private PhoneStateListener phoneStateListener;
 
     @Override
     public void onCreate() {
@@ -32,6 +36,9 @@ public class AlarmService extends Service {
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WakeupBuddy:AlarmServiceLock");
         wakeLock.acquire(10 * 60 * 1000L /* 10 minutes */);
+        
+        // Start listening for phone state changes
+        setupPhoneStateListener();
     }
 
     @Override
@@ -140,6 +147,12 @@ public class AlarmService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        
+        // Stop phone state listener
+        if (telephonyManager != null && phoneStateListener != null) {
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        }
+        
         if (mediaPlayer != null) {
             try {
                 mediaPlayer.stop();
@@ -154,6 +167,30 @@ public class AlarmService extends Service {
         }
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
+        }
+    }
+    
+    private void setupPhoneStateListener() {
+        try {
+            telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            if (telephonyManager != null) {
+                phoneStateListener = new PhoneStateListener() {
+                    @Override
+                    public void onCallStateChanged(int state, String phoneNumber) {
+                        super.onCallStateChanged(state, phoneNumber);
+                        
+                        // When phone is ringing (incoming call) or off-hook (outgoing/active call)
+                        if (state == TelephonyManager.CALL_STATE_RINGING || state == TelephonyManager.CALL_STATE_OFFHOOK) {
+                            Log.i(TAG, "📞 Call detected - auto-stopping alarm to give priority to call");
+                            stopSelf(); // Stop the alarm service to give priority to the call
+                        }
+                    }
+                };
+                
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting up phone state listener", e);
         }
     }
 
