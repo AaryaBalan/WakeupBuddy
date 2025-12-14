@@ -58,6 +58,33 @@ export const updateCallDuration = mutation({
     },
 });
 
+/**
+ * Get a call by its ID with user emails
+ * Used to fetch buddy email on receiving device for notifications
+ */
+export const getCallById = query({
+    args: {
+        callId: v.id("calls")
+    },
+    handler: async (ctx, args) => {
+        const call = await ctx.db.get(args.callId);
+        if (!call) return null;
+
+        // Get user emails from user IDs
+        const user1 = await ctx.db.get(call.users[0]);
+        const user2 = await ctx.db.get(call.users[1]);
+
+        return {
+            _id: call._id,
+            user1Email: user1?.email || '',
+            user2Email: user2?.email || '',
+            call_duration: call.call_duration,
+            call_time: call.call_time,
+            alarm_id: call.alarm_id
+        };
+    }
+});
+
 // Get calls for a specific user
 export const getCallsByUser = query({
     args: {

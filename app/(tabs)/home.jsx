@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ConvexHttpClient } from "convex/browser";
 import { useMutation, useQuery } from "convex/react";
 import * as Linking from 'expo-linking';
+import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, StatusBar, TouchableOpacity, View } from 'react-native';
@@ -65,9 +66,35 @@ export default function HomeScreen() {
         const unsubscribe = subscribeToCallState(async (event) => {
             console.log('Call state changed:', event);
 
-            if (event.status === 'started') {
+            if (event.status === 'started' && !callInProgressRef.current) {
                 callInProgressRef.current = true;
                 console.log('📞 Call started, tracking...');
+
+                // CRITICAL: If we don't have buddy email (receiving device), fetch it from the most recent call
+                if (!buddyEmailRef.current && user?.email) {
+                    console.log('📧 Receiving device: Fetching buddy email from recent calls...');
+                    try {
+                        // Get all calls for this user
+                        const recentCalls = await convexClient.query(api.calls.getCallsByUser, { userEmail: user.email });
+
+                        // Find the most recent call
+                        if (recentCalls && recentCalls.length > 0) {
+                            const latestCall = recentCalls[0]; // Most recent first
+
+                            // Determine which email is the buddy (the one that's not ours)
+                            const buddyEmail = latestCall.caller === user.email
+                                ? latestCall.receiver
+                                : latestCall.caller;
+
+                            buddyEmailRef.current = buddyEmail;
+                            callIdRef.current = latestCall._id;
+                            console.log(`✅ Receiving device: Set buddy email to ${buddyEmail}`);
+                            console.log(`✅ Receiving device: Set call ID to ${latestCall._id}`);
+                        }
+                    } catch (error) {
+                        console.error('❌ Failed to fetch buddy email on receiving device:', error);
+                    }
+                }
             } else if (event.status === 'ended' && callInProgressRef.current) {
                 callInProgressRef.current = false;
                 console.log('📴 Call ended, fetching duration from call log...');
@@ -100,15 +127,36 @@ export default function HomeScreen() {
 
                             // Debug: Check all conditions
                             console.log('🔍 Checking streak update conditions:');
-                            console.log(`   - duration: ${duration}, >= 60? ${duration >= 60}`);
-                            console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current}`);
-                            console.log(`   - user?.email: ${user?.email}`);
-                            console.log(`   - All conditions met? ${duration >= 60 && buddyEmailRef.current && user?.email}`);
+                            console.log(`   - duration: ${duration}, >= 60 ? ${duration >= 60} `);
+                            console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current} `);
+                            console.log(`   - user?.email: ${user?.email} `);
+                            console.log(`   - All conditions met ? ${duration >= 60 && buddyEmailRef.current && user?.email} `);
+
+                            // CRITICAL: If buddyEmailRef is not set (receiving device), fetch buddy email from call record
+                            if (!buddyEmailRef.current && callIdRef.current) {
+                                console.log('📧 Buddy email not set, fetching from call record...');
+                                try {
+                                    const callRecord = await convexClient.query(api.calls.getCallById, {
+                                        callId: callIdRef.current
+                                    });
+
+                                    if (callRecord && user?.email) {
+                                        const buddyEmail = callRecord.caller === user.email
+                                            ? callRecord.receiver
+                                            : callRecord.caller;
+
+                                        buddyEmailRef.current = buddyEmail;
+                                        console.log(`✅ Fetched buddy email from call record: ${buddyEmail}`);
+                                    }
+                                } catch (error) {
+                                    console.error('❌ Failed to fetch buddy email from call record:', error);
+                                }
+                            }
 
                             // NEW: If call was >= 60 seconds, update streaks for both users
                             if (duration >= 60 && buddyEmailRef.current && user?.email) {
                                 console.log('✅ Call >= 60s, updating streaks for both users...');
-                                console.log(`📧 Buddy: ${buddyEmailRef.current}, User: ${user.email}`);
+                                console.log(`📧 Buddy: ${buddyEmailRef.current}, User: ${user.email} `);
                                 const localDate = new Date().toISOString().split('T')[0];
                                 try {
                                     const result = await markAwakeAfterCall({
@@ -120,27 +168,69 @@ export default function HomeScreen() {
 
                                     console.log('✅ markAwakeAfterCall result:', result);
 
+                                    // Send system notification for successful streak update
                                     if (result.status === 'success') {
                                         const minutes = Math.floor(duration / 60);
                                         const seconds = duration % 60;
                                         const durationStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-                                        showPopup(`✅ ${durationStr} call! Streak: ${result.user1.streak} days 🔥`, '#4CAF50');
+
+                                        if (typeof Notifications !== 'undefined' && Notifications) {
+                                            await Notifications.scheduleNotificationAsync({
+                                                content: {
+                                                    title: '🔥 Streak Updated!',
+                                                    body: `Talked for ${durationStr}! Your streak: ${result.user1.streak} days 🎯`,
+                                                    sound: true,
+                                                    priority: Notifications.AndroidNotificationPriority.HIGH,
+                                                },
+                                                trigger: null,
+                                            });
+                                        }
                                     } else {
-                                        showPopup('✅ Streak updated!', '#4CAF50');
+                                        if (typeof Notifications !== 'undefined' && Notifications) {
+                                            await Notifications.scheduleNotificationAsync({
+                                                content: {
+                                                    title: '✅ Streak Updated!',
+                                                    body: `Call completed successfully`,
+                                                    sound: true,
+                                                },
+                                                trigger: null,
+                                            });
+                                        }
                                     }
                                 } catch (error) {
                                     console.error('❌ Error updating streaks:', error);
-                                    showPopup('Error updating streak', '#FF6B6B');
+                                    if (typeof Notifications !== 'undefined' && Notifications) {
+                                        await Notifications.scheduleNotificationAsync({
+                                            content: {
+                                                title: '❌ Error',
+                                                body: 'Failed to update streak',
+                                                sound: true,
+                                            },
+                                            trigger: null,
+                                        });
+                                    }
                                 }
                             } else if (duration < 60 && buddyEmailRef.current) {
-                                console.log(`⏱️ Call too short (${duration}s). Need 60s for streak.`);
-                                showPopup(`⏱️ Call too short (${duration}s). Need 60s for streak.`, '#FF9800');
+                                console.log(`⏱️ Call too short (${duration}s)`);
+
+                                // Send notification for short call
+                                if (typeof Notifications !== 'undefined' && Notifications) {
+                                    await Notifications.scheduleNotificationAsync({
+                                        content: {
+                                            title: '⏱️ Call Too Short',
+                                            body: `Talked for only ${duration} sec. Need 60 sec to count streaks.`,
+                                            sound: true,
+                                            priority: Notifications.AndroidNotificationPriority.HIGH,
+                                        },
+                                        trigger: null,
+                                    });
+                                }
                             } else {
                                 // Solo alarm or no buddy
                                 console.log(`ℹ️ Conditions not met for streak update`);
-                                console.log(`   - duration >= 60: ${duration >= 60}`);
-                                console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current}`);
-                                console.log(`   - user?.email: ${user?.email}`);
+                                console.log(`   - duration >= 60: ${duration >= 60} `);
+                                console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current} `);
+                                console.log(`   - user?.email: ${user?.email} `);
                             }
                         } else {
                             console.log('❌ Could not retrieve call duration from call log');
@@ -199,26 +289,68 @@ export default function HomeScreen() {
                         console.log('Duration from call log:', pendingCall.duration);
 
                         if (pendingCall.duration > 0) {
-                            // Update call duration in database
                             await updateCallDuration({
                                 callId: pendingCall.callId,
                                 duration: pendingCall.duration
                             });
                             console.log(`✅ Call duration updated in database: ${pendingCall.duration} seconds`);
 
-                            // IMPORTANT: Also update streaks here (this is the second code path!)
-                            console.log('🔍 [Second handler] Checking streak update conditions:');
-                            console.log(`   - duration: ${pendingCall.duration}, >= 60? ${pendingCall.duration >= 60}`);
-                            console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current}`);
-                            console.log(`   - user?.email: ${user?.email}`);
+                            // IMPORTANT: Get buddy email (works for both caller and receiver)
+                            let buddyEmail = buddyEmailRef.current;
 
-                            if (pendingCall.duration >= 60 && buddyEmailRef.current && user?.email) {
+                            if (!buddyEmail && user?.email) {
+                                // If buddyEmailRef is not set (receiver device), fetch from call record
+                                console.log('🔍 buddyEmailRef not set, fetching buddy email from call record...');
+                                try {
+                                    const callRecord = await convexClient.query(api.calls.getCallById, {
+                                        callId: pendingCall.callId
+                                    });
+
+                                    if (callRecord) {
+                                        // Get the other user's email (not the current user)
+                                        buddyEmail = callRecord.user1Email === user.email
+                                            ? callRecord.user2Email
+                                            : callRecord.user1Email;
+                                        console.log(`✅ Found buddy email from call record: ${buddyEmail} `);
+                                        // Store it for future use
+                                        buddyEmailRef.current = buddyEmail;
+                                    }
+                                } catch (error) {
+                                    console.error('Failed to fetch call record:', error);
+                                }
+                            }
+                            // Update streaks and send notifications
+                            console.log('🔍 [Second handler] Checking streak update conditions:');
+                            console.log(`   - duration: ${pendingCall.duration}, >= 60 ? ${pendingCall.duration >= 60} `);
+                            console.log(`   - buddyEmail: ${buddyEmail} `);
+                            console.log(`   - user?.email: ${user?.email} `);
+
+                            // CRITICAL: If buddyEmail is not set, try to fetch from call record
+                            if (!buddyEmail && pendingCall.callId) {
+                                console.log('📧 [Second handler] Buddy email not set, fetching from call record...');
+                                try {
+                                    const callRecord = await convexClient.query(api.calls.getCallById, { callId: pendingCall.callId });
+
+                                    if (callRecord && user?.email) {
+                                        buddyEmail = callRecord.caller === user.email
+                                            ? callRecord.receiver
+                                            : callRecord.caller;
+
+                                        buddyEmailRef.current = buddyEmail;
+                                        console.log(`✅ [Second handler] Fetched buddy email from call record: ${buddyEmail}`);
+                                    }
+                                } catch (error) {
+                                    console.error('❌ [Second handler] Failed to fetch buddy email:', error);
+                                }
+                            }
+
+                            if (pendingCall.duration >= 60 && buddyEmail && user?.email) {
                                 console.log('✅ [Second handler] Call >= 60s, updating streaks...');
                                 const localDate = new Date().toISOString().split('T')[0];
                                 try {
                                     const result = await markAwakeAfterCall({
                                         user1Email: user.email,
-                                        user2Email: buddyEmailRef.current,
+                                        user2Email: buddyEmail,
                                         callDuration: pendingCall.duration,
                                         date: localDate
                                     });
@@ -228,21 +360,71 @@ export default function HomeScreen() {
                                     if (result.status === 'success') {
                                         const minutes = Math.floor(pendingCall.duration / 60);
                                         const seconds = pendingCall.duration % 60;
-                                        const durationStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-                                        showPopup(`✅ ${durationStr} call! Streak: ${result.user1.streak} days 🔥`, '#4CAF50');
+                                        const durationStr = minutes > 0 ? `${minutes}m ${seconds} s` : `${seconds} s`;
+
+                                        // Send system notification (BOTH devices will receive this!)
+                                        if (typeof Notifications !== 'undefined' && Notifications) {
+                                            await Notifications.scheduleNotificationAsync({
+                                                content: {
+                                                    title: '🔥 Streak Updated!',
+                                                    body: `Talked for ${durationStr}! Your streak: ${result.user1.streak} days 🎯`,
+                                                    sound: true,
+                                                    priority: Notifications.AndroidNotificationPriority.HIGH,
+                                                },
+                                                trigger: null, // Show immediately
+                                            });
+                                        }
                                     } else {
-                                        showPopup('✅ Streak updated!', '#4CAF50');
+                                        if (typeof Notifications !== 'undefined' && Notifications) {
+                                            await Notifications.scheduleNotificationAsync({
+                                                content: {
+                                                    title: '✅ Streak Updated!',
+                                                    body: `Call completed successfully`,
+                                                    sound: true,
+                                                },
+                                                trigger: null,
+                                            });
+                                        }
                                     }
                                 } catch (error) {
                                     console.error('❌ Error updating streaks:', error);
-                                    showPopup('Error updating streak', '#FF6B6B');
+                                    if (typeof Notifications !== 'undefined' && Notifications) {
+                                        await Notifications.scheduleNotificationAsync({
+                                            content: {
+                                                title: '❌ Error',
+                                                body: 'Failed to update streak',
+                                                sound: true,
+                                            },
+                                            trigger: null,
+                                        });
+                                    }
                                 }
-                            } else if (pendingCall.duration < 60 && buddyEmailRef.current) {
-                                console.log(`⏱️ Call too short (${pendingCall.duration}s)`);
-                                showPopup(`⏱️ Call too short (${pendingCall.duration}s). Need 60s for streak.`, '#FF9800');
+                            } else if (pendingCall.duration < 60 && buddyEmail) {
+                                console.log(`⏱️ Call too short(${pendingCall.duration}s)`);
+
+                                // Debug: Check if Notifications is available
+                                console.log(`🔔 Notifications available ? ${typeof Notifications !== 'undefined' && Notifications ? 'YES' : 'NO'} `);
+                                console.log(`🔔 Notifications type: ${typeof Notifications} `);
+
+                                // Send notification for short call (BOTH devices will receive this!)
+                                if (typeof Notifications !== 'undefined' && Notifications) {
+                                    console.log('📲 Sending short call notification...');
+                                    await Notifications.scheduleNotificationAsync({
+                                        content: {
+                                            title: '⏱️ Call Too Short',
+                                            body: `Talked for only ${pendingCall.duration} sec. Need 60 sec to count streaks.`,
+                                            sound: true,
+                                            priority: Notifications.AndroidNotificationPriority.HIGH,
+                                        },
+                                        trigger: null,
+                                    });
+                                    console.log('✅ Short call notification sent');
+                                } else {
+                                    console.warn('⚠️ Notifications module not available - cannot send notification');
+                                }
                             } else {
-                                console.log(`ℹ️ [Second handler] Conditions not met`);
-                                console.log(`   - buddyEmailRef: ${buddyEmailRef.current}, user: ${user?.email}`);
+                                console.log(`ℹ️[Second handler] Conditions not met`);
+                                console.log(`   - buddyEmail: ${buddyEmail}, user: ${user?.email} `);
                             }
 
                             // Clear pending call
@@ -272,7 +454,7 @@ export default function HomeScreen() {
                                 callId: callIdRef.current,
                                 duration: duration
                             });
-                            console.log(`✅ Call duration updated in database (via AppState): ${duration} seconds`);
+                            console.log(`✅ Call duration updated in database(via AppState): ${duration} seconds`);
                             showPopup(`Call duration: ${duration} seconds`, '#4CAF50');
                         }
 
@@ -344,7 +526,7 @@ export default function HomeScreen() {
             console.log('Buddy relationship accepted:', isBuddyRelationshipAccepted);
 
             if (buddy && buddy.phone && isBuddyRelationshipAccepted) {
-                console.log(`✅ CALLING BUDDY: ${buddy.name} at ${buddy.phone}`);
+                console.log(`✅ CALLING BUDDY: ${buddy.name} at ${buddy.phone} `);
 
                 // Record the call in database (alarmId is required)
                 try {
@@ -440,11 +622,11 @@ export default function HomeScreen() {
                         buddyEmail = alarmData.alarm.buddy;
                         buddyUser = alarmData.buddyUser;
                         isStrangerMatch = alarmData.alarm.matched_at != null;
-                        console.log(`🎉 Found ${isStrangerMatch ? 'STRANGER' : 'BUDDY'} match: ${buddyEmail}`);
+                        console.log(`🎉 Found ${isStrangerMatch ? 'STRANGER' : 'BUDDY'} match: ${buddyEmail} `);
 
                         // IMPORTANT: Store buddy email for call end handler
                         buddyEmailRef.current = buddyEmail;
-                        console.log(`📧 Stored buddy email in ref: ${buddyEmailRef.current}`);
+                        console.log(`📧 Stored buddy email in ref: ${buddyEmailRef.current} `);
                     } else if (alarmData.alarm.solo_mode === false && !alarmData.alarm.buddy) {
                         console.log('😔 Stranger mode but no match found - alarm will ring solo');
                         return;
@@ -460,7 +642,7 @@ export default function HomeScreen() {
 
             // If we have a buddy email, proceed with the call
             if (buddyEmail && buddyEmail.includes('@')) {
-                console.log(`📞 Processing call to buddy: ${buddyEmail}`);
+                console.log(`📞 Processing call to buddy: ${buddyEmail} `);
 
                 // For known buddy (not stranger), check if relationship is accepted
                 if (!isStrangerMatch) {
@@ -485,7 +667,7 @@ export default function HomeScreen() {
                 }
 
                 if (buddyUser && buddyUser.phone) {
-                    console.log(`✅ CALLING ${isStrangerMatch ? 'STRANGER' : 'BUDDY'}: ${buddyUser.name} at ${buddyUser.phone}`);
+                    console.log(`✅ CALLING ${isStrangerMatch ? 'STRANGER' : 'BUDDY'}: ${buddyUser.name} at ${buddyUser.phone} `);
 
                     // Resolve alarmId if not yet resolved
                     if (!alarmId && alarmTime && alarmAmpm) {
@@ -533,7 +715,7 @@ export default function HomeScreen() {
                         // Try alternative method using Linking
                         try {
                             console.log('🔄 Trying alternative call method...');
-                            await Linking.openURL(`tel:${buddyUser.phone}`);
+                            await Linking.openURL(`tel:${buddyUser.phone} `);
                             console.log('✅ Alternative call method succeeded');
                         } catch (linkErr) {
                             console.error('❌ Alternative call method also failed:', linkErr);
@@ -575,7 +757,49 @@ export default function HomeScreen() {
         };
 
         processPendingAlarm();
-    }, [user]);
+    }, [recentStreaks]);
+
+    // Configure notifications and request permissions on mount
+    useEffect(() => {
+        const setupNotifications = async () => {
+            try {
+                // Check if Notifications module is available
+                if (typeof Notifications === 'undefined' || !Notifications) {
+                    console.warn('⚠️ Notifications module not available - notifications will not work');
+                    return;
+                }
+
+                // Configure notification handler
+                Notifications.setNotificationHandler({
+                    handleNotification: async () => ({
+                        shouldShowBanner: true,
+                        shouldShowList: true,
+                        shouldPlaySound: true,
+                        shouldSetBadge: false,
+                    }),
+                });
+
+                // Request permissions
+                const { status: existingStatus } = await Notifications.getPermissionsAsync();
+                let finalStatus = existingStatus;
+
+                if (existingStatus !== 'granted') {
+                    const { status } = await Notifications.requestPermissionsAsync();
+                    finalStatus = status;
+                }
+
+                if (finalStatus !== 'granted') {
+                    console.warn('Notification permissions not granted');
+                } else {
+                    console.log('✅ Notification permissions granted');
+                }
+            } catch (error) {
+                console.error('❌ Failed to setup notifications:', error);
+            }
+        };
+
+        setupNotifications();
+    }, []);
 
     // Handle deep links - runs only once on mount
     useEffect(() => {
