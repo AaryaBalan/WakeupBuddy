@@ -166,6 +166,70 @@ export const getAlarmWithBuddyDetails = query({
 });
 
 /**
+ * Get all alarms for the current user (by email)
+ */
+export const getAlarms = query({
+    args: {
+        userEmail: v.string()
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .unique();
+
+        if (!user) return [];
+
+        return await ctx.db
+            .query("alarms")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .collect();
+    },
+});
+
+/**
+ * Get a specific alarm by time, AM/PM, and user email
+ * Used for checking alarm mode (solo/buddy/stranger)
+ */
+export const getAlarmByTimeAndUser = query({
+    args: {
+        userEmail: v.string(),
+        alarmTime: v.string(),
+        alarmAmpm: v.string()
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+            .unique();
+
+        if (!user) return { alarm: null, buddyUser: null };
+
+        // Find alarm matching time and ampm
+        const alarm = await ctx.db
+            .query("alarms")
+            .withIndex("by_user", (q) => q.eq("user_id", user._id))
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field("time"), args.alarmTime),
+                    q.eq(q.field("ampm"), args.alarmAmpm)
+                )
+            )
+            .first();
+
+        // Get buddy user if alarm has a buddy email
+        let buddyUser = null;
+        if (alarm && alarm.buddy && alarm.buddy.includes('@')) {
+            buddyUser = await ctx.db
+                .query("users")
+                .withIndex("by_email", (q) => q.eq("email", alarm.buddy))
+                .unique();
+        }
+
+        return { alarm, buddyUser };
+    },
+});
+/**
  * Find alarm by time for a user - used when alarmId is not available
  */
 export const findAlarmByTimeForUser = query({

@@ -31,6 +31,7 @@ export default function HomeScreen() {
     const callIdRef = useRef(null);
     const lastCalledNumberRef = useRef(null);
     const callInProgressRef = useRef(false);
+    const buddyEmailRef = useRef(null); // Store buddy email for streak updates after call
     const pendingAlarmRef = useRef(null);
     const streakCardRef = useRef(null);
     const [showAlarmScreen, setShowAlarmScreen] = useState(false);
@@ -38,6 +39,7 @@ export default function HomeScreen() {
     const markAwake = useMutation(api.streaks.markAwake);
     const createCall = useMutation(api.calls.createCall);
     const updateCallDuration = useMutation(api.calls.updateCallDuration);
+    const markAwakeAfterCall = useMutation(api.streaks.markAwakeAfterCall);
     const recentStreaks = useQuery(
         api.streaks.getRecentStreaks,
         user?.email ? { userEmail: user.email, days: 10 } : "skip"
@@ -95,7 +97,51 @@ export default function HomeScreen() {
                                 duration: duration
                             });
                             console.log(`✅ Call duration updated in database: ${duration} seconds`);
-                            showPopup(`Call duration: ${duration} seconds`, '#4CAF50');
+
+                            // Debug: Check all conditions
+                            console.log('🔍 Checking streak update conditions:');
+                            console.log(`   - duration: ${duration}, >= 60? ${duration >= 60}`);
+                            console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current}`);
+                            console.log(`   - user?.email: ${user?.email}`);
+                            console.log(`   - All conditions met? ${duration >= 60 && buddyEmailRef.current && user?.email}`);
+
+                            // NEW: If call was >= 60 seconds, update streaks for both users
+                            if (duration >= 60 && buddyEmailRef.current && user?.email) {
+                                console.log('✅ Call >= 60s, updating streaks for both users...');
+                                console.log(`📧 Buddy: ${buddyEmailRef.current}, User: ${user.email}`);
+                                const localDate = new Date().toISOString().split('T')[0];
+                                try {
+                                    const result = await markAwakeAfterCall({
+                                        user1Email: user.email,
+                                        user2Email: buddyEmailRef.current,
+                                        callDuration: duration,
+                                        date: localDate
+                                    });
+
+                                    console.log('✅ markAwakeAfterCall result:', result);
+
+                                    if (result.status === 'success') {
+                                        const minutes = Math.floor(duration / 60);
+                                        const seconds = duration % 60;
+                                        const durationStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+                                        showPopup(`✅ ${durationStr} call! Streak: ${result.user1.streak} days 🔥`, '#4CAF50');
+                                    } else {
+                                        showPopup('✅ Streak updated!', '#4CAF50');
+                                    }
+                                } catch (error) {
+                                    console.error('❌ Error updating streaks:', error);
+                                    showPopup('Error updating streak', '#FF6B6B');
+                                }
+                            } else if (duration < 60 && buddyEmailRef.current) {
+                                console.log(`⏱️ Call too short (${duration}s). Need 60s for streak.`);
+                                showPopup(`⏱️ Call too short (${duration}s). Need 60s for streak.`, '#FF9800');
+                            } else {
+                                // Solo alarm or no buddy
+                                console.log(`ℹ️ Conditions not met for streak update`);
+                                console.log(`   - duration >= 60: ${duration >= 60}`);
+                                console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current}`);
+                                console.log(`   - user?.email: ${user?.email}`);
+                            }
                         } else {
                             console.log('❌ Could not retrieve call duration from call log');
                         }
@@ -153,14 +199,53 @@ export default function HomeScreen() {
                         console.log('Duration from call log:', pendingCall.duration);
 
                         if (pendingCall.duration > 0) {
+                            // Update call duration in database
                             await updateCallDuration({
                                 callId: pendingCall.callId,
                                 duration: pendingCall.duration
                             });
                             console.log(`✅ Call duration updated in database: ${pendingCall.duration} seconds`);
-                            showPopup(`Call duration: ${pendingCall.duration} seconds`, '#4CAF50');
 
-                            // Clear the pending call
+                            // IMPORTANT: Also update streaks here (this is the second code path!)
+                            console.log('🔍 [Second handler] Checking streak update conditions:');
+                            console.log(`   - duration: ${pendingCall.duration}, >= 60? ${pendingCall.duration >= 60}`);
+                            console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current}`);
+                            console.log(`   - user?.email: ${user?.email}`);
+
+                            if (pendingCall.duration >= 60 && buddyEmailRef.current && user?.email) {
+                                console.log('✅ [Second handler] Call >= 60s, updating streaks...');
+                                const localDate = new Date().toISOString().split('T')[0];
+                                try {
+                                    const result = await markAwakeAfterCall({
+                                        user1Email: user.email,
+                                        user2Email: buddyEmailRef.current,
+                                        callDuration: pendingCall.duration,
+                                        date: localDate
+                                    });
+
+                                    console.log('✅ markAwakeAfterCall result:', result);
+
+                                    if (result.status === 'success') {
+                                        const minutes = Math.floor(pendingCall.duration / 60);
+                                        const seconds = pendingCall.duration % 60;
+                                        const durationStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+                                        showPopup(`✅ ${durationStr} call! Streak: ${result.user1.streak} days 🔥`, '#4CAF50');
+                                    } else {
+                                        showPopup('✅ Streak updated!', '#4CAF50');
+                                    }
+                                } catch (error) {
+                                    console.error('❌ Error updating streaks:', error);
+                                    showPopup('Error updating streak', '#FF6B6B');
+                                }
+                            } else if (pendingCall.duration < 60 && buddyEmailRef.current) {
+                                console.log(`⏱️ Call too short (${pendingCall.duration}s)`);
+                                showPopup(`⏱️ Call too short (${pendingCall.duration}s). Need 60s for streak.`, '#FF9800');
+                            } else {
+                                console.log(`ℹ️ [Second handler] Conditions not met`);
+                                console.log(`   - buddyEmailRef: ${buddyEmailRef.current}, user: ${user?.email}`);
+                            }
+
+                            // Clear pending call
                             await clearPendingCall();
                             callIdRef.current = null;
                             lastCalledNumberRef.current = null;
@@ -243,7 +328,6 @@ export default function HomeScreen() {
                 }
                 showPopup("Please log in first", '#FF6B6B');
                 router.push('/login');
-                return;
             }
 
             console.log('🔍 Checking for buddy to call...');
@@ -252,30 +336,6 @@ export default function HomeScreen() {
             console.log('Alarms data:', alarms);
             console.log('Active buddy alarm found:', activeBuddyAlarm);
             console.log('Buddy data:', buddy);
-
-            // Get current date in local timezone
-            const now = new Date();
-            const localDate = now.getFullYear() + '-' +
-                String(now.getMonth() + 1).padStart(2, '0') + '-' +
-                String(now.getDate()).padStart(2, '0');
-
-            console.log('Calling markAwake with date:', localDate);
-
-            const result = await markAwake({
-                userEmail: user.email,
-                userDate: localDate
-            });
-
-            console.log('markAwake result:', result);
-
-            if (result.status === 'success') {
-                updateUser({ streak: result.streak, maxStreak: result.maxStreak });
-                showPopup(`Streak: ${result.streak} days! (Wakeup #${result.wakeupCount} today)`, '#4CAF50');
-            } else if (result.status === 'incremented') {
-                showPopup(`Wakeup #${result.wakeupCount} today! Keep it up!`, '#4CAF50');
-            } else {
-                showPopup("Marked awake!", '#4CAF50');
-            }
 
             // Call buddy if available AND relationship is accepted
             console.log('🔍 Checking buddy alarm...');
@@ -381,6 +441,10 @@ export default function HomeScreen() {
                         buddyUser = alarmData.buddyUser;
                         isStrangerMatch = alarmData.alarm.matched_at != null;
                         console.log(`🎉 Found ${isStrangerMatch ? 'STRANGER' : 'BUDDY'} match: ${buddyEmail}`);
+
+                        // IMPORTANT: Store buddy email for call end handler
+                        buddyEmailRef.current = buddyEmail;
+                        console.log(`📧 Stored buddy email in ref: ${buddyEmailRef.current}`);
                     } else if (alarmData.alarm.solo_mode === false && !alarmData.alarm.buddy) {
                         console.log('😔 Stranger mode but no match found - alarm will ring solo');
                         return;
@@ -530,6 +594,7 @@ export default function HomeScreen() {
             if (url && (url.includes('alarm=dismissed') || url.includes('wakeupbuddy://awake'))) {
                 console.log('Alarm dismissed via deep link (event), marking awake...');
                 console.log('Full URL:', url);
+                setShowAlarmScreen(false);
 
                 // Extract parameters from URL
                 const buddyMatch = url.match(/[?&]buddy=([^&]+)/);
@@ -546,6 +611,52 @@ export default function HomeScreen() {
                 console.log('🆔 Alarm ID from URL:', alarmId);
                 console.log('⏰ Time from URL:', alarmTime, alarmAmpm);
 
+                // Check alarm mode before marking awake
+                if (user && user.email && alarmTime && alarmAmpm) {
+                    try {
+                        const alarmData = await convexClient.query(api.alarms.getAlarmByTimeAndUser, {
+                            userEmail: user.email,
+                            alarmTime: alarmTime,
+                            alarmAmpm: alarmAmpm
+                        });
+
+                        // Check if there's an actual buddy match
+                        const hasBuddy = alarmData?.alarm?.buddy != null;
+                        const localDate = new Date().toISOString().split('T')[0];
+
+                        if (hasBuddy) {
+                            // Matched alarm (stranger with buddy OR friend) - wait for call
+                            console.log('⏳ Matched alarm from deep link - skipping increment');
+                            await markAwake({
+                                userEmail: user.email,
+                                userDate: localDate,
+                                skipIncrement: true
+                            });
+                            // Don't show popup here - will show after call ends based on duration
+                        } else {
+                            // Solo alarm OR unmatched stranger - increment immediately
+                            console.log('✅ Solo/Unmatched alarm from deep link - incrementing immediately');
+                            const result = await markAwake({
+                                userEmail: user.email,
+                                userDate: localDate
+                            });
+
+                            if (result.status === 'success' || result.status === 'incremented') {
+                                showPopup(`Streak: ${result.streak} days!`, '#4CAF50');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to check alarm mode:', error);
+                        // Fall back to not incrementing if we can't determine mode
+                        const localDate = new Date().toISOString().split('T')[0];
+                        await markAwake({
+                            userEmail: user.email,
+                            userDate: localDate,
+                            skipIncrement: true
+                        });
+                    }
+                }
+
                 // Handle buddy/stranger call (this will fetch latest data from Convex)
                 if (user && user.email && (alarmTime || alarmId)) {
                     await handleBuddyCall(alarmTime, alarmAmpm, alarmId, buddyEmail, user);
@@ -554,9 +665,6 @@ export default function HomeScreen() {
                     console.log('⏳ User not loaded, storing alarm for later');
                     pendingAlarmRef.current = { alarmTime, alarmAmpm, alarmId, buddyEmail };
                 }
-
-                // Mark awake
-                handleMarkAwake();
             }
         };
 

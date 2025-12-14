@@ -101,15 +101,36 @@ export default function AlarmScreen() {
                     String(now.getMonth() + 1).padStart(2, '0') + '-' +
                     String(now.getDate()).padStart(2, '0');
 
-                const result = await markAwake({
-                    userEmail: user.email,
-                    userDate: localDate
-                });
+                console.log(`📅 Marking awake for date: ${localDate}`);
 
-                if (result.status === 'success') {
-                    console.log(`Streak updated: ${result.streak} days (Wakeup #${result.wakeupCount} today)`);
-                } else if (result.status === 'incremented') {
-                    console.log(`Wakeup count incremented to ${result.wakeupCount} for today`);
+                // Check if this is a matched buddy alarm (stranger with match OR friend)
+                // Only skip increment if there's an actual buddy to talk to
+                const hasBuddy = activeBuddyAlarm && activeBuddyAlarm.buddy;
+
+                try {
+                    if (hasBuddy) {
+                        // For matched alarms, skip increment (will check after call)
+                        console.log('⏳ Matched alarm - streak will update after 60s call');
+                        await markAwake({
+                            userEmail: user.email,
+                            userDate: localDate,
+                            skipIncrement: true
+                        });
+                        // Don't show popup here - will show after call ends
+                    } else {
+                        // For solo alarms OR unmatched stranger alarms, increment immediately
+                        console.log('✅ Solo/Unmatched alarm - incrementing streak now');
+                        const result = await markAwake({
+                            userEmail: user.email,
+                            userDate: localDate
+                        });
+
+                        if (result.status === 'success') {
+                            console.log(`🔥 Streak updated: ${result.streak} days, Max: ${result.maxStreak}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error marking awake:', error);
                 }
             } else {
                 console.warn('User not logged in, skipping streak update');

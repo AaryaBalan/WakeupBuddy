@@ -118,7 +118,8 @@ async function updateLeaderboardForUser(ctx, user, userDate = null) {
 export const markAwake = mutation({
     args: {
         userEmail: v.string(), // User email to identify who is marking awake
-        userDate: v.optional(v.string()) // YYYY-MM-DD from client
+        userDate: v.optional(v.string()), // YYYY-MM-DD from client
+        skipIncrement: v.optional(v.boolean()), // Skip increment for buddy alarms (will increment after call)
     },
     handler: async (ctx, args) => {
         // Get user by email instead of using auth context
@@ -129,6 +130,17 @@ export const markAwake = mutation({
 
         if (!user) {
             throw new Error("User not found");
+        }
+
+        // If skipIncrement is true, just return current stats without incrementing
+        if (args.skipIncrement) {
+            return {
+                status: 'skipped',
+                wakeupCount: 0,
+                streak: user.streak || 0,
+                maxStreak: user.maxStreak || 0,
+                points: 0
+            };
         }
 
         // Use client date if provided, otherwise fallback to server UTC
@@ -294,6 +306,121 @@ export const markAwake = mutation({
             newAchievements: awardedAchievements
         };
     },
+});
+
+/**
+ * Mark both users as awake after a successful buddy call (≥ 60 seconds)
+ */
+export const markAwakeAfterCall = mutation({
+    args: {
+        user1Email: v.string(),
+        user2Email: v.string(),
+        callDuration: v.number(),
+        date: v.string(), // YYYY-MM-DD
+    },
+    handler: async (ctx, args) => {
+        // Only increment if call duration >= 60 seconds
+        if (args.callDuration < 60) {
+            return {
+                status: 'call_too_short',
+                required: 60,
+                actual: args.callDuration
+            };
+        }
+
+        // Manually increment for BOTH users by directly executing markAwake logic
+        const user1 = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.user1Email))
+            .unique();
+
+        const user2 = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.user2Email))
+            .unique();
+
+        if (!user1 || !user2) {
+            throw new Error("One or both users not found");
+        }
+
+        // Execute markAwake for both users (reuse handler logic directly)
+        const markAwakeHandler = async (userEmail) => {
+            const user = await ctx.db
+                .query("users")
+                .withIndex("by_email", (q) => q.eq("email", userEmail))
+                .unique();
+
+            if (!user) {
+                throw new Error("User not found");
+            }
+
+            const today = args.date || new Date().toISOString().split('T')[0];
+            const todayDate = new Date(today);
+            const yesterdayDate = new Date(todayDate);
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            const yesterday = yesterdayDate.toISOString().split('T')[0];
+
+            const existingEntry = await ctx.db
+                .query("streaks")
+                .withIndex("by_user_date", (q) => q.eq("user_id", user._id).eq("date", today))
+                .unique();
+
+            if (existingEntry) {
+                const newCount = existingEntry.count + 1;
+                await ctx.db.patch(existingEntry._id, { count: newCount });
+                await updateLeaderboardForUser(ctx, user, today);
+                return {
+                    status: 'incremented',
+                    wakeupCount: newCount,
+                    streak: user.streak || 0,
+                    maxStreak: user.maxStreak || 0
+                };
+            }
+
+            const yesterdayEntry = await ctx.db
+                .query("streaks")
+                .withIndex("by_user_date", (q) => q.eq("user_id", user._id).eq("date", yesterday))
+                .unique();
+
+            let newStreak = 1;
+            if (yesterdayEntry) {
+                newStreak = (user.streak || 0) + 1;
+            }
+
+            await ctx.db.insert("streaks", {
+                user_id: user._id,
+                date: today,
+                count: 1
+            });
+
+            const currentMax = user.maxStreak || 0;
+            const newMax = Math.max(currentMax, newStreak);
+
+            await ctx.db.patch(user._id, {
+                streak: newStreak,
+                maxStreak: newMax
+            });
+
+            const updatedUser = await ctx.db.get(user._id);
+            await updateLeaderboardForUser(ctx, updatedUser, today);
+
+            return {
+                status: 'success',
+                wakeupCount: 1,
+                streak: newStreak,
+                maxStreak: newMax
+            };
+        };
+
+        const user1Result = await markAwakeHandler(args.user1Email);
+        const user2Result = await markAwakeHandler(args.user2Email);
+
+        return {
+            status: 'success',
+            user1: user1Result,
+            user2: user2Result
+        };
+    }
 });
 
 export const getStreak = query({
