@@ -11,6 +11,7 @@ import { api } from "../../convex/_generated/api";
 import styles from '../../styles/alarms.styles';
 
 import { cancelAlarm, generateRequestCode, scheduleAlarm } from '../native/AlarmNative';
+import { showInterstitialAd } from '../ads/InterstitialAds';
 
 const NEON = '#C9E265';
 
@@ -103,6 +104,13 @@ export default function AlarmsScreen() {
         if (activeDays.length === 7) return 'Everyday';
         if (activeDays.length === 0) return 'Once';
         return activeDays.join(', ');
+    };
+
+    // Open alarm editor screen
+    const openAlarmEditor = () => {
+        showInterstitialAd(() => {
+            router.push('/screens/alarm-editor');
+        });
     };
 
     const renderItem = ({ item }) => (
@@ -200,7 +208,7 @@ export default function AlarmsScreen() {
             )}
             <TouchableOpacity
                 style={styles.fab}
-                onPress={() => router.push('/screens/alarm-editor')}
+                onPress={openAlarmEditor}
                 activeOpacity={0.8}
             >
                 <Ionicons name="add" size={32} color="#000" />

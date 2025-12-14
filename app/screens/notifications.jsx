@@ -11,6 +11,7 @@ import { usePopup } from '../../contexts/PopupContext';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/notifications.styles';
+import BannerAds from '../ads/BannerAds';
 import { generateRequestCode, requestExactAlarmPermission, scheduleAlarm } from '../native/AlarmNative';
 
 const NEON = '#C9E265';
@@ -503,6 +504,7 @@ export default function NotificationsScreen() {
                     }
                 />
             )}
+            <BannerAds />
         </SafeAreaView>
     );
 }

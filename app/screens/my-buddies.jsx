@@ -8,6 +8,7 @@ import ProfilePic from '../../components/ProfilePic';
 import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/myBuddies.styles';
+import BannerAds from '../ads/BannerAds';
 
 export default function MyBuddiesScreen() {
     const router = useRouter();
@@ -100,6 +101,7 @@ export default function MyBuddiesScreen() {
                     }
                 />
             )}
+            <BannerAds />
         </SafeAreaView>
     );
 }

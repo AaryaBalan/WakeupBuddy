@@ -18,6 +18,7 @@ import styles from '../../styles/home.styles';
 import BannerAds from '../ads/BannerAds';
 import AlarmScreen from '../components/AlarmScreen';
 import { checkPendingCall, clearPendingCall, getLastCallDuration, getMostRecentCallDuration, makePhoneCall, requestCallPhonePermission, requestReadCallLogPermission, requestReadPhoneStatePermission, savePendingCall, subscribeToCallState } from '../native/AlarmNative';
+import { showInterstitialAd } from '../ads/InterstitialAds';
 
 // Initialize Convex HTTP client for imperative queries
 const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || "";
@@ -1024,6 +1025,13 @@ export default function HomeScreen() {
         }
     };
 
+    // open alarm editor screen
+    const openAlarmEditor = () => {
+        showInterstitialAd(() => {
+            router.push('/screens/alarm-editor');
+        });
+    };
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="light-content" backgroundColor="#050505" />
@@ -1241,7 +1249,7 @@ export default function HomeScreen() {
                                     <AppText style={{ color: '#666', marginTop: 10 }}>No upcoming alarms</AppText>
                                     <TouchableOpacity
                                         style={[styles.shareBadge, { marginTop: 12 }]}
-                                        onPress={() => router.push('/screens/alarm-editor')}
+                                        onPress={openAlarmEditor}
                                     >
                                         <Ionicons name="add" size={16} color={NEON} />
                                         <AppText style={styles.shareBadgeText}>Add Alarm</AppText>
@@ -1302,7 +1310,7 @@ export default function HomeScreen() {
                 {/* Quick Actions */}
                 <AppText style={styles.sectionTitle}>Quick Actions</AppText>
                 <View style={styles.quickActionsContainer}>
-                    <TouchableOpacity style={styles.quickActionItem} onPress={() => router.push('/screens/alarm-editor')}>
+                    <TouchableOpacity style={styles.quickActionItem} onPress={openAlarmEditor}>
                         <View style={styles.quickActionIcon}>
                             <Ionicons name="alarm-outline" size={24} color={NEON} />
                         </View>
