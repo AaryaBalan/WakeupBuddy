@@ -1,20 +1,52 @@
-import { useRef } from 'react';
-import { Platform } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds, useForeground } from 'react-native-google-mobile-ads';
+import { useRef, useState } from 'react';
+import { Platform, View } from 'react-native';
 
-const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : 'ca-app-pub-2512361520457456/9617042041';
+// Safely import ads library - may fail in some builds
+let BannerAd, BannerAdSize, TestIds, useForeground;
+try {
+    const ads = require('react-native-google-mobile-ads');
+    BannerAd = ads.BannerAd;
+    BannerAdSize = ads.BannerAdSize;
+    TestIds = ads.TestIds;
+    useForeground = ads.useForeground;
+} catch (e) {
+    console.warn('Google Mobile Ads not available:', e);
+}
+
+const adUnitId = __DEV__ ? TestIds?.ADAPTIVE_BANNER || '' : 'ca-app-pub-2512361520457456/9617042041';
 
 function BannerAds() {
     const bannerRef = useRef(null);
+    const [adFailed, setAdFailed] = useState(false);
 
-    // (iOS) WKWebView can terminate if app is in a "suspended state", resulting in an empty banner when app returns to foreground.
-    // Therefore it's advised to "manually" request a new ad when the app is foregrounded (https://groups.google.com/g/google-admob-ads-sdk/c/rwBpqOUr8m8).
-    useForeground(() => {
-        Platform.OS === 'ios' && bannerRef.current?.load();
-    });
+    // If ads library not available, return empty
+    if (!BannerAd || !BannerAdSize) {
+        return null;
+    }
+
+    // (iOS) WKWebView can terminate if app is in a "suspended state"
+    if (useForeground) {
+        useForeground(() => {
+            Platform.OS === 'ios' && bannerRef.current?.load();
+        });
+    }
+
+    if (adFailed) {
+        return null;
+    }
 
     return (
-        <BannerAd ref={bannerRef} unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+        <View>
+            <BannerAd
+                ref={bannerRef}
+                unitId={adUnitId}
+                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                onAdFailedToLoad={(error) => {
+                    console.warn('Ad failed to load:', error);
+                    setAdFailed(true);
+                }}
+            />
+        </View>
     );
 }
 
