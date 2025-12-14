@@ -185,7 +185,18 @@ export default function RankScreen() {
     };
 
     const ListHeader = () => {
-        const top3 = leaderboardData ? leaderboardData.slice(0, 3) : [];
+        // Sort leaderboard data to ensure highest scores come first
+        let sortedData = [...(leaderboardData || [])];
+
+        if (activeTab === 'daily') {
+            // Sort by daily_points (what's actually displayed)
+            sortedData.sort((a, b) => (b.daily_points || 0) - (a.daily_points || 0));
+        } else {
+            // Sort by total_points (highest first)
+            sortedData.sort((a, b) => (b.total_points || 0) - (a.total_points || 0));
+        }
+
+        const top3 = sortedData.slice(0, 3);
 
         return (
             <View>
@@ -272,8 +283,17 @@ export default function RankScreen() {
         return recentlyActive ? '+points earned' : 'Wake up to earn!';
     };
 
-    // Filter out top 3 for the list
-    const listData = leaderboardData ? leaderboardData.slice(3) : [];
+    // Sort leaderboard data before creating list
+    let sortedLeaderboardData = [...(leaderboardData || [])];
+    if (activeTab === 'daily') {
+        // Sort by daily_points (what's displayed)
+        sortedLeaderboardData.sort((a, b) => (b.daily_points || 0) - (a.daily_points || 0));
+    } else {
+        sortedLeaderboardData.sort((a, b) => (b.total_points || 0) - (a.total_points || 0));
+    }
+
+    // Filter out top 3 for the list (they're in podium)
+    const listData = sortedLeaderboardData.slice(3);
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>

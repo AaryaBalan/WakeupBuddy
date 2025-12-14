@@ -11,4 +11,13 @@ crons.interval(
     internal.matching.runMatchingForUpcomingAlarms
 );
 
+// Reset daily leaderboard at midnight IST (18:30 UTC = 00:00 IST)
+// IST is UTC+5:30, so midnight IST = 18:30 UTC
+crons.daily(
+    "reset-daily-leaderboard",
+    { hourUTC: 18, minuteUTC: 30 }, // Midnight in IST
+    internal.leaderboard.resetDailyLeaderboard
+);
+
 export default crons;
+

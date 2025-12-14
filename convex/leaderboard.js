@@ -637,3 +637,41 @@ export const migrateCallTimeData = mutation({
         };
     },
 });
+
+/**
+ * Reset daily leaderboard data (runs at midnight)
+ * Clears today_wakeups, today_call_time, and daily_points for all users
+ */
+export const resetDailyLeaderboard = mutation({
+    args: {},
+    handler: async (ctx) => {
+        console.log('🌙 Running daily leaderboard reset at midnight...');
+
+        // Get all leaderboard entries
+        const allEntries = await ctx.db.query("leaderboard").collect();
+
+        let resetCount = 0;
+        for (const entry of allEntries) {
+            await ctx.db.patch(entry._id, {
+                today_wakeups: 0,
+                today_call_time: 0,
+                daily_points: 0,
+            });
+            resetCount++;
+        }
+
+        // Update all ranks after reset
+        await updateAllRanks(ctx);
+
+        const resetTime = new Date().toISOString();
+        console.log(`✅ Daily leaderboard reset complete! Reset ${resetCount} entries at ${resetTime}`);
+
+        return {
+            success: true,
+            resetCount,
+            resetTime,
+            message: `Reset daily metrics for ${resetCount} users`
+        };
+    },
+});
+
