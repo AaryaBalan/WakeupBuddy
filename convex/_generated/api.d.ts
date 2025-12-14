@@ -11,6 +11,7 @@
 import type * as achievements from "../achievements.js";
 import type * as alarmDismissals from "../alarmDismissals.js";
 import type * as alarms from "../alarms.js";
+import type * as appeals from "../appeals.js";
 import type * as calls from "../calls.js";
 import type * as crons from "../crons.js";
 import type * as friends from "../friends.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   achievements: typeof achievements;
   alarmDismissals: typeof alarmDismissals;
   alarms: typeof alarms;
+  appeals: typeof appeals;
   calls: typeof calls;
   crons: typeof crons;
   friends: typeof friends;

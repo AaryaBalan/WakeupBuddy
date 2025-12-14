@@ -34,10 +34,18 @@ export default function Login() {
 
             if (result.success) {
                 await login(result.user);
-                showPopup('Login Successful!', '#4CAF50')
-                setTimeout(() => {
-                    router.replace('/(tabs)/home');
-                }, 2000);
+                showPopup('Login Successful!', '#4CAF50');
+
+                // Check if user is banned (reportCount > 3)
+                if ((result.user.reportCount || 0) > 3) {
+                    setTimeout(() => {
+                        router.replace('/screens/appeal');
+                    }, 2000);
+                } else {
+                    setTimeout(() => {
+                        router.replace('/(tabs)/home');
+                    }, 2000);
+                }
             } else {
                 // Show specific error message
                 showPopup(result.error, '#FF6B6B');

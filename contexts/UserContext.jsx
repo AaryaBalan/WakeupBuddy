@@ -76,8 +76,11 @@ export function UserProvider({ children }) {
         }
     };
 
+    // Check if user is banned (reportCount > 3)
+    const isBanned = user && (user.reportCount || 0) > 3;
+
     return (
-        <UserContext.Provider value={{ user, loading, login, logout, updateUser, loadUser }}>
+        <UserContext.Provider value={{ user, loading, login, logout, updateUser, loadUser, isBanned }}>
             {children}
         </UserContext.Provider>
     );

@@ -1,7 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useUser } from '../../contexts/UserContext';
 
 export default function TabLayout() {
+    const { isBanned } = useUser();
+    const router = useRouter();
+
+    // Redirect banned users to appeal page
+    useEffect(() => {
+        if (isBanned) {
+            router.replace('/screens/appeal');
+        }
+    }, [isBanned]);
+
+    // Don't render tabs if banned
+    if (isBanned) {
+        return null;
+    }
+
     return (
         <Tabs
             screenOptions={{

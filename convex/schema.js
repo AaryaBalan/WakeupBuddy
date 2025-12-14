@@ -27,6 +27,15 @@ export default defineSchema({
         .index('by_reported', ['reportedUserId'])
         .index('by_status', ['status']),
 
+    appeals: defineTable({
+        userId: v.id('users'),
+        reason: v.string(),
+        status: v.string(), // 'pending', 'approved', 'rejected'
+        submittedAt: v.number(),
+        reviewedAt: v.optional(v.number()),
+        reviewedBy: v.optional(v.string()),
+    }).index('by_user', ['userId']),
+
     alarms: defineTable({
         time: v.string(),
         ampm: v.string(),
