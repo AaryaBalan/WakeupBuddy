@@ -23,9 +23,30 @@ export default function Signup() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSignup = async () => {
+        // Validate required fields
+        if (!fullName.trim()) {
+            showPopup('Full Name is required', '#FF6B6B');
+            return;
+        }
+        if (!email.trim()) {
+            showPopup('Email is required', '#FF6B6B');
+            return;
+        }
+        if (!phone.trim()) {
+            showPopup('Phone Number is required', '#FF6B6B');
+            return;
+        }
+        if (!password.trim()) {
+            showPopup('Password is required', '#FF6B6B');
+            return;
+        }
         // Validate password length
         if (password.length < 6) {
             showPopup('Password must be at least 6 characters', '#FF6B6B');
+            return;
+        }
+        if (!agreed) {
+            showPopup('Please agree to Terms & Privacy Policy', '#FF6B6B');
             return;
         }
 

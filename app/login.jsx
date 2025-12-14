@@ -21,6 +21,16 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
+        // Validate required fields
+        if (!email.trim()) {
+            showPopup('Email is required', '#FF6B6B');
+            return;
+        }
+        if (!password.trim()) {
+            showPopup('Password is required', '#FF6B6B');
+            return;
+        }
+
         const loginData = {
             email,
             password
