@@ -16,9 +16,9 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/home.styles';
 import BannerAds from '../ads/BannerAds';
+import { showInterstitialAd } from '../ads/InterstitialAds';
 import AlarmScreen from '../components/AlarmScreen';
 import { checkPendingCall, clearPendingCall, getLastCallDuration, getMostRecentCallDuration, makePhoneCall, requestCallPhonePermission, requestReadCallLogPermission, requestReadPhoneStatePermission, savePendingCall, subscribeToCallState } from '../native/AlarmNative';
-import { showInterstitialAd } from '../ads/InterstitialAds';
 
 // Initialize Convex HTTP client for imperative queries
 const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || "";
@@ -737,7 +737,7 @@ export default function HomeScreen() {
         const processPendingAlarm = async () => {
             if (user && user.email && pendingAlarmRef.current) {
                 const { alarmTime, alarmAmpm, alarmId, buddyEmail } = pendingAlarmRef.current;
-                console.log('📱 Processing pending alarm deep link now that user is loaded');
+                console.log('📱 [UseEffect] Processing pending alarm deep link now that user is loaded');
                 console.log('📱 User email:', user.email);
                 console.log('📱 Alarm time:', alarmTime, alarmAmpm);
                 console.log('📱 Alarm ID:', alarmId);
@@ -747,18 +747,78 @@ export default function HomeScreen() {
                 const pendingData = pendingAlarmRef.current;
                 pendingAlarmRef.current = null;
 
+                // Retry logic for streak update
+                const updateStreakWithRetry = async (retries = 3) => {
+                    const localDate = new Date().toISOString().split('T')[0];
+                    
+                    for (let attempt = 1; attempt <= retries; attempt++) {
+                        try {
+                            console.log(`🔄 [Attempt ${attempt}/${retries}] Updating streak...`);
+                            
+                            // Check if this is a buddy alarm or solo alarm
+                            let hasBuddy = false;
+                            if (pendingData.alarmTime && pendingData.alarmAmpm) {
+                                try {
+                                    const alarmData = await convexClient.query(api.alarms.getAlarmByTimeAndUser, {
+                                        userEmail: user.email,
+                                        alarmTime: pendingData.alarmTime,
+                                        alarmAmpm: pendingData.alarmAmpm
+                                    });
+                                    hasBuddy = alarmData?.alarm?.buddy != null;
+                                } catch (queryError) {
+                                    console.error('Failed to query alarm data:', queryError);
+                                }
+                            }
+                            
+                            if (hasBuddy) {
+                                console.log('⏳ Matched alarm - skipping increment (will count after call)');
+                                await markAwake({
+                                    userEmail: user.email,
+                                    userDate: localDate,
+                                    skipIncrement: true
+                                });
+                            } else {
+                                console.log('✅ Solo/Unmatched alarm - incrementing streak immediately');
+                                const result = await markAwake({
+                                    userEmail: user.email,
+                                    userDate: localDate
+                                });
+                                
+                                if (result.status === 'success' || result.status === 'incremented') {
+                                    console.log('🎉 Streak updated successfully:', result.streak);
+                                    showPopup(`Streak: ${result.streak} days!`, '#4CAF50');
+                                }
+                            }
+                            
+                            return true; // Success
+                        } catch (error) {
+                            console.error(`❌ Attempt ${attempt} failed:`, error.message);
+                            if (attempt < retries) {
+                                // Wait before retry (exponential backoff)
+                                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                            }
+                        }
+                    }
+                    
+                    console.error('❌ All retry attempts failed');
+                    showPopup('Failed to update streak. Please try again.', '#FF6B6B');
+                    return false;
+                };
+                
+                // Update streak with retry
+                await updateStreakWithRetry();
+
                 // Handle buddy/stranger call - pass user explicitly to avoid stale closure
                 if (pendingData.alarmTime || pendingData.alarmId) {
                     await handleBuddyCall(pendingData.alarmTime, pendingData.alarmAmpm, pendingData.alarmId, pendingData.buddyEmail, user);
                 }
-
-                // Mark awake
-                await handleMarkAwake();
+            } else if (pendingAlarmRef.current) {
+               console.log('⏳ [UseEffect] Pending alarm exists but user not loaded yet:', { userLoaded: !!user, pendingAlarm: pendingAlarmRef.current });
             }
         };
 
         processPendingAlarm();
-    }, [recentStreaks]);
+    }, [user, recentStreaks, markAwake, showPopup]); // Added all required dependencies
 
     // Configure notifications and request permissions on mount
     useEffect(() => {
