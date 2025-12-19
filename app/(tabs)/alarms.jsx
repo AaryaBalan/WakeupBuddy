@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, StatusBar, Switch, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, StatusBar, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import { usePopup } from '../../contexts/PopupContext';
@@ -10,8 +10,8 @@ import { useUser } from '../../contexts/UserContext';
 import { api } from "../../convex/_generated/api";
 import styles from '../../styles/alarms.styles';
 
-import { cancelAlarm, generateRequestCode, scheduleAlarm } from '../native/AlarmNative';
 import { showInterstitialAd } from '../ads/InterstitialAds';
+import { cancelAlarm, generateRequestCode, scheduleAlarm } from '../native/AlarmNative';
 
 const NEON = '#C9E265';
 
@@ -23,7 +23,10 @@ export default function AlarmsScreen() {
     const alarms = useQuery(api.alarms.getAlarmsByUser, userId ? { user_id: userId } : "skip");
     const toggleAlarmMutation = useMutation(api.alarms.toggleAlarm);
     const deleteAlarmMutation = useMutation(api.alarms.deleteAlarm);
+    const deleteAllAlarmsMutation = useMutation(api.alarms.deleteAllAlarms);
     const [deletingId, setDeletingId] = useState(null); // Track which alarm is being deleted
+    const [clearingAll, setClearingAll] = useState(false); // Track clearing all alarms
+    const [showClearModal, setShowClearModal] = useState(false); // Modal visibility
 
     const toggleAlarm = async (alarm) => {
         const newStatus = !alarm.enabled;
@@ -81,6 +84,37 @@ export default function AlarmsScreen() {
             showPopup('Failed to delete alarm', '#FF6B6B');
         } finally {
             setDeletingId(null);
+        }
+    };
+
+    // Open confirmation modal
+    const handleClearAllAlarms = () => {
+        if (!alarms || alarms.length === 0) {
+            showPopup('No alarms to clear', '#888');
+            return;
+        }
+        setShowClearModal(true);
+    };
+
+    // Execute the deletion
+    const confirmClearAll = async () => {
+        setShowClearModal(false);
+        setClearingAll(true);
+        try {
+            // Cancel all native alarms first
+            for (const alarm of alarms) {
+                const requestCode = generateRequestCode(alarm._id.toString());
+                await cancelAlarm(requestCode).catch(e => console.log('Cancel error:', e));
+            }
+
+            // Delete all from database
+            const result = await deleteAllAlarmsMutation({ user_id: userId });
+            showPopup(`${result.deletedCount} alarm${result.deletedCount > 1 ? 's' : ''} deleted`, '#4CAF50');
+        } catch (error) {
+            console.error('Error clearing all alarms:', error);
+            showPopup('Failed to clear alarms', '#FF6B6B');
+        } finally {
+            setClearingAll(false);
         }
     };
 
@@ -184,6 +218,34 @@ export default function AlarmsScreen() {
             <StatusBar barStyle="light-content" backgroundColor="#050505" />
             <View style={styles.header}>
                 <AppText style={styles.headerTitle}>Alarms</AppText>
+                {alarms && alarms.length > 0 && (
+                    <TouchableOpacity
+                        style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: 'rgba(255, 68, 68, 0.15)',
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            borderRadius: 20,
+                            borderWidth: 1,
+                            borderColor: 'rgba(255, 68, 68, 0.3)',
+                        }}
+                        onPress={handleClearAllAlarms}
+                        disabled={clearingAll}
+                        activeOpacity={0.7}
+                    >
+                        {clearingAll ? (
+                            <ActivityIndicator size="small" color="#ff4444" />
+                        ) : (
+                            <>
+                                <Ionicons name="trash-outline" size={16} color="#ff4444" />
+                                <AppText style={{ color: '#ff4444', fontSize: 12, marginLeft: 4, fontWeight: '600' }}>
+                                    Clear All
+                                </AppText>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                )}
             </View>
 
             {alarms === undefined ? (
@@ -195,9 +257,13 @@ export default function AlarmsScreen() {
                     data={alarms}
                     renderItem={renderItem}
                     keyExtractor={item => item._id}
-                    contentContainerStyle={[styles.listContent, alarms.length === 0 && styles.emptyListContent]}
+                    contentContainerStyle={[
+                        styles.listContent,
+                        alarms.length === 0 && { flexGrow: 1, justifyContent: 'center' }
+                    ]}
+                    scrollEnabled={alarms.length > 0}
                     ListEmptyComponent={
-                        <View style={styles.emptyState}>
+                        <View style={[styles.emptyState, { marginTop: 0 }]}>
                             <Ionicons name="alarm-outline" size={96} color={NEON} />
                             <AppText style={styles.emptyTitle}>No Alarms Set</AppText>
                             <AppText style={styles.emptySubtitle}>Tap the + button to create your first alarm</AppText>
@@ -213,6 +279,99 @@ export default function AlarmsScreen() {
             >
                 <Ionicons name="add" size={32} color="#000" />
             </TouchableOpacity>
+
+            {/* Clear All Confirmation Modal - Bottom Sheet */}
+            <Modal
+                visible={showClearModal}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowClearModal(false)}
+            >
+                <TouchableOpacity
+                    style={{
+                        flex: 1,
+                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    }}
+                    activeOpacity={1}
+                    onPress={() => setShowClearModal(false)}
+                />
+                <View style={{
+                    backgroundColor: '#1A1A1A',
+                    borderTopLeftRadius: 24,
+                    borderTopRightRadius: 24,
+                    padding: 24,
+                    paddingBottom: 40,
+                    borderTopWidth: 1,
+                    borderColor: 'rgba(255, 68, 68, 0.3)',
+                }}>
+                    {/* Drag Handle */}
+                    <View style={{
+                        width: 40,
+                        height: 4,
+                        backgroundColor: '#444',
+                        borderRadius: 2,
+                        alignSelf: 'center',
+                        marginBottom: 20,
+                    }} />
+
+                    <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                        <View style={{
+                            backgroundColor: 'rgba(255, 68, 68, 0.15)',
+                            borderRadius: 50,
+                            padding: 16,
+                            marginBottom: 12,
+                        }}>
+                            <Ionicons name="warning" size={32} color="#ff4444" />
+                        </View>
+                        <AppText style={{
+                            color: '#fff',
+                            fontSize: 20,
+                            fontWeight: '700',
+                            marginBottom: 8,
+                            textAlign: 'center',
+                        }}>
+                            Clear All Alarms?
+                        </AppText>
+                        <AppText style={{
+                            color: '#888',
+                            fontSize: 14,
+                            textAlign: 'center',
+                            lineHeight: 20,
+                        }}>
+                            Are you sure you want to delete all {alarms?.length || 0} alarm{(alarms?.length || 0) > 1 ? 's' : ''}? This action cannot be undone.
+                        </AppText>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <TouchableOpacity
+                            style={{
+                                flex: 1,
+                                backgroundColor: '#333',
+                                paddingVertical: 16,
+                                borderRadius: 14,
+                                alignItems: 'center',
+                            }}
+                            onPress={() => setShowClearModal(false)}
+                            activeOpacity={0.7}
+                        >
+                            <AppText style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Cancel</AppText>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={{
+                                flex: 1,
+                                backgroundColor: '#ff4444',
+                                paddingVertical: 16,
+                                borderRadius: 14,
+                                alignItems: 'center',
+                            }}
+                            onPress={confirmClearAll}
+                            activeOpacity={0.7}
+                        >
+                            <AppText style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Delete All</AppText>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }

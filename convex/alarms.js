@@ -116,6 +116,26 @@ export const deleteAlarm = mutation({
     },
 });
 
+/**
+ * Delete all alarms for a specific user
+ */
+export const deleteAllAlarms = mutation({
+    args: { user_id: v.id("users") },
+    handler: async (ctx, args) => {
+        const alarms = await ctx.db
+            .query("alarms")
+            .filter((q) => q.eq(q.field("user_id"), args.user_id))
+            .collect();
+
+        // Delete each alarm
+        for (const alarm of alarms) {
+            await ctx.db.delete(alarm._id);
+        }
+
+        return { deletedCount: alarms.length };
+    },
+});
+
 export const toggleAlarm = mutation({
     args: { id: v.id("alarms"), enabled: v.boolean() },
     handler: async (ctx, args) => {
