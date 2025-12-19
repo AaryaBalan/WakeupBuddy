@@ -45,33 +45,32 @@ public class AlarmReceiver extends BroadcastReceiver {
                 context.startService(serviceIntent);
             }
 
-            // 2. Launch React Native app directly with alarm screen
-            // This ensures the React listener for buddy dismissal is active
-            String deepLinkUrl = "wakeupbuddy://(tabs)/home?alarm=ringing";
-            
-            if (buddyName != null && !buddyName.isEmpty()) {
-                deepLinkUrl += "&buddy=" + Uri.encode(buddyName);
+            // 2. FORCE LAUNCH ALARM ACTIVITY (Nuclear Option)
+            // If we have "Draw over other apps" permission, we can start the activity directly
+            // from the background, bypassing the Android 10+ restrictions.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (android.provider.Settings.canDrawOverlays(context)) {
+                    Log.i(TAG, "Overlay permission granted - Force launching AlarmActivity!");
+                    Intent forceActivityIntent = new Intent(context, AlarmActivity.class);
+                    forceActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    forceActivityIntent.putExtra("alarmTime", alarmTime);
+                    if (buddyName != null) forceActivityIntent.putExtra("buddyName", buddyName);
+                    if (alarmId != null) forceActivityIntent.putExtra("alarmId", alarmId);
+                    context.startActivity(forceActivityIntent);
+                } else {
+                    Log.w(TAG, "Overlay permission NOT granted - relying on Notification fullScreenIntent.");
+                }
+            } else {
+                // Older Android versions don't have this restriction
+                Intent forceActivityIntent = new Intent(context, AlarmActivity.class);
+                forceActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                forceActivityIntent.putExtra("alarmTime", alarmTime);
+                if (buddyName != null) forceActivityIntent.putExtra("buddyName", buddyName);
+                if (alarmId != null) forceActivityIntent.putExtra("alarmId", alarmId);
+                context.startActivity(forceActivityIntent);
             }
             
-            if (alarmId != null && !alarmId.isEmpty()) {
-                deepLinkUrl += "&alarmId=" + Uri.encode(alarmId);
-            }
-            
-            if (alarmTime > 0) {
-                java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("h:mm", java.util.Locale.US);
-                java.text.SimpleDateFormat ampmFormat = new java.text.SimpleDateFormat("a", java.util.Locale.US);
-                java.util.Date date = new java.util.Date(alarmTime);
-                
-                String timeStr = timeFormat.format(date);
-                String ampmStr = ampmFormat.format(date);
-                
-                deepLinkUrl += "&time=" + Uri.encode(timeStr) + "&ampm=" + Uri.encode(ampmStr);
-            }
-            
-            Log.i(TAG, "Launching React Native app with alarm screen: " + deepLinkUrl);
-            Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUrl));
-            appIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            context.startActivity(appIntent);
+            Log.i(TAG, "AlarmReceiver completed, Service and Potential Activity Launch requested.");
             
             
         } catch (Exception e) {
