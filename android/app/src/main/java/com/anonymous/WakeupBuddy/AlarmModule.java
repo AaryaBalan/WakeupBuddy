@@ -168,6 +168,43 @@ public class AlarmModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void canUseFullScreenIntent(Promise promise) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+
+                android.app.NotificationManager nm = (android.app.NotificationManager) 
+                    reactContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                if (nm != null) {
+                    promise.resolve(nm.canUseFullScreenIntent());
+                } else {
+                    promise.resolve(false);
+                }
+            } else {
+                // Pre-Android 14, permission is granted by default if declared in manifest
+                promise.resolve(true);
+            }
+        } catch (Exception e) {
+            promise.reject("ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void requestFullScreenIntentPermission(Promise promise) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT);
+                intent.setData(Uri.parse("package:" + reactContext.getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                reactContext.startActivity(intent);
+                promise.resolve(true);
+            } else {
+                promise.resolve(true);
+            }
+        } catch (Exception e) {
+            promise.reject("ERROR", e.getMessage());
+        }
+    }
+
+    @ReactMethod
     public void scheduleExactAlarm(double timestampMs, String buddyName, String alarmId, int requestCode, Promise promise) {
         try {
             Context ctx = getReactApplicationContext();

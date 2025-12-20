@@ -163,6 +163,53 @@ export async function requestDrawOverlays() {
     );
 }
 
+export async function canUseFullScreenIntent() {
+    if (Platform.OS !== 'android') return true;
+    if (!AlarmModule) return false;
+
+    try {
+        return await AlarmModule.canUseFullScreenIntent();
+    } catch (error) {
+        console.error('Error checking full screen intent permission:', error);
+        return false;
+    }
+}
+
+export async function requestFullScreenIntentPermission() {
+    if (Platform.OS !== 'android') return;
+
+    const canUse = await canUseFullScreenIntent();
+    if (canUse) {
+        Alert.alert('Already Allowed', 'Full screen intent permission is already enabled.');
+        return;
+    }
+
+    Alert.alert(
+        'Full Screen Intent',
+        'This permission allows the alarm screen to appear when your phone is locked. This is critical for Android 14+.',
+        [
+            {
+                text: 'Cancel',
+                style: 'cancel',
+            },
+            {
+                text: 'Open Settings',
+                onPress: async () => {
+                    try {
+                        if (AlarmModule && AlarmModule.requestFullScreenIntentPermission) {
+                            await AlarmModule.requestFullScreenIntentPermission();
+                        } else {
+                            await Linking.openSettings();
+                        }
+                    } catch (error) {
+                        console.error('Failed to open full screen intent settings:', error);
+                    }
+                },
+            },
+        ]
+    );
+}
+
 /**
  * Check if CALL_PHONE permission is granted
  */
@@ -332,12 +379,13 @@ export async function checkAllPermissions() {
     const exactAlarms = await canScheduleExactAlarms();
     const batteryOpt = await isBatteryOptimizationDisabled();
     const overlays = await canDrawOverlays();
+    const fullScreenIntent = await canUseFullScreenIntent();
     const callPhone = await hasCallPhonePermission();
     const readPhoneState = await hasReadPhoneStatePermission();
     const readCallLog = await hasReadCallLogPermission();
 
-    // Core permissions needed for basic alarm functionality (4 permissions)
-    const coreGranted = exactAlarms && batteryOpt && overlays && callPhone;
+    // Core permissions needed for basic alarm functionality (5 permissions)
+    const coreGranted = exactAlarms && batteryOpt && overlays && fullScreenIntent && callPhone;
 
     // All permissions including optional call duration tracking
     const allGranted = coreGranted && readPhoneState && readCallLog;
@@ -346,10 +394,11 @@ export async function checkAllPermissions() {
         canScheduleExactAlarms: exactAlarms,
         batteryOptimizationDisabled: batteryOpt,
         canDrawOverlays: overlays,
+        canUseFullScreenIntent: fullScreenIntent,
         hasCallPermission: callPhone,
         hasReadPhoneStatePermission: readPhoneState,
         hasReadCallLogPermission: readCallLog,
-        coreGranted: coreGranted,  // Basic 4 permissions for alarm functionality
+        coreGranted: coreGranted,  // Basic 5 permissions for alarm functionality
         allGranted: coreGranted    // For backward compatibility, use coreGranted
     };
 }
@@ -364,10 +413,11 @@ export async function scheduleAlarm(date, buddyName = null, alarmId = null, requ
         throw new Error('AlarmModule not available');
     }
 
-    // Check all three permissions
+    // Check all critical permissions
     const exactAlarms = await canScheduleExactAlarms();
     const batteryOpt = await isBatteryOptimizationDisabled();
     const overlays = await canDrawOverlays();
+    const fullScreenIntent = await canUseFullScreenIntent();
 
     if (!exactAlarms) {
         throw new Error('EXACT_ALARM_PERMISSION_REQUIRED');
@@ -379,6 +429,11 @@ export async function scheduleAlarm(date, buddyName = null, alarmId = null, requ
 
     if (!overlays) {
         throw new Error('DISPLAY_OVERLAY_REQUIRED');
+    }
+
+    if (!fullScreenIntent) {
+        console.warn('Full screen intent permission not granted - alarm may not show when screen is off');
+        // Don't throw - this is only required on Android 14+
     }
 
     try {

@@ -6,7 +6,7 @@ import { Animated, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
 import styles from "../../styles/permissionsGuide.styles";
-import { checkAllPermissions, requestBatteryOptimization, requestCallPhonePermission, requestDrawOverlays, requestExactAlarmPermission } from '../native/AlarmNative';
+import { checkAllPermissions, requestBatteryOptimization, requestCallPhonePermission, requestDrawOverlays, requestExactAlarmPermission, requestFullScreenIntentPermission } from '../native/AlarmNative';
 
 const NEON = '#C9E265';
 
@@ -16,6 +16,7 @@ export default function PermissionsGuide() {
         canScheduleExactAlarms: false,
         batteryOptimizationDisabled: false,
         canDrawOverlays: false,
+        canUseFullScreenIntent: false,
         hasCallPermission: false,
         allGranted: false
     });
@@ -47,6 +48,10 @@ export default function PermissionsGuide() {
         await requestDrawOverlays();
     };
 
+    const handleFullScreenIntentPress = async () => {
+        await requestFullScreenIntentPermission();
+    };
+
     const handleCallPhonePress = async () => {
         await requestCallPhonePermission();
         setTimeout(checkPermissions, 500);
@@ -65,6 +70,7 @@ export default function PermissionsGuide() {
     const completedCount = (permissions.canScheduleExactAlarms ? 1 : 0) +
         (permissions.batteryOptimizationDisabled ? 1 : 0) +
         (permissions.canDrawOverlays ? 1 : 0) +
+        (permissions.canUseFullScreenIntent ? 1 : 0) +
         (permissions.hasCallPermission ? 1 : 0);
 
     const permissionItems = [
@@ -97,6 +103,15 @@ export default function PermissionsGuide() {
         },
         {
             step: 4,
+            title: 'Full Screen Intent',
+            subtitle: 'Critical for Android 14+ lock screen',
+            icon: 'phone-portrait',
+            granted: permissions.canUseFullScreenIntent,
+            onPress: handleFullScreenIntentPress,
+            buttonText: 'Allow'
+        },
+        {
+            step: 5,
             title: 'Phone Calls',
             subtitle: 'Call your buddy when alarm rings',
             icon: 'call',
@@ -108,7 +123,7 @@ export default function PermissionsGuide() {
 
     const manualItems = [
         {
-            step: 5,
+            step: 6,
             title: 'Notifications',
             subtitle: 'Receive alarm alerts',
             icon: 'notifications',
@@ -116,7 +131,7 @@ export default function PermissionsGuide() {
             onPress: openAppSettings
         },
         {
-            step: 6,
+            step: 7,
             title: 'Background Activity',
             subtitle: 'Allow app to run in background',
             icon: 'flash',

@@ -86,29 +86,38 @@ public class AlarmService extends Service {
                 PowerManager.ON_AFTER_RELEASE,
                 "WakeupBuddy:ServiceScreenLock"
             );
-            screenWakeLock.acquire(5000);
+            screenWakeLock.acquire(10000); // Hold for 10 seconds
             
-            // Small delay to let screen wake up
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                try {
-                    Intent activityIntent = new Intent(this, AlarmActivity.class);
-                    activityIntent.setFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK | 
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                        Intent.FLAG_ACTIVITY_NO_USER_ACTION
-                    );
-                    activityIntent.putExtra("alarmTime", alarmTime);
-                    if (buddyName != null) activityIntent.putExtra("buddyName", buddyName);
-                    if (alarmId != null) activityIntent.putExtra("alarmId", alarmId);
+            // Retry launching activity multiple times with delays
+            for (int i = 0; i < 3; i++) {
+                final int attempt = i + 1;
+                final long delay = i * 500L; // 0ms, 500ms, 1000ms
+                
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    try {
+                        Intent activityIntent = new Intent(this, AlarmActivity.class);
+                        activityIntent.setFlags(
+                            Intent.FLAG_ACTIVITY_NEW_TASK | 
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                            Intent.FLAG_ACTIVITY_NO_USER_ACTION |
+                            Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                        );
+                        activityIntent.putExtra("alarmTime", alarmTime);
+                        if (buddyName != null) activityIntent.putExtra("buddyName", buddyName);
+                        if (alarmId != null) activityIntent.putExtra("alarmId", alarmId);
+                        
+                        startActivity(activityIntent);
+                        Log.i(TAG, "✅ AlarmActivity launch attempt " + attempt + " completed");
+                    } catch (Exception e) {
+                        Log.w(TAG, "❌ AlarmActivity launch attempt " + attempt + " failed: " + e.getMessage());
+                    }
                     
-                    startActivity(activityIntent);
-                    Log.i(TAG, "AlarmActivity launched from service");
-                } catch (Exception e) {
-                    Log.w(TAG, "Could not launch AlarmActivity from service: " + e.getMessage());
-                } finally {
-                    if (screenWakeLock.isHeld()) screenWakeLock.release();
-                }
-            }, 500);
+                    // Release wake lock after last attempt
+                    if (attempt == 3 && screenWakeLock.isHeld()) {
+                        screenWakeLock.release();
+                    }
+                }, delay);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Error trying to launch alarm activity", e);
         }
@@ -171,10 +180,14 @@ public class AlarmService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)  // Show on lockscreen
-                .setFullScreenIntent(fullScreenPendingIntent, true)
+                .setFullScreenIntent(fullScreenPendingIntent, true)  // Critical: launches activity when screen is off
+                .setContentIntent(fullScreenPendingIntent)  // Launch activity when notification is tapped
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Dismiss", stopPendingIntent)
                 .setOngoing(true)
                 .setAutoCancel(false)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setSound(null)  // We handle sound separately
+                .setVibrate(null)  // We handle vibration separately
                 .build();
     }
 

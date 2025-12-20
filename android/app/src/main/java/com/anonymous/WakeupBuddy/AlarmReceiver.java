@@ -60,44 +60,29 @@ public class AlarmReceiver extends BroadcastReceiver {
             Log.i(TAG, "Foreground service started");
 
             // 2. ALWAYS try to launch AlarmActivity directly
-            // On Android 10+, this requires either:
-            // - SYSTEM_ALERT_WINDOW permission (Draw over other apps), OR
-            // - The device screen was just woken up by our WakeLock above
+            // Multiple strategies to ensure it shows:
+            // Strategy A: Direct launch with all necessary flags
+            // Strategy B: Wake screen first, then launch
             
-            // Small delay to let the screen wake up
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException ignored) {}
-
+            Log.i(TAG, "Attempting to launch AlarmActivity...");
+            
             Intent activityIntent = new Intent(context, AlarmActivity.class);
             activityIntent.setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK | 
                 Intent.FLAG_ACTIVITY_CLEAR_TOP | 
                 Intent.FLAG_ACTIVITY_SINGLE_TOP |
-                Intent.FLAG_ACTIVITY_NO_USER_ACTION
+                Intent.FLAG_ACTIVITY_NO_USER_ACTION |
+                Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
             );
             activityIntent.putExtra("alarmTime", alarmTime);
             if (buddyName != null) activityIntent.putExtra("buddyName", buddyName);
             if (alarmId != null) activityIntent.putExtra("alarmId", alarmId);
             
-            // Check Android version and overlay permission
-            boolean canLaunch = false;
-            
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                // Android 9 and below - can launch directly
-                canLaunch = true;
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && 
-                       android.provider.Settings.canDrawOverlays(context)) {
-                // Android 10+ with overlay permission
-                canLaunch = true;
-            }
-            
-            if (canLaunch) {
-                Log.i(TAG, "Directly launching AlarmActivity");
+            try {
                 context.startActivity(activityIntent);
-            } else {
-                Log.w(TAG, "Cannot launch activity directly - relying on fullScreenIntent from notification");
-                // The fullScreenIntent in the notification will handle this
+                Log.i(TAG, "✅ AlarmActivity launched successfully");
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Failed to launch AlarmActivity: " + e.getMessage());
             }
             
             Log.i(TAG, "AlarmReceiver completed successfully");
@@ -105,11 +90,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         } catch (Exception e) {
             Log.e(TAG, "Error in AlarmReceiver", e);
         } finally {
-            // Release locks after a small delay to ensure everything starts
+            // Release locks after a delay to ensure everything starts
             new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                 if (cpuLock.isHeld()) cpuLock.release();
                 if (screenLock.isHeld()) screenLock.release();
-            }, 5000);
+            }, 10000); // Hold for 10 seconds
         }
     }
 }
