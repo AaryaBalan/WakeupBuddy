@@ -11,13 +11,28 @@ import android.media.MediaPlayer;
 import android.util.Log;
 import androidx.annotation.Nullable;
 import android.net.Uri;
+import android.os.PowerManager;
+import android.content.Context;
 
 public class AlarmActivity extends Activity {
     private static final String TAG = "AlarmActivity";
+    private PowerManager.WakeLock wakeLock;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        Log.i(TAG, "=== AlarmActivity onCreate ===");
+        
+        // Acquire wake lock to keep screen on
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(
+            PowerManager.SCREEN_BRIGHT_WAKE_LOCK | 
+            PowerManager.ACQUIRE_CAUSES_WAKEUP | 
+            PowerManager.ON_AFTER_RELEASE,
+            "WakeupBuddy:AlarmActivityLock"
+        );
+        wakeLock.acquire(5 * 60 * 1000L); // 5 minutes max
         
         // Modern way to show over lock screen (API 27+)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
@@ -31,7 +46,8 @@ public class AlarmActivity extends Activity {
             WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
             WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-            WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
+            WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON |
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
         );
 
         // Try to dismiss keyguard immediately
@@ -153,6 +169,12 @@ public class AlarmActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        
+        // Release wake lock
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+        }
+        
         // Ensure service is stopped if activity is destroyed
         Intent stopIntent = new Intent(this, AlarmService.class);
         stopIntent.setAction("STOP");

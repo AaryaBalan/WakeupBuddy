@@ -42,6 +42,7 @@ export default function HomeScreen() {
     const createCall = useMutation(api.calls.createCall);
     const updateCallDuration = useMutation(api.calls.updateCallDuration);
     const markAwakeAfterCall = useMutation(api.streaks.markAwakeAfterCall);
+    const recordDismissal = useMutation(api.alarmDismissals.recordDismissal);
     const recentStreaks = useQuery(
         api.streaks.getRecentStreaks,
         user?.email ? { userEmail: user.email, days: 10 } : "skip"
@@ -750,26 +751,41 @@ export default function HomeScreen() {
                 // Retry logic for streak update
                 const updateStreakWithRetry = async (retries = 3) => {
                     const localDate = new Date().toISOString().split('T')[0];
-                    
+
                     for (let attempt = 1; attempt <= retries; attempt++) {
                         try {
                             console.log(`🔄 [Attempt ${attempt}/${retries}] Updating streak...`);
-                            
+
                             // Check if this is a buddy alarm or solo alarm
                             let hasBuddy = false;
+                            let alarmData = null;
                             if (pendingData.alarmTime && pendingData.alarmAmpm) {
                                 try {
-                                    const alarmData = await convexClient.query(api.alarms.getAlarmByTimeAndUser, {
+                                    alarmData = await convexClient.query(api.alarms.getAlarmByTimeAndUser, {
                                         userEmail: user.email,
                                         alarmTime: pendingData.alarmTime,
                                         alarmAmpm: pendingData.alarmAmpm
                                     });
                                     hasBuddy = alarmData?.alarm?.buddy != null;
+
+                                    // IMPORTANT: Record dismissal to signal buddy to stop their alarm
+                                    if (hasBuddy && alarmData?.alarm?._id) {
+                                        try {
+                                            console.log('🔔 Recording dismissal to stop buddy alarm...');
+                                            await recordDismissal({
+                                                alarmId: alarmData.alarm._id,
+                                                userEmail: user.email,
+                                            });
+                                            console.log('✅ Dismissal recorded - buddy will be signaled');
+                                        } catch (err) {
+                                            console.error('❌ Failed to record dismissal:', err);
+                                        }
+                                    }
                                 } catch (queryError) {
                                     console.error('Failed to query alarm data:', queryError);
                                 }
                             }
-                            
+
                             if (hasBuddy) {
                                 console.log('⏳ Matched alarm - skipping increment (will count after call)');
                                 await markAwake({
@@ -783,13 +799,13 @@ export default function HomeScreen() {
                                     userEmail: user.email,
                                     userDate: localDate
                                 });
-                                
+
                                 if (result.status === 'success' || result.status === 'incremented') {
                                     console.log('🎉 Streak updated successfully:', result.streak);
                                     showPopup(`Streak: ${result.streak} days!`, '#4CAF50');
                                 }
                             }
-                            
+
                             return true; // Success
                         } catch (error) {
                             console.error(`❌ Attempt ${attempt} failed:`, error.message);
@@ -799,12 +815,12 @@ export default function HomeScreen() {
                             }
                         }
                     }
-                    
+
                     console.error('❌ All retry attempts failed');
                     showPopup('Failed to update streak. Please try again.', '#FF6B6B');
                     return false;
                 };
-                
+
                 // Update streak with retry
                 await updateStreakWithRetry();
 
@@ -813,7 +829,7 @@ export default function HomeScreen() {
                     await handleBuddyCall(pendingData.alarmTime, pendingData.alarmAmpm, pendingData.alarmId, pendingData.buddyEmail, user);
                 }
             } else if (pendingAlarmRef.current) {
-               console.log('⏳ [UseEffect] Pending alarm exists but user not loaded yet:', { userLoaded: !!user, pendingAlarm: pendingAlarmRef.current });
+                console.log('⏳ [UseEffect] Pending alarm exists but user not loaded yet:', { userLoaded: !!user, pendingAlarm: pendingAlarmRef.current });
             }
         };
 
@@ -908,6 +924,20 @@ export default function HomeScreen() {
                         // Check if there's an actual buddy match
                         const hasBuddy = alarmData?.alarm?.buddy != null;
                         const localDate = new Date().toISOString().split('T')[0];
+
+                        // IMPORTANT: Record dismissal to signal buddy to stop their alarm
+                        if (hasBuddy && alarmData?.alarm?._id) {
+                            try {
+                                console.log('🔔 Recording dismissal to stop buddy alarm...');
+                                await recordDismissal({
+                                    alarmId: alarmData.alarm._id,
+                                    userEmail: user.email,
+                                });
+                                console.log('✅ Dismissal recorded - buddy will be signaled');
+                            } catch (err) {
+                                console.error('❌ Failed to record dismissal:', err);
+                            }
+                        }
 
                         if (hasBuddy) {
                             // Matched alarm (stranger with buddy OR friend) - wait for call

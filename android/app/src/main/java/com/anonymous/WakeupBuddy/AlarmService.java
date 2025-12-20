@@ -57,17 +57,61 @@ public class AlarmService extends Service {
         // Get extras
         long alarmTime = intent.getLongExtra("alarmTime", 0);
         String buddyName = intent.getStringExtra("buddyName");
+        String alarmId = intent.getStringExtra("alarmId");
 
         // Start Foreground immediately
-        startForeground(1001, buildNotification(alarmTime, buddyName));
+        startForeground(1001, buildNotification(alarmTime, buddyName, alarmId));
 
         // Play Sound
         playSound();
 
         // Vibrate
         vibrate();
+        
+        // Try to launch AlarmActivity from service as backup
+        // This helps on some devices where receiver couldn't launch it
+        tryLaunchAlarmActivity(alarmTime, buddyName, alarmId);
 
         return START_STICKY;
+    }
+    
+    private void tryLaunchAlarmActivity(long alarmTime, String buddyName, String alarmId) {
+        try {
+            // Wake up the screen first
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            @SuppressWarnings("deprecation")
+            PowerManager.WakeLock screenWakeLock = pm.newWakeLock(
+                PowerManager.FULL_WAKE_LOCK | 
+                PowerManager.ACQUIRE_CAUSES_WAKEUP | 
+                PowerManager.ON_AFTER_RELEASE,
+                "WakeupBuddy:ServiceScreenLock"
+            );
+            screenWakeLock.acquire(5000);
+            
+            // Small delay to let screen wake up
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                try {
+                    Intent activityIntent = new Intent(this, AlarmActivity.class);
+                    activityIntent.setFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK | 
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                        Intent.FLAG_ACTIVITY_NO_USER_ACTION
+                    );
+                    activityIntent.putExtra("alarmTime", alarmTime);
+                    if (buddyName != null) activityIntent.putExtra("buddyName", buddyName);
+                    if (alarmId != null) activityIntent.putExtra("alarmId", alarmId);
+                    
+                    startActivity(activityIntent);
+                    Log.i(TAG, "AlarmActivity launched from service");
+                } catch (Exception e) {
+                    Log.w(TAG, "Could not launch AlarmActivity from service: " + e.getMessage());
+                } finally {
+                    if (screenWakeLock.isHeld()) screenWakeLock.release();
+                }
+            }, 500);
+        } catch (Exception e) {
+            Log.e(TAG, "Error trying to launch alarm activity", e);
+        }
     }
 
     private void playSound() {
@@ -99,14 +143,17 @@ public class AlarmService extends Service {
         }
     }
 
-    private Notification buildNotification(long alarmTime, String buddyName) {
+    private Notification buildNotification(long alarmTime, String buddyName, String alarmId) {
         createNotificationChannel();
 
         Intent fullScreenIntent = new Intent(this, AlarmActivity.class);
-        fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
         fullScreenIntent.putExtra("alarmTime", alarmTime);
         if (buddyName != null) {
             fullScreenIntent.putExtra("buddyName", buddyName);
+        }
+        if (alarmId != null) {
+            fullScreenIntent.putExtra("alarmId", alarmId);
         }
         
         PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(
@@ -123,9 +170,11 @@ public class AlarmService extends Service {
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)  // Show on lockscreen
                 .setFullScreenIntent(fullScreenPendingIntent, true)
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Dismiss", stopPendingIntent)
                 .setOngoing(true)
+                .setAutoCancel(false)
                 .build();
     }
 
@@ -134,9 +183,13 @@ public class AlarmService extends Service {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Alarm Service",
-                    NotificationManager.IMPORTANCE_HIGH
+                    NotificationManager.IMPORTANCE_MAX  // MUST be MAX for fullScreenIntent to work when screen is off
             );
             channel.setSound(null, null); // Sound played by MediaPlayer
+            channel.setBypassDnd(true);  // Bypass Do Not Disturb
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);  // Show on lockscreen
+            channel.enableVibration(false);  // We handle vibration separately
+            channel.setShowBadge(true);
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
                 manager.createNotificationChannel(channel);

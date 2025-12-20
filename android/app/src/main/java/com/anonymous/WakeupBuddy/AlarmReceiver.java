@@ -19,17 +19,29 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.i(TAG, "=== ALARM RECEIVER FIRED ===");
         
-        // Acquire a temporary WakeLock to ensure CPU runs until Service starts
+        // Acquire a FULL WakeLock to turn screen on AND keep CPU running
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WakeupBuddy:ReceiverLock");
-        wl.acquire(5000); // Hold for 5 seconds
+        
+        // First, acquire a partial wake lock for CPU
+        PowerManager.WakeLock cpuLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WakeupBuddy:ReceiverCpuLock");
+        cpuLock.acquire(10000); // Hold for 10 seconds
+        
+        // Second, acquire FULL wake lock to turn screen ON (deprecated but still works for alarm apps)
+        @SuppressWarnings("deprecation")
+        PowerManager.WakeLock screenLock = pm.newWakeLock(
+            PowerManager.FULL_WAKE_LOCK | 
+            PowerManager.ACQUIRE_CAUSES_WAKEUP | 
+            PowerManager.ON_AFTER_RELEASE, 
+            "WakeupBuddy:ReceiverScreenLock"
+        );
+        screenLock.acquire(10000); // Hold for 10 seconds to ensure screen stays on
 
         try {
             long alarmTime = intent.getLongExtra("alarmTime", System.currentTimeMillis());
             String buddyName = intent.getStringExtra("buddyName");
             String alarmId = intent.getStringExtra("alarmId");
             
-            // 1. Start Foreground Service (Plays Sound & Vibrate)
+            // 1. Start Foreground Service FIRST (Plays Sound & Vibrate)
             Intent serviceIntent = new Intent(context, AlarmService.class);
             serviceIntent.putExtra("alarmTime", alarmTime);
             if (buddyName != null) {
@@ -44,40 +56,60 @@ public class AlarmReceiver extends BroadcastReceiver {
             } else {
                 context.startService(serviceIntent);
             }
+            
+            Log.i(TAG, "Foreground service started");
 
-            // 2. FORCE LAUNCH ALARM ACTIVITY (Nuclear Option)
-            // If we have "Draw over other apps" permission, we can start the activity directly
-            // from the background, bypassing the Android 10+ restrictions.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (android.provider.Settings.canDrawOverlays(context)) {
-                    Log.i(TAG, "Overlay permission granted - Force launching AlarmActivity!");
-                    Intent forceActivityIntent = new Intent(context, AlarmActivity.class);
-                    forceActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    forceActivityIntent.putExtra("alarmTime", alarmTime);
-                    if (buddyName != null) forceActivityIntent.putExtra("buddyName", buddyName);
-                    if (alarmId != null) forceActivityIntent.putExtra("alarmId", alarmId);
-                    context.startActivity(forceActivityIntent);
-                } else {
-                    Log.w(TAG, "Overlay permission NOT granted - relying on Notification fullScreenIntent.");
-                }
-            } else {
-                // Older Android versions don't have this restriction
-                Intent forceActivityIntent = new Intent(context, AlarmActivity.class);
-                forceActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                forceActivityIntent.putExtra("alarmTime", alarmTime);
-                if (buddyName != null) forceActivityIntent.putExtra("buddyName", buddyName);
-                if (alarmId != null) forceActivityIntent.putExtra("alarmId", alarmId);
-                context.startActivity(forceActivityIntent);
+            // 2. ALWAYS try to launch AlarmActivity directly
+            // On Android 10+, this requires either:
+            // - SYSTEM_ALERT_WINDOW permission (Draw over other apps), OR
+            // - The device screen was just woken up by our WakeLock above
+            
+            // Small delay to let the screen wake up
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException ignored) {}
+
+            Intent activityIntent = new Intent(context, AlarmActivity.class);
+            activityIntent.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK | 
+                Intent.FLAG_ACTIVITY_CLEAR_TOP | 
+                Intent.FLAG_ACTIVITY_SINGLE_TOP |
+                Intent.FLAG_ACTIVITY_NO_USER_ACTION
+            );
+            activityIntent.putExtra("alarmTime", alarmTime);
+            if (buddyName != null) activityIntent.putExtra("buddyName", buddyName);
+            if (alarmId != null) activityIntent.putExtra("alarmId", alarmId);
+            
+            // Check Android version and overlay permission
+            boolean canLaunch = false;
+            
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                // Android 9 and below - can launch directly
+                canLaunch = true;
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && 
+                       android.provider.Settings.canDrawOverlays(context)) {
+                // Android 10+ with overlay permission
+                canLaunch = true;
             }
             
-            Log.i(TAG, "AlarmReceiver completed, Service and Potential Activity Launch requested.");
+            if (canLaunch) {
+                Log.i(TAG, "Directly launching AlarmActivity");
+                context.startActivity(activityIntent);
+            } else {
+                Log.w(TAG, "Cannot launch activity directly - relying on fullScreenIntent from notification");
+                // The fullScreenIntent in the notification will handle this
+            }
             
+            Log.i(TAG, "AlarmReceiver completed successfully");
             
         } catch (Exception e) {
             Log.e(TAG, "Error in AlarmReceiver", e);
         } finally {
-            // Release lock if still held (though 5s timeout handles it)
-            if (wl.isHeld()) wl.release();
+            // Release locks after a small delay to ensure everything starts
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                if (cpuLock.isHeld()) cpuLock.release();
+                if (screenLock.isHeld()) screenLock.release();
+            }, 5000);
         }
     }
 }
