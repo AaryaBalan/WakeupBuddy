@@ -103,15 +103,53 @@ export default function HomeScreen() {
 
                 // Wait for call log to update, then fetch duration
                 setTimeout(async () => {
-                    if (!callIdRef.current || !lastCalledNumberRef.current) {
-                        console.log('⚠️ No call ID or phone number to update');
+                    console.log('🔍 Checking refs after call ended:');
+                    console.log('   - callIdRef.current:', callIdRef.current);
+                    console.log('   - lastCalledNumberRef.current:', lastCalledNumberRef.current);
+                    console.log('   - buddyEmailRef.current:', buddyEmailRef.current);
+                    console.log('   - user?.email:', user?.email);
+
+                    // If we don't have callId, try to get the most recent call
+                    if (!callIdRef.current && user?.email) {
+                        console.log('⚠️ No callId in ref, fetching from recent calls...');
+                        try {
+                            const recentCalls = await convexClient.query(api.calls.getCallsByUser, { 
+                                userEmail: user.email 
+                            });
+                            
+                            if (recentCalls && recentCalls.length > 0) {
+                                const latestCall = recentCalls[0];
+                                callIdRef.current = latestCall._id;
+                                
+                                // Also set buddy email if not set
+                                if (!buddyEmailRef.current) {
+                                    buddyEmailRef.current = latestCall.caller === user.email
+                                        ? latestCall.receiver
+                                        : latestCall.caller;
+                                }
+                                
+                                console.log(`✅ Retrieved callId from DB: ${callIdRef.current}`);
+                                console.log(`✅ Retrieved buddy email: ${buddyEmailRef.current}`);
+                            }
+                        } catch (error) {
+                            console.error('❌ Failed to fetch recent call:', error);
+                        }
+                    }
+
+                    // If still no callId, we can't update duration
+                    if (!callIdRef.current) {
+                        console.log('❌ No call ID available to update - skipping');
                         return;
                     }
 
                     try {
-                        // First try to get duration by phone number
-                        let duration = await getLastCallDuration(lastCalledNumberRef.current);
-                        console.log(`Got call duration from getLastCallDuration: ${duration} seconds`);
+                        // Try to get duration by phone number if available
+                        let duration = 0;
+                        
+                        if (lastCalledNumberRef.current) {
+                            duration = await getLastCallDuration(lastCalledNumberRef.current);
+                            console.log(`Got call duration from getLastCallDuration: ${duration} seconds`);
+                        }
 
                         // If still 0, try the most recent call as fallback
                         if (duration <= 0) {
@@ -157,9 +195,17 @@ export default function HomeScreen() {
 
                             // NEW: If call was >= 60 seconds, update streaks for both users
                             if (duration >= 60 && buddyEmailRef.current && user?.email) {
-                                console.log('✅ Call >= 60s, updating streaks for both users...');
-                                console.log(`📧 Buddy: ${buddyEmailRef.current}, User: ${user.email} `);
+                                console.log('='.repeat(60));
+                                console.log('✅ CONDITIONS MET - UPDATING STREAKS');
+                                console.log('='.repeat(60));
+                                console.log(`📧 User Email: ${user.email}`);
+                                console.log(`📧 Buddy Email: ${buddyEmailRef.current}`);
+                                console.log(`⏱️ Call Duration: ${duration} seconds`);
                                 const localDate = new Date().toISOString().split('T')[0];
+                                console.log(`📅 Date: ${localDate}`);
+                                
+                                console.log('🚀 Calling markAwakeAfterCall mutation...');
+                                
                                 try {
                                     const result = await markAwakeAfterCall({
                                         user1Email: user.email,
@@ -168,13 +214,35 @@ export default function HomeScreen() {
                                         date: localDate
                                     });
 
-                                    console.log('✅ markAwakeAfterCall result:', result);
+                                    console.log('='.repeat(60));
+                                    console.log('✅ MUTATION COMPLETED');
+                                    console.log('='.repeat(60));
+                                    console.log('Result:', JSON.stringify(result, null, 2));
 
                                     // Send system notification for successful streak update
-                                    if (result.status === 'success') {
+                                    if (result && result.status === 'success') {
                                         const minutes = Math.floor(duration / 60);
                                         const seconds = duration % 60;
                                         const durationStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+
+                                        console.log(`🎉 SUCCESS! Streaks updated!`);
+                                        console.log(`   - Your streak: ${result.user1?.streak || 'unknown'} days`);
+                                        console.log(`   - Buddy streak: ${result.user2?.streak || 'unknown'} days`);
+
+                                        // CRITICAL: Update the local user object to reflect new streak immediately
+                                        if (result.user1?.streak !== undefined) {
+                                            console.log('🔄 Updating local user object with new streak...');
+                                            await updateUser({
+                                                streak: result.user1.streak,
+                                                maxStreak: result.user1.maxStreak
+                                            });
+                                            console.log('✅ Local user updated - home screen should refresh now');
+                                            console.log(`📊 Updated streak: ${result.user1.streak}, wakeupCount: ${result.user1.wakeupCount}`);
+                                            
+                                            // Wait a moment for Convex real-time update to propagate
+                                            await new Promise(resolve => setTimeout(resolve, 500));
+                                            console.log('⏰ Waited for Convex query to update');
+                                        }
 
                                         if (typeof Notifications !== 'undefined' && Notifications) {
                                             await Notifications.scheduleNotificationAsync({
@@ -187,11 +255,28 @@ export default function HomeScreen() {
                                                 trigger: null,
                                             });
                                         }
-                                    } else {
+                                    } else if (result && result.status === 'call_too_short') {
+                                        console.log('⏱️ Call was too short according to server');
+                                        console.log(`   - Required: ${result.required}s`);
+                                        console.log(`   - Actual: ${result.actual}s`);
+                                        
                                         if (typeof Notifications !== 'undefined' && Notifications) {
                                             await Notifications.scheduleNotificationAsync({
                                                 content: {
-                                                    title: '✅ Streak Updated!',
+                                                    title: '⏱️ Call Too Short',
+                                                    body: `Talked for ${result.actual}s. Need ${result.required}s to count.`,
+                                                    sound: true,
+                                                    priority: Notifications.AndroidNotificationPriority.HIGH,
+                                                },
+                                                trigger: null,
+                                            });
+                                        }
+                                    } else {
+                                        console.log('⚠️ Unexpected result status:', result?.status || 'no status');
+                                        if (typeof Notifications !== 'undefined' && Notifications) {
+                                            await Notifications.scheduleNotificationAsync({
+                                                content: {
+                                                    title: '✅ Call Completed',
                                                     body: `Call completed successfully`,
                                                     sound: true,
                                                 },
@@ -200,20 +285,31 @@ export default function HomeScreen() {
                                         }
                                     }
                                 } catch (error) {
-                                    console.error('❌ Error updating streaks:', error);
+                                    console.error('='.repeat(60));
+                                    console.error('❌ ERROR UPDATING STREAKS');
+                                    console.error('='.repeat(60));
+                                    console.error('Error message:', error.message);
+                                    console.error('Error stack:', error.stack);
+                                    console.error('Error object:', JSON.stringify(error, null, 2));
+                                    
                                     if (typeof Notifications !== 'undefined' && Notifications) {
                                         await Notifications.scheduleNotificationAsync({
                                             content: {
                                                 title: '❌ Error',
-                                                body: 'Failed to update streak',
+                                                body: `Failed to update streak: ${error.message}`,
                                                 sound: true,
                                             },
                                             trigger: null,
                                         });
                                     }
                                 }
-                            } else if (duration < 60 && buddyEmailRef.current) {
-                                console.log(`⏱️ Call too short (${duration}s)`);
+                            } else if (duration < 60) {
+                                console.log('='.repeat(60));
+                                console.log('⏱️ CALL TOO SHORT');
+                                console.log('='.repeat(60));
+                                console.log(`Duration: ${duration}s (need 60s)`);
+                                console.log(`buddyEmailRef.current: ${buddyEmailRef.current}`);
+                                console.log(`user?.email: ${user?.email}`);
 
                                 // Send notification for short call
                                 if (typeof Notifications !== 'undefined' && Notifications) {
@@ -228,11 +324,12 @@ export default function HomeScreen() {
                                     });
                                 }
                             } else {
-                                // Solo alarm or no buddy
-                                console.log(`ℹ️ Conditions not met for streak update`);
-                                console.log(`   - duration >= 60: ${duration >= 60} `);
-                                console.log(`   - buddyEmailRef.current: ${buddyEmailRef.current} `);
-                                console.log(`   - user?.email: ${user?.email} `);
+                                console.log('='.repeat(60));
+                                console.log('❌ CONDITIONS NOT MET FOR STREAK UPDATE');
+                                console.log('='.repeat(60));
+                                console.log(`Duration: ${duration}s (>= 60: ${duration >= 60})`);
+                                console.log(`buddyEmailRef.current: ${buddyEmailRef.current} (exists: ${!!buddyEmailRef.current})`);
+                                console.log(`user?.email: ${user?.email} (exists: ${!!user?.email})`);
                             }
                         } else {
                             console.log('❌ Could not retrieve call duration from call log');
@@ -257,6 +354,20 @@ export default function HomeScreen() {
             console.log('📋 All alarms:', JSON.stringify(alarms, null, 2));
         }
     }, [alarms]);
+
+    // Debug: Log recentStreaks updates
+    useEffect(() => {
+        if (recentStreaks) {
+            const today = new Date().toISOString().split('T')[0];
+            const todayData = recentStreaks.find(s => s.date === today);
+            console.log('📊 Recent streaks updated:', {
+                totalRecords: recentStreaks.length,
+                todayDate: today,
+                todayCount: todayData?.count || 0,
+                todayData: todayData
+            });
+        }
+    }, [recentStreaks]);
 
     // Request CALL_PHONE, READ_PHONE_STATE and READ_CALL_LOG permissions when user is logged in
     useEffect(() => {
@@ -349,6 +460,15 @@ export default function HomeScreen() {
                             if (pendingCall.duration >= 60 && buddyEmail && user?.email) {
                                 console.log('✅ [Second handler] Call >= 60s, updating streaks...');
                                 const localDate = new Date().toISOString().split('T')[0];
+                                
+                                console.log('🚀 [Second handler] Calling markAwakeAfterCall mutation...');
+                                console.log('Parameters:', {
+                                    user1Email: user.email,
+                                    user2Email: buddyEmail,
+                                    callDuration: pendingCall.duration,
+                                    date: localDate
+                                });
+                                
                                 try {
                                     const result = await markAwakeAfterCall({
                                         user1Email: user.email,
@@ -357,12 +477,29 @@ export default function HomeScreen() {
                                         date: localDate
                                     });
 
-                                    console.log('✅ markAwakeAfterCall result:', result);
+                                    console.log('✅ [Second handler] markAwakeAfterCall result:', JSON.stringify(result, null, 2));
 
                                     if (result.status === 'success') {
                                         const minutes = Math.floor(pendingCall.duration / 60);
                                         const seconds = pendingCall.duration % 60;
-                                        const durationStr = minutes > 0 ? `${minutes}m ${seconds} s` : `${seconds} s`;
+                                        const durationStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+
+                                        console.log(`🎉 [Second handler] Streak updated successfully! User1 streak: ${result.user1.streak}, User2 streak: ${result.user2.streak}`);
+
+                                        // CRITICAL: Update the local user object to reflect new streak immediately
+                                        if (result.user1?.streak !== undefined) {
+                                            console.log('🔄 [Second handler] Updating local user object with new streak...');
+                                            await updateUser({
+                                                streak: result.user1.streak,
+                                                maxStreak: result.user1.maxStreak
+                                            });
+                                            console.log('✅ [Second handler] Local user updated - home screen should refresh now');
+                                            console.log(`📊 [Second handler] Updated streak: ${result.user1.streak}, wakeupCount: ${result.user1.wakeupCount}`);
+                                            
+                                            // Wait a moment for Convex real-time update to propagate
+                                            await new Promise(resolve => setTimeout(resolve, 500));
+                                            console.log('⏰ [Second handler] Waited for Convex query to update');
+                                        }
 
                                         // Send system notification (BOTH devices will receive this!)
                                         if (typeof Notifications !== 'undefined' && Notifications) {
@@ -377,10 +514,11 @@ export default function HomeScreen() {
                                             });
                                         }
                                     } else {
+                                        console.log('⚠️ [Second handler] markAwakeAfterCall returned non-success status:', result.status);
                                         if (typeof Notifications !== 'undefined' && Notifications) {
                                             await Notifications.scheduleNotificationAsync({
                                                 content: {
-                                                    title: '✅ Streak Updated!',
+                                                    title: '✅ Call Completed',
                                                     body: `Call completed successfully`,
                                                     sound: true,
                                                 },
@@ -389,12 +527,13 @@ export default function HomeScreen() {
                                         }
                                     }
                                 } catch (error) {
-                                    console.error('❌ Error updating streaks:', error);
+                                    console.error('❌ [Second handler] Error updating streaks:', error);
+                                    console.error('Error details:', error.message, error.stack);
                                     if (typeof Notifications !== 'undefined' && Notifications) {
                                         await Notifications.scheduleNotificationAsync({
                                             content: {
                                                 title: '❌ Error',
-                                                body: 'Failed to update streak',
+                                                body: `Failed to update streak: ${error.message}`,
                                                 sound: true,
                                             },
                                             trigger: null,

@@ -142,9 +142,10 @@ export default function AlarmsScreen() {
 
     // Open alarm editor screen
     const openAlarmEditor = () => {
-        showInterstitialAd(() => {
-            router.push('/screens/alarm-editor');
-        });
+        // showInterstitialAd(() => {
+        //     router.push('/screens/alarm-editor');
+        // });
+        router.push('/screens/alarm-editor');
     };
 
     const renderItem = ({ item }) => (
