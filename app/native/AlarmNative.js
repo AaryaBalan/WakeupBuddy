@@ -406,11 +406,11 @@ export async function checkAllPermissions() {
 export async function scheduleAlarm(date, buddyName = null, alarmId = null, requestCode = 1001) {
     if (Platform.OS !== 'android') {
         console.warn('Alarm scheduling is only supported on Android');
-        throw new Error('Android only');
+        return false;
     }
     if (!AlarmModule) {
-        console.error('AlarmModule not found. Make sure you built the native app.');
-        throw new Error('AlarmModule not available');
+        console.warn('AlarmModule not available in this environment (e.g. Expo Go). Native alarm scheduling skipped.');
+        return false;
     }
 
     // Check all critical permissions
@@ -448,10 +448,10 @@ export async function scheduleAlarm(date, buddyName = null, alarmId = null, requ
 
 export async function cancelAlarm(requestCode = 1001) {
     if (Platform.OS !== 'android') {
-        throw new Error('Android only');
+        return false;
     }
     if (!AlarmModule) {
-        throw new Error('AlarmModule not available');
+        return false;
     }
 
     try {
@@ -466,10 +466,10 @@ export async function cancelAlarm(requestCode = 1001) {
 
 export async function stopAlarmService() {
     if (Platform.OS !== 'android') {
-        throw new Error('Android only');
+        return false;
     }
     if (!AlarmModule) {
-        throw new Error('AlarmModule not available');
+        return false;
     }
 
     try {
@@ -489,7 +489,14 @@ export async function stopAlarmService() {
  */
 export async function makePhoneCall(phoneNumber) {
     if (!AlarmModule) {
-        throw new Error('AlarmModule not available');
+        console.warn('AlarmModule not available, opening system dialer with Linking');
+        try {
+            await Linking.openURL(`tel:${phoneNumber}`);
+            return true;
+        } catch (e) {
+            console.error('Failed to open dialer via Linking:', e);
+            return false;
+        }
     }
 
     try {
@@ -504,7 +511,8 @@ export async function makePhoneCall(phoneNumber) {
 
 export async function savePendingCall(callId, phoneNumber) {
     if (!AlarmModule) {
-        throw new Error('AlarmModule not available');
+        console.warn('AlarmModule not available to save pending call');
+        return false;
     }
 
     try {
@@ -519,7 +527,7 @@ export async function savePendingCall(callId, phoneNumber) {
 
 export async function checkPendingCall() {
     if (!AlarmModule) {
-        throw new Error('AlarmModule not available');
+        return null;
     }
 
     try {
