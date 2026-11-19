@@ -11,7 +11,7 @@ import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, NativeModules, Platform, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { PopupProvider } from "../contexts/PopupContext";
@@ -34,9 +34,15 @@ export default function RootLayout() {
     Montserrat_800ExtraBold,
   });
 
-  // Hide Android navigation bar to prevent collision with app navbar
+  // Hide Android navigation bar to prevent collision with app navbar (in native builds)
   useEffect(() => {
-    SystemNavigationBar.navigationHide();
+    try {
+      if (Platform.OS === 'android' && NativeModules?.NavigationBar && SystemNavigationBar?.navigationHide) {
+        SystemNavigationBar.navigationHide().catch(() => {});
+      }
+    } catch (e) {
+      // Ignore in environments where native module is not registered (e.g. Expo Go)
+    }
   }, []);
 
   // Hide splash screen and set default font when fonts are loaded

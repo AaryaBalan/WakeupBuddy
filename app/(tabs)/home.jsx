@@ -7,7 +7,15 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, StatusBar, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import RNShare from 'react-native-share';
+import * as Sharing from 'expo-sharing';
+
+// Safely load RNShare if available in native build
+let RNShare = null;
+try {
+    RNShare = require('react-native-share').default;
+} catch (e) {
+    // Fallback handled via expo-sharing
+}
 import ViewShot from 'react-native-view-shot';
 import AppText from '../../components/AppText';
 import ProfilePic from '../../components/ProfilePic';
@@ -1234,17 +1242,22 @@ export default function HomeScreen() {
             const maxStreak = user?.maxStreak || 0;
             const caption = `🔥 ${streakCount} Day Streak on WakeUpBuddy! 🔥\n\nI'm crushing my wake-up goals! ${maxStreak > streakCount ? `Personal best: ${maxStreak} days!` : 'New personal record!'}\n\nJoin me in building better morning habits! 💪⏰`;
 
-            // Share both image and text using react-native-share
-            const shareOptions = {
-                title: 'My WakeUpBuddy Streak',
-                message: caption,
-                url: `file://${uri}`,
-                type: 'image/png',
-                subject: 'Check out my streak!',
-                failOnCancel: false
-            };
-
-            await RNShare.open(shareOptions);
+            // Share both image and text using react-native-share if available, else expo-sharing
+            if (RNShare && RNShare.open) {
+                const shareOptions = {
+                    title: 'My WakeUpBuddy Streak',
+                    message: caption,
+                    url: `file://${uri}`,
+                    type: 'image/png',
+                    subject: 'Check out my streak!',
+                    failOnCancel: false
+                };
+                await RNShare.open(shareOptions);
+            } else if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(uri, { dialogTitle: 'My WakeUpBuddy Streak' });
+            } else {
+                Alert.alert('Share', caption);
+            }
 
         } catch (error) {
             console.error('Error sharing streak card:', error);
